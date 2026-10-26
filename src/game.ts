@@ -18,7 +18,7 @@ export class Sector extends Phaser.Scene {
   constructor(bridge:Bridge){super('Sector');this.bridge=bridge;}
   init(data:{run?:Run}){if(data?.run)this.run=data.run;this.path=[];this.stationViews=[];this.threats=[];this.bits=[];this.near=null;this.invincible=0;this.shieldFor=0;this.cooldown=0;}
   create(){
-    this.makeTextures();this.drawMap();
+    this.blocked=walls(this.run.level);this.makeTextures();this.drawMap();
     this.pathLine=this.add.graphics().setDepth(1);
     this.shadow=this.add.ellipse(this.run.x,this.run.y+13,27,10,0x000000,.3).setDepth(8);
     this.player=this.add.sprite(this.run.x,this.run.y,'hero').setOrigin(.5,.5).setDepth(10);
@@ -105,15 +105,17 @@ export class Sector extends Phaser.Scene {
   }
   burst(x:number,y:number,color:number){if(this.bridge.reducedMotion)return;for(let i=0;i<7;i++){const p=this.add.rectangle(x,y,4,4,color).setDepth(15);const a=i/7*Math.PI*2;this.tweens.add({targets:p,x:x+Math.cos(a)*28,y:y+Math.sin(a)*28,alpha:0,duration:400,onComplete:()=>p.destroy()});}}
   drawMap(){
+    const level=LEVELS[this.run.level-1];
     const g=this.add.graphics();g.fillStyle(0x12242f);g.fillRect(0,0,COLS*TILE,ROWS*TILE);
     for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
       const px=x*TILE,py=y*TILE;
       if(this.blocked.has(`${x},${y}`)){g.fillStyle(0x0a1726);g.fillRect(px,py,TILE,TILE);g.fillStyle(0x345466);g.fillRect(px,py,TILE,22);g.fillStyle(0x4b6b7c);g.fillRect(px,py,TILE,4);g.fillStyle(0x203c50);g.fillRect(px+2,py+7,TILE-4,13);}
-      else{const region=x<11?0:x<21?1:2;const cs=[0x1a3540,0x1e3549,0x213647];g.fillStyle(cs[region]);g.fillRect(px,py,TILE-1,TILE-1);if((x+y)%4===0){g.fillStyle(0x739aaa,.06);g.fillRect(px+8,py+8,2,2);}}
+      else{const region=x<11?0:x<21?1:2;const cs=level.floors||[0x1a3540,0x1e3549,0x213647];g.fillStyle(cs[region]);g.fillRect(px,py,TILE-1,TILE-1);if((x+y)%4===0){g.fillStyle(0x739aaa,.06);g.fillRect(px+8,py+8,2,2);}}
     }
     for(const [x,y] of [[2,2],[19,2],[23,19],[9,13]]){g.fillStyle(0x0d202d);g.fillRoundedRect(x*TILE,y*TILE,40,52,5);g.fillStyle(0x396374);g.fillRect(x*TILE+5,y*TILE+6,30,5);for(let i=0;i<3;i++){g.fillStyle(0x66e3b3,.5);g.fillRect(x*TILE+7,y*TILE+19+i*9,5,3);g.fillStyle(0x78959d,.3);g.fillRect(x*TILE+16,y*TILE+19+i*9,16,3);}}
     const titleStyle={fontFamily:'monospace',fontSize:'11px',color:'#71929f',letterSpacing:2};
-    this.add.text(58,375,'01 / ULAZ',titleStyle);this.add.text(402,269,'02 / PODATCI',titleStyle);this.add.text(725,485,'03 / OPORAVAK',titleStyle);
+    const rooms=level.rooms||['ULAZ','PODATCI','OPORAVAK'];
+    this.add.text(58,395,'01 / '+rooms[0],titleStyle);this.add.text(402,285,'02 / '+rooms[1],titleStyle);this.add.text(725,495,'03 / '+rooms[2],titleStyle);
     this.add.rectangle(112,560,48,48,0x66e3b3,.05).setStrokeStyle(1,0x66e3b3,.3);this.add.text(112,592,'POČETAK',{...titleStyle,fontSize:'9px'}).setOrigin(.5,0);
   }
   makeTextures(){
@@ -123,7 +125,7 @@ export class Sector extends Phaser.Scene {
     rect(10,2,12,3,0x66e3b3);rect(5,5,22,18,0x79d9e8);rect(7,7,18,10,0x172d42);rect(10,10,4,4,0xd7ffff);rect(20,10,4,4,0xd7ffff);rect(9,23,14,6,0x6590be);rect(7,29,7,3,0x0a1726);rect(19,29,7,3,0x0a1726);rect(3,20,5,8,0x66e3b3);rect(24,20,5,8,0x66e3b3);rect(12,19,8,3,0x2f6584);g.generateTexture('hero',32,32);g.clear();
     rect(8,3,16,3,0xff9da8);rect(4,6,24,20,0xc65575);rect(1,11,4,9,0xf78b98);rect(27,11,4,9,0xf78b98);rect(7,9,18,11,0x4c243e);rect(9,12,4,4,0xffe3d1);rect(19,12,4,4,0xffe3d1);rect(10,25,4,4,0xf78b98);rect(20,25,4,4,0xf78b98);g.generateTexture('threat',32,32);g.clear();
     rect(5,0,6,16,0xffcf76);rect(0,5,16,6,0xffcf76);rect(6,3,4,10,0xfff4c4);g.generateTexture('bit',16,16);g.clear();
-    for(const icon of ['card','door','power','file','shred','check','exit','access','lock','key','archive','backup']){
+    for(const icon of ['card','door','power','file','shred','check','exit','access','lock','key','archive','backup','bug','log','update','network']){
       rect(4,4,24,24,0x0b1b2c);rect(5,5,22,22,0x377088);
       const c=icon==='power'||icon==='backup'?0xffcf76:icon==='exit'?0x66e3b3:0xb4eaff;
       if(icon==='file'||icon==='card'){rect(9,7,14,18,c);rect(12,11,8,2,0x377088);rect(12,16,8,2,0x377088);if(icon==='card')rect(8,20,16,3,0x66e3b3);}
@@ -134,6 +136,10 @@ export class Sector extends Phaser.Scene {
       else if(icon==='check'){g.lineStyle(4,c);g.beginPath();g.moveTo(7,16);g.lineTo(13,22);g.lineTo(25,9);g.strokePath();}
       else if(icon==='shred'){rect(8,7,16,11,c);rect(7,16,18,5,0x0b1b2c);for(let i=0;i<4;i++)rect(8+i*5,21,2,8,c);}
       else if(icon==='access'){rect(9,8,5,5,c);rect(8,15,7,8,c);rect(19,9,6,3,c);rect(19,15,6,3,c);rect(19,21,6,3,c);}
+      else if(icon==='bug'){rect(11,9,11,16,0xff9bb1);rect(14,6,5,5,0xff9bb1);for(let i=0;i<3;i++){rect(7,11+i*5,4,2,c);rect(22,11+i*5,4,2,c);}rect(16,12,2,10,0x0b1b2c);}
+      else if(icon==='log'){rect(8,7,17,19,c);for(let i=0;i<3;i++){rect(10,10+i*5,2,2,0x377088);rect(15,10+i*5,7,2,0x377088);}}
+      else if(icon==='update'){g.lineStyle(3,c);g.strokeCircle(16,16,8);g.fillStyle(0xffcf76);g.fillTriangle(21,5,28,9,21,13);rect(15,11,3,10,0x66e3b3);rect(11,15,11,3,0x66e3b3);}
+      else if(icon==='network'){rect(12,7,9,7,c);rect(15,14,3,8,c);rect(7,19,19,3,c);rect(6,21,7,5,0xffcf76);rect(21,21,7,5,0xffcf76);}
       else {rect(8,8,17,17,c);rect(10,10,13,3,0x377088);rect(11,18,4,4,0x377088);rect(18,18,4,4,0x66e3b3);}
       g.generateTexture('icon-'+icon,32,32);g.clear();
     }g.destroy();

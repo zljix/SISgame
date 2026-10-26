@@ -1,3 +1,5 @@
+import { DECISIONS, MALWARE_SAMPLES, SERVICE_RULES, type MalwareKind, type ServiceSettings } from './missions.ts';
+
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type Access = 'none' | 'read' | 'write';
 export type Permissions = { student: Access; teacher: Access; guest: Access };
@@ -9,7 +11,7 @@ export interface Run {
   completed: boolean;
 }
 export interface Result { ok: boolean; title: string; message: string; complete?: boolean }
-export const VERSION = '0.1.2';
+export const VERSION = '0.2.0';
 export const FILES = [
   { id: 'rad', name: 'Završni rad', text: 'Završni rad · posljednja spremljena inačica' },
   { id: 'mjerenja', name: 'Mjerenja', text: 'Temperatura: 23 °C · 12 mjerenja' },
@@ -19,11 +21,17 @@ export const CHECKS: Record<number, string[]> = {
   1: ['door', 'ups', 'shred', 'drill'],
   2: ['schedule', 'grades', 'encrypt', 'deliver'],
   3: ['collect', 'backup', 'restore', 'verify'],
+  4: ['containment', 'samples', 'recovery', 'malware-test'],
+  5: ['sessions', 'identity', 'mfa', 'auth-test'],
+  6: ['patches', 'accounts', 'services', 'harden-test'],
 };
 export const CHECK_NAMES: Record<string, string> = {
   door: 'Kontrola pristupa prostoru', ups: 'Zaštita napajanja', shred: 'Sigurno uništavanje ispisa', drill: 'Provjera fizičke zaštite',
   schedule: 'Dostupnost rasporeda', grades: 'Najmanje potrebne ovlasti', encrypt: 'Šifriranje u prijenosu', deliver: 'Provjera zaštićenog prijenosa',
   collect: 'Odabir važnih podataka', backup: 'Odvojena sigurnosna kopija', restore: 'Obnova nakon kvara', verify: 'Provjera obnovljenog sadržaja',
+  containment: 'Izolacija i prijava incidenta', samples: 'Virus, crv i trojanski konj', recovery: 'Oporavak iz pouzdanog izvora', 'malware-test': 'Provjera prije povratka u rad',
+  sessions: 'Zapisi i opoziv sesija', identity: 'Jedinstvena lozinka', mfa: 'Dva različita faktora', 'auth-test': 'Provjera prijave i ovlasti',
+  patches: 'Službene sigurnosne nadogradnje', accounts: 'Standardni račun i UAC', services: 'Samo potrebne usluge', 'harden-test': 'Siguran i dostupan sustav',
 };
 export function newRun(level: number, difficulty: Difficulty = 'easy'): Run {
   if (!CHECKS[level]) throw new Error('Nepoznata misija');
@@ -113,10 +121,40 @@ export function act(run: Run, station: string, choice: string): Result {
       return good(run, 'verify', 'Sadržaj sve tri datoteke je potvrđen', 'Obnovljene datoteke otvaraju se i odgovaraju spremljenoj inačici. Uspješno kopiranje samo po sebi nije dokaz uspješne obnove.');
     }
   }
+  const decision = DECISIONS[station];
+  if (decision?.level === run.level) {
+    if (!decision.requires.every(key => run.checks[key]?.done)) return { ok: false, title: 'Priprema nije dovršena', message: decision.locked };
+    const option = decision.options.find(option => option.id === choice);
+    if (!option) return { ok: false, title: 'Odaberi ponuđeni postupak', message: 'Ovaj postupak nije dostupan na stanici.' };
+    if (choice !== decision.correct) return wrong(run, station, 'Razmotri posljedicu postupka', option.feedback);
+    return good(run, station, decision.title, decision.message);
+  }
   return { ok: false, title: 'Nema radnje', message: 'Provjeri trenutačni cilj.' };
 }
+export function classifyMalware(run: Run, answers: Record<string, MalwareKind | ''>): Result {
+  if (run.level !== 4 || run.completed) return { ok: false, title: 'Analiza nije dostupna', message: 'Pokreni misiju Sumnjivi program.' };
+  if (!run.checks.containment.done) return { ok: false, title: 'Najprije izoliraj računalo', message: 'Ograniči mrežnu komunikaciju LAB-04 i prijavi incident prije analize.' };
+  if (MALWARE_SAMPLES.some(sample => !answers[sample.id])) return { ok: false, title: 'Dovrši razvrstavanje', message: 'Odaberi vrstu za sva tri izvještaja.' };
+  const mistaken = MALWARE_SAMPLES.find(sample => answers[sample.id] !== sample.kind);
+  if (mistaken) return wrong(run, 'samples', `${mistaken.label}: pogledaj način rada`, mistaken.explanation);
+  return good(run, 'samples', 'Tri ponašanja su prepoznata', 'A: trojanski konj. B: crv. C: virus. Zaključak proizlazi iz opisanog ponašanja, ne iz naziva ili ikone datoteke. U stvarnosti jedan program može kombinirati više svojstava.');
+}
+export function secureSession(run: Run, event: string, response: string): Result {
+  if (run.level !== 5 || run.completed) return { ok: false, title: 'Dnevnik nije dostupan', message: 'Pokreni misiju Tko se prijavio?' };
+  if (!event || !response) return { ok: false, title: 'Odaberi događaj i postupak', message: 'Označi sumnjivu uspješnu prijavu i način zaštite računa.' };
+  if (event !== 'unknown') return wrong(run, 'sessions', 'Provjeri ishod i uređaj', event === 'typo' ? 'Pogrešna lozinka ovdje nije stvorila sesiju. Traži uspješnu prijavu koju vlasnik ne prepoznaje; i neuspjele pokušaje vrijedi pratiti.' : 'Vlasnik potvrđuje prijavu sa školskog uređaja. Sama uspješna prijava nije dokaz incidenta: usporedi uređaj i potvrdu vlasnika.');
+  if (response !== 'revoke') return wrong(run, 'sessions', 'Sesija i dalje može biti aktivna', response === 'erase' ? 'Brisanje zapisa ne prekida pristup, a uklanja tragove. Sačuvaj zapise, prijavi događaj i opozovi sesije računa.' : 'Sama promjena lozinke ne mora prekinuti postojeću sesiju. Potrebno je i izričito opozvati sesije te provjeriti pristup.');
+  return good(run, 'sessions', 'Sesije su opozvane, zapisi sačuvani', 'Prijava u 22:43 je izdvojena za istragu. U simulaciji administrator privremeno blokira prijave i opoziva sve sesije računa. Vlasnik sada treba novu lozinku i dodatni faktor.');
+}
+export function configureServices(run: Run, settings: ServiceSettings): Result {
+  if (run.level !== 6 || run.completed) return { ok: false, title: 'Postavke nisu dostupne', message: 'Pokreni misiju Ojačaj sustav.' };
+  if (!['patches', 'accounts'].every(key => run.checks[key].done)) return { ok: false, title: 'Najprije pripremi sustav', message: 'Primijeni nadogradnje i postavi standardni korisnički račun.' };
+  const mismatch = SERVICE_RULES.find(service => settings[service.id] !== service.expected);
+  if (mismatch) return wrong(run, 'services', `${mismatch.label}: provjeri politiku`, mismatch.expected ? 'Ova je usluga potrebna. Isključivanjem svih usluga narušavaš rad ili održavanje sustava. Uključi je i ukloni samo nepotrebnu uslugu.' : 'Udaljeni pristup ovoj stanici nije odobren ni potreban. Isključi ga; potrebne školske usluge ostavi uključene.');
+  return good(run, 'services', 'Rade samo potrebne usluge', 'Školske nadogradnje i predaja radova ostaju dostupne. Nepotreban udaljeni pristup je isključen. Završna provjera ispitat će i sigurnost i rad nastave.');
+}
 export function applyPermissions(run: Run, kind: 'schedule' | 'grades', p: Permissions): Result {
-  if (run.level !== 2) return { ok: false, title: 'Pogrešna misija', message: '' };
+  if (run.level !== 2 || run.completed) return { ok: false, title: 'Postavke nisu dostupne', message: 'Pokreni misiju Samo za ovlaštene.' };
   const expected: Permissions = kind === 'schedule' ? { student: 'read', teacher: 'write', guest: 'read' } : { student: 'none', teacher: 'write', guest: 'none' };
   if (p.student === expected.student && p.teacher === expected.teacher && p.guest === expected.guest) return good(run, kind, 'Prava su primijenjena i isprobana', kind === 'schedule' ? 'Učenik i gost mogu čitati javni raspored. Nastavnik ga može čitati i mijenjati. Nitko nema nepotrebnu ovlast.' : 'Prema zadanoj politici ove simulacije mapu Ocjene otvara i mijenja samo ovlašteni nastavnik. Učenik i gost nemaju pristup ovoj mapi.');
   const role = p.student !== expected.student ? 'Učenik' : p.teacher !== expected.teacher ? 'Nastavnik' : 'Gost';
@@ -129,9 +167,9 @@ export function nextTarget(run: Run): string {
   } else if (run.level === 2) {
     if (!has(run, 'schedule')) return 'schedule'; if (!has(run, 'grades')) return 'grades'; if (!has(run, 'secret')) return 'secret';
     if (!has(run, 'encrypt')) return 'encrypt'; if (!has(run, 'deliver')) return 'deliver';
-  } else {
+  } else if (run.level === 3) {
     if (!has(run, 'collect')) return FILES.find(f => !run.files.includes(f.id))?.id || 'backup';
     if (!has(run, 'backup')) return 'backup'; if (!has(run, 'failure')) return 'failure'; if (!has(run, 'restore')) return 'backup'; if (!has(run, 'verify')) return 'verify';
-  }
+  } else return CHECKS[run.level].find(key => !run.checks[key]?.done) || 'exit';
   return 'exit';
 }

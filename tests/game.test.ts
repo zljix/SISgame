@@ -5,7 +5,7 @@ import { emptySave, parseSave, recordBest, totalXP } from '../src/storage.ts';
 import { LEVELS, route, walls, movementTowards } from '../src/data.ts';
 
 test('Every mission station is reachable from the entrance without crossing walls',()=>{
- const w=walls();for(const level of LEVELS)for(const s of level.stations){const steps=route(112,560,s.x,s.y,w);assert.ok(steps.length>0,`${level.id}/${s.id}`);for(const p of steps)assert.equal(w.has(`${Math.floor(p.x/32)},${Math.floor(p.y/32)}`),false);assert.deepEqual(steps.at(-1),{x:s.x,y:s.y});}
+ for(const level of LEVELS){const w=walls(level.id);for(const s of level.stations){const steps=route(112,560,s.x,s.y,w);assert.ok(steps.length>0,`${level.id}/${s.id}`);for(const p of steps)assert.equal(w.has(`${Math.floor(p.x/32)},${Math.floor(p.y/32)}`),false);assert.deepEqual(steps.at(-1),{x:s.x,y:s.y});}}
 });
 test('Exit is unavailable before all security checks, even after collecting bonus bits',()=>{const r=newRun(1);r.bits=['bit-0','bit-1'];assert.equal(act(r,'exit','finish').ok,false);assert.equal(r.completed,false);assert.equal(score(r),0);});
 test('Physical security requires a card, actual access control, UPS and secure disposal',()=>{

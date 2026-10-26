@@ -1,12 +1,22 @@
 # SISgame — Čuvari sustava
 
-Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, namijenjena učenicima srednje tehničke škole. Inačica **0.1.2** sadrži tri dovršive misije, hrvatske upute, dodirne kontrole i tipkovnicu.
+Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, namijenjena učenicima srednje tehničke škole. Inačica **0.2.0** sadrži šest dovršivih misija, hrvatske upute, dodirne kontrole i tipkovnicu.
 
 ## Što je u igri
 
 1. **Zaključaj rizik** — kontrola ulaza, UPS, osjetljivi ispisi i provjera mjera.
 2. **Samo za ovlaštene** — prava na javni raspored i povjerljivu mapu, šifriranje i provjera prijenosa.
 3. **Povratak podataka** — odabir važnih datoteka, odvojena kopija, simulirani kvar, obnova i provjera sadržaja.
+
+4. **Sumnjivi program** — izolacija incidenta, virus/crv/trojanski konj, rootkit i pouzdan oporavak.
+5. **Tko se prijavio?** — analiza dnevnika, opoziv sesija, jedinstvena lozinka, MFA i provjera prijave.
+6. **Ojačaj sustav** — službene nadogradnje, standardni račun/UAC, potrebne usluge i provjera dostupnosti.
+
+Nove misije imaju različite prolaze, boje prostorija i opremu. Uz odluke na terminalima dodani su razvrstavanje izvještaja, pregled dnevnika i upravljačka ploča usluga. Završne provjere prikazuju učinak mjera; rezultati nude i pitanje za primjenu gradiva.
+
+[Nastavni sadržaj, rješenja i stručni izvori](CONTENT.md) opisani su zasebno. Postojeći napredak iz 0.1.x ostaje sačuvan; dovršena treća misija otključava četvrtu.
+
+![Razvrstavanje izvještaja u novoj laboratorijskoj misiji](media/campaign-samples-v0.2.0.jpg)
 
 Svaku misiju otvara kratka pouka. Lik istražuje prostorije, izbjegava arkadne smetnje i rukuje opremom. Sigurnosne postavke imaju objašnjene posljedice. Četiri završene zadaće donose 100 bodova učenja; žuti bitovi donose zaseban bonus. Bilježi se je li odluka bila samostalna ili ispravljena. Ponavljanje čuva najbolji rezultat i ne umnaža iste bodove. Misije se otključavaju redom.
 
@@ -71,6 +81,7 @@ npm run build
 
 `npm run build` provjerava TypeScript, izrađuje `docs/` i generira potpun popis datoteka za offline predmemoriju. Izvorni kôd je u `src/`; `docs/` treba ponovno izgraditi nakon svake izmjene. Nakon izmjene potrebno je commitati i izvorne i izgrađene datoteke. Ovisnosti su zaključane u `package-lock.json`.
 
+- `src/missions.ts` — sadržaj novih odluka, izvještaji, zapisi i pravila usluga.
 - `src/core.ts` — nastavna pravila i prijelazi stanja.
 - `src/game.ts` — Phaser, mapa, kretanje, prepreke i likovi.
 - `src/data.ts` — misije, pouke, mjesta i putanje.
@@ -80,9 +91,11 @@ npm run build
 
 ## Provjera prije uporabe u razredu
 
-Automatizirani testovi provjeravaju pravila misija, dostupnost svih mjesta na mapi, sprečavanje ponovnog zbrajanja istih bodova te spremanje. Pregled u računalnom pregledniku ne zamjenjuje probu na stvarnom iPhoneu i Androidu. Prije nastavne uporabe provjerite višestruki dodir, okretanje zaslona, zaključavanje/otključavanje, povratak nakon zatvaranja, zvuk, offline pokretanje i ažuriranje.
+23 automatizirana testa provjeravaju pravila svih šest misija, dostupnost mjesta na svakoj mapi, preduvjete, pogrešne odluke, sprečavanje ponovnog zbrajanja bodova, kompatibilnost starog napretka i offline paket. Pregled u računalnom pregledniku ne zamjenjuje probu na stvarnom iPhoneu i Androidu. Prije nastavne uporabe provjerite višestruki dodir, okretanje zaslona, zaključavanje/otključavanje, povratak nakon zatvaranja, zvuk, offline pokretanje i ažuriranje.
 
-Za proširenje kampanje predviđeno je sedam nastavnih cjelina i 26 tema; u ovoj inačici implementirane su samo gore navedene tri misije.
+Nove konzole pregledane su u Chromeu na 956 × 440 i 956 × 378 uz simulirane sigurne rubove te na 568 × 320 i 390 × 844. Na nižem širokom prikazu sva tri izvještaja, zapisa dnevnika i prekidača usluga stanu bez pomicanja. Na najmanjim prikazima duži sadržaj pomiče se unutar prozora, a zatvaranje i glavna tipka ostaju dostupni.
+
+Nastavni okvir obuhvaća sedam cjelina i 26 tema. Ova inačica ima šest misija koje objedinjuju dio tema; mrežni i operativni scenariji ostaju za nastavak razvoja. Detaljna veza s gradivom nalazi se u [CONTENT.md](CONTENT.md).
 
 ## Izvori i ovisnosti
 

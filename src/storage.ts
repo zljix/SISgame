@@ -12,9 +12,9 @@ export function parseSave(raw:string|null): Save {
     const input=JSON.parse(raw);if(input?.schema!==1)return out;
     if(difficulties.includes(input.settings?.difficulty))out.settings.difficulty=input.settings.difficulty;
     out.settings.sound=input.settings?.sound===true;out.settings.reducedMotion=input.settings?.reducedMotion===true;
-    for(const n of [1,2,3]){const b=input.best?.[n];if(b && typeof b==='object')out.best[n]={learning:clamp(b.learning,0,100),arcade:clamp(b.arcade,0,60),independent:clamp(b.independent,0,4),completed:b.completed===true};}
+    for(const n of Object.keys(CHECKS)){const b=input.best?.[n];if(b && typeof b==='object')out.best[n]={learning:clamp(b.learning,0,100),arcade:clamp(b.arcade,0,60),independent:clamp(b.independent,0,4),completed:b.completed===true};}
     const a=input.active;
-    if(a && [1,2,3].includes(a.level) && difficulties.includes(a.difficulty) && a.completed!==true){
+    if(a && Number.isInteger(a.level) && Object.hasOwn(CHECKS,a.level) && difficulties.includes(a.difficulty) && a.completed!==true){
       const r=newRun(a.level,a.difficulty);r.x=clamp(a.x,48,976);r.y=clamp(a.y,48,656);
       r.health=clamp(a.health,1,3);r.hits=clamp(a.hits,0,100000);r.seconds=clamp(a.seconds,0,10000000);
       const validIds=new Set(FILES.map(f=>f.id));
