@@ -1,6 +1,6 @@
 # SISgame — Čuvari sustava
 
-Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, namijenjena učenicima srednje tehničke škole. Prva inačica **0.1.0** sadrži tri dovršive misije, hrvatske upute, dodirne kontrole i tipkovnicu.
+Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, namijenjena učenicima srednje tehničke škole. Inačica **0.1.1** sadrži tri dovršive misije, hrvatske upute, dodirne kontrole i tipkovnicu.
 
 ## Što je u igri
 
@@ -11,6 +11,12 @@ Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, namijenjena u
 Svaku misiju otvara kratka pouka. Lik istražuje prostorije, izbjegava arkadne smetnje i rukuje opremom. Sigurnosne postavke imaju objašnjene posljedice. Četiri završene zadaće donose 100 bodova učenja; žuti bitovi donose zaseban bonus. Bilježi se je li odluka bila samostalna ili ispravljena. Ponavljanje čuva najbolji rezultat i ne umnaža iste bodove. Misije se otključavaju redom.
 
 **Simulacijska ograničenja:** prikaz prijetnji, provjera kartica, električne zaštite, šifriranja i kopiranja je didaktički model. Crvene pokretne smetnje i štit su arkadne prepreke, ne model rada antivirusnog programa. Podatci su izmišljeni. Program ne pristupa stvarnim školskim sustavima i ne izvodi stvarne sigurnosne napade.
+
+## Mobilni vodoravni prikaz (0.1.1)
+
+Izbornici imaju stalno vidljiv naslov, zatvaranje i glavne tipke; dugi sadržaj pomiče se unutar prozora. Pouke i ponuđene radnje koriste širinu vodoravnog zaslona. Obavijesti se prikazuju u zasebnoj traci ispod statusa igre, ostaju 12 sekundi i mogu se zatvoriti dodirom. Igra se prilagođava promjeni visine preglednika i poštuje sigurne rubove zaslona.
+
+![Uvodna pouka u vodoravnom prikazu 844 × 390](media/landscape-briefing-v0.1.1.jpg)
 
 ## Pokretanje i upravljanje
 

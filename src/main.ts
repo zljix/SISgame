@@ -29,15 +29,15 @@ app.innerHTML=`
  <footer class="home-footer"><span id="save-status">Napredak se sprema na ovom uređaju.</span><button id="version" class="text-button">v${VERSION}</button></footer>
 </main>
 <section id="play" class="play" aria-label="Igra" inert aria-hidden="true"><header class="hud"><button id="back-map" class="hud-logo" aria-label="Pauza i karta misija">${ico('shield')}<span>SISgame</span></button><div class="hud-mission"><small id="level-number">SEKTOR 01</small><strong id="level-title">Zaključaj rizik</strong></div><div class="hud-stats"><div class="health" id="health" aria-label="Energija: 3 od 3">● ● ●</div><div class="score"><strong id="run-xp">0</strong><span>XP</span></div><button id="lesson" class="icon-button" aria-label="Pouka i cilj misije">${ico('help')}</button><button id="pause" class="icon-button" aria-label="Pauza">${ico('pause')}</button></div></header>
- <div id="game-stage"><div id="canvas-host"></div><button id="goal" class="goal"><span id="goal-count">0/4</span><span id="goal-text">Preuzmi službenu karticu</span><span class="goal-arrow">↗</span></button><div class="map-caption">DODIRNI TLO ZA KRETANJE</div><div class="controls"><div id="joystick" class="joystick" role="group" aria-label="Virtualna palica za kretanje"><div class="joy-cross"></div><div id="joy-thumb" class="joy-thumb"></div></div><div id="nearby" class="nearby" aria-live="polite"></div><div class="action-controls"><button id="shield" class="shield-control" aria-label="Aktiviraj štit">${ico('shield')}<span id="shield-label">Štit</span><kbd>Q</kbd></button><button id="action" class="action-control" disabled>${ico('bolt')}<span id="action-label">Priđi opremi</span><kbd>E</kbd></button></div></div></div>
+ <div id="notice-slot"></div><div id="game-stage"><div id="canvas-host"></div><button id="goal" class="goal"><span id="goal-count">0/4</span><span id="goal-text">Preuzmi službenu karticu</span><span class="goal-arrow">↗</span></button><div class="map-caption">DODIRNI TLO ZA KRETANJE</div><div class="controls"><div id="joystick" class="joystick" role="group" aria-label="Virtualna palica za kretanje"><div class="joy-cross"></div><div id="joy-thumb" class="joy-thumb"></div></div><div id="nearby" class="nearby" aria-live="polite"></div><div class="action-controls"><button id="shield" class="shield-control" aria-label="Aktiviraj štit">${ico('shield')}<span id="shield-label">Štit</span><kbd>Q</kbd></button><button id="action" class="action-control" disabled>${ico('bolt')}<span id="action-label">Priđi opremi</span><kbd>E</kbd></button></div></div></div>
 </section>
-<dialog id="dialog" aria-labelledby="dialog-title"></dialog><div id="toast" class="toast" role="status" aria-live="polite"></div>`;
+<dialog id="dialog" aria-labelledby="dialog-title"></dialog><div id="toast" class="toast" hidden><div id="toast-message" role="status" aria-live="polite" aria-atomic="true"></div><button id="toast-close" aria-label="Zatvori obavijest">×</button></div>`;
 
 const $=<T extends HTMLElement=HTMLElement>(s:string)=>document.querySelector<T>(s)!;
 let save:Save;let storageOK=true;
 try {save=parseSave(localStorage.getItem(SAVE_KEY));}catch{save=emptySave();storageOK=false;}
 let run=save.active||newRun(1,save.settings.difficulty), running=false, near:Station|null=null;
-let closeHook:(()=>void)|null=null;let toastTimer:number|undefined;
+let closeHook:(()=>void)|null=null;let toastTimer:number|undefined;let dialogObserver:ResizeObserver|undefined;
 let audio:AudioContext|undefined;
 const dialog=$<HTMLDialogElement>('#dialog');
 const bridge:Bridge={paused:true,axes:{x:0,y:0},reducedMotion:save.settings.reducedMotion,
@@ -50,7 +50,18 @@ const game=new Phaser.Game({type:Phaser.AUTO,parent:'canvas-host',backgroundColo
 
 function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));storageOK=true;}catch{storageOK=false;}$('#save-status').textContent=storageOK?'Napredak se sprema na ovom uređaju.':'Spremanje trenutačno nije dostupno u ovom pregledniku.';}
 function tone(freq=650){if(!save.settings.sound)return;try{audio??=new AudioContext();void audio.resume();const osc=audio.createOscillator(),gain=audio.createGain();osc.type='sine';osc.frequency.value=freq;gain.gain.setValueAtTime(.05,audio.currentTime);gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.12);osc.connect(gain);gain.connect(audio.destination);osc.start();osc.stop(audio.currentTime+.12);}catch{/* sound is optional */}}
-function toast(title:string,message:string,ok=true){window.clearTimeout(toastTimer);const el=$('#toast');el.innerHTML=`<span class="toast-symbol">${ok?'✓':'!'}</span><div><strong>${title}</strong><p>${message}</p></div>`;el.className='toast visible'+(ok?'':' caution');toastTimer=window.setTimeout(()=>el.classList.remove('visible'),6500);}
+function dismissToast(){window.clearTimeout(toastTimer);const el=$('#toast');el.hidden=true;el.classList.remove('visible');}
+function scheduleToastDismiss(){window.clearTimeout(toastTimer);toastTimer=window.setTimeout(dismissToast,12000);}
+function toast(title:string,message:string,ok=true){
+  const el=$('#toast');(running?$('#notice-slot'):app).append(el);
+  $('#toast-message').innerHTML=`<span class="toast-symbol" aria-hidden="true">${ok?'✓':'!'}</span><div><strong>${title}</strong><p>${message}</p></div>`;
+  el.className='toast visible'+(ok?'':' caution');el.hidden=false;scheduleToastDismiss();
+}
+$('#toast-close').onclick=dismissToast;
+$('#toast').addEventListener('pointerenter',()=>window.clearTimeout(toastTimer));
+$('#toast').addEventListener('pointerleave',scheduleToastDismiss);
+$('#toast').addEventListener('focusin',()=>window.clearTimeout(toastTimer));
+$('#toast').addEventListener('focusout',scheduleToastDismiss);
 function showResult(result:Result){toast(result.title,result.message,result.ok);if(result.ok)tone();}
 function renderHome(){
   const complete=Object.values(save.best).filter(b=>b.completed).length;
@@ -60,26 +71,46 @@ function renderHome(){
   document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(b=>b.onclick=()=>start(Number(b.dataset.level),save.active?.level===Number(b.dataset.level)));
 }
 function start(level:number,resume=false){
-  if(dialog.open)closeDialog();run=resume&&save.active?save.active:newRun(level,save.settings.difficulty);running=true;bridge.paused=true;save.active=run;persist();
+  if(dialog.open)closeDialog();dismissToast();run=resume&&save.active?save.active:newRun(level,save.settings.difficulty);running=true;bridge.paused=true;save.active=run;persist();
   document.body.classList.add('playing');$('#home').hidden=true;$('#play').removeAttribute('inert');$('#play').setAttribute('aria-hidden','false');
   sector.startRun(run);near=null;updateNear();updateHUD();
-  requestAnimationFrame(()=>game.scale.resize($('#game-stage').clientWidth,$('#game-stage').clientHeight));
+  requestAnimationFrame(resizeGame);
   briefing(resume);
 }
-function home(){if(dialog.open)closeDialog();bridge.paused=true;sector.resetInput();running=false;document.body.classList.remove('playing');$('#home').hidden=false;$('#play').setAttribute('inert','');$('#play').setAttribute('aria-hidden','true');$('#toast').classList.remove('visible');renderHome();}
+function home(){if(dialog.open)closeDialog();bridge.paused=true;sector.resetInput();running=false;document.body.classList.remove('playing');$('#home').hidden=false;$('#play').setAttribute('inert','');$('#play').setAttribute('aria-hidden','true');dismissToast();renderHome();}
 function updateHUD(){const level=LEVELS[run.level-1];$('#level-number').textContent=`SEKTOR 0${run.level}`;$('#level-title').textContent=level.title;$('#run-xp').textContent=String(score(run)+arcadeScore(run));$('#health').textContent='● '.repeat(run.health)+'○ '.repeat(3-run.health);$('#health').setAttribute('aria-label',`Energija: ${run.health} od 3`);$('#goal-count').textContent=`${Object.values(run.checks).filter(c=>c.done).length}/4`;const target=nextTarget(run);$('#goal-text').textContent=target==='backup'&&has(run,'failure')?'Obnovi podatke iz kopije':TARGET_TEXT[target];$('#goal').title='Dodirni za kretanje prema cilju';sector.sync?.();}
 function updateNear(){const action=$<HTMLButtonElement>('#action');action.disabled=!near;$('#action-label').textContent=near?'Djeluj':'Priđi opremi';$('#nearby').innerHTML=near?`<strong>${near.label}</strong><span>Pritisni E ili dodirni Djeluj</span>`:'';}
-function openDialog(body:string,mount?:()=>void,onClose?:()=>void){
-  if(dialog.open)dialog.close();bridge.paused=true;releaseStick();sector.resetInput();closeHook=onClose||null;
-  dialog.innerHTML=`<button id="dialog-close" class="dialog-close" aria-label="Zatvori">×</button>${body}`;
-  dialog.showModal();$('#dialog-close').onclick=closeDialog;mount?.();
+function syncDialogScroll(){
+  if(!dialog.open)return;
+  const body=$('#dialog-body');
+  $('#dialog-scroll-hint').hidden=body.scrollTop+body.clientHeight>=body.scrollHeight-3;
 }
-function closeDialog(){const hook=closeHook;closeHook=null;dialog.close();bridge.paused=!running||run.completed;sector.resetInput();hook?.();}
+function revealFeedback(title:string,message:string){
+  const feedback=$('#feedback');feedback.innerHTML=`<strong>${title}</strong><p>${message}</p>`;feedback.hidden=false;
+  requestAnimationFrame(()=>{feedback.scrollIntoView({block:'nearest'});syncDialogScroll();});
+}
+function openDialog(body:string,mount?:()=>void,onClose?:()=>void){
+  dialogObserver?.disconnect();if(dialog.open)dialog.close();bridge.paused=true;releaseStick();sector.resetInput();closeHook=onClose||null;
+  dialog.innerHTML=`<header class="dialog-header"><div class="dialog-heading"></div><button id="dialog-close" class="dialog-close" aria-label="Zatvori" autofocus>×</button></header><div id="dialog-body" class="dialog-body" role="region" aria-label="Sadržaj prozora" tabindex="0"><div class="dialog-content">${body}</div></div><div id="dialog-scroll-hint" class="dialog-scroll-hint" aria-hidden="true" hidden>Pomakni za više ↓</div><footer class="dialog-actions" hidden></footer>`;
+  const content=$('.dialog-content'),heading=$('.dialog-heading'),actions=$('.dialog-actions');
+  for(const child of Array.from(content.children)){
+    if(child.matches('.eyebrow,h2'))heading.append(child);
+    else if(child.matches('.finish-icon'))child.remove();
+    else if(child.matches('button.wide'))actions.append(child);
+    else if(child.matches('.stack-buttons')){actions.append(...Array.from(child.children));child.remove();}
+  }
+  actions.hidden=!actions.childElementCount;document.body.classList.add('modal-open');
+  dialog.showModal();$('#dialog-close').onclick=closeDialog;mount?.();
+  $('#dialog-body').addEventListener('scroll',syncDialogScroll,{passive:true});
+  dialogObserver=new ResizeObserver(syncDialogScroll);dialogObserver.observe($('#dialog-body'));dialogObserver.observe(content);
+  requestAnimationFrame(syncDialogScroll);
+}
+function closeDialog(){const hook=closeHook;closeHook=null;dialogObserver?.disconnect();dialog.close();document.body.classList.remove('modal-open');bridge.paused=!running||run.completed;sector.resetInput();hook?.();}
 dialog.addEventListener('cancel',e=>{e.preventDefault();closeDialog();});
 function briefing(resume=false){const level=LEVELS[run.level-1];openDialog(`<div class="eyebrow">MISIJA 0${level.id} · ${level.subtitle}</div><h2 id="dialog-title">${resume?'Nastavljamo: ':''}${level.title}</h2><p class="dialog-lead">${level.description}</p><div class="lesson-grid">${level.lesson.map(([title,text],i)=>`<article><span>0${i+1}</span><div><h3>${title}</h3><p>${text}</p></div></article>`).join('')}</div><div class="note"><strong>Upravljanje</strong> Palica ili WASD / strelice za kretanje. E za radnju, Q ili razmak za štit. Dodir tla ili cilja također vodi lika. Crvene smetnje su arkadne prepreke; štit ih privremeno čini bezopasnima za lika.</div><button id="begin" class="primary wide">${resume?'Nastavi gdje si stao':'Kreni u misiju'} ${ico('arrow')}</button>`,()=>{$('#begin').onclick=()=>{closeDialog();if(!resume)toast('Prati zeleni krug','Dodirni cilj pri vrhu ako želiš pomoć pri kretanju. Žuti bitovi donose bonus.',true);};});}
 function pause(){if(!running)return;openDialog(`<div class="eyebrow">ODMOR ZA ČUVARA</div><h2 id="dialog-title">Misija je pauzirana.</h2><p class="dialog-lead">Napredak je spremljen na ovom uređaju. Nastavi kad budeš spreman.</p><div class="pause-summary"><span>${score(run)}/100<small>učenje</small></span><span>${arcadeScore(run)}<small>arkadni bonus</small></span><span>${run.health}/3<small>energija</small></span></div><div class="stack-buttons"><button id="resume" class="primary wide">Nastavi igru ${ico('arrow')}</button><button id="show-lesson" class="secondary wide">Ponovi pouku</button><button id="to-home" class="text-button">Karta misija</button></div>`,()=>{$('#resume').onclick=closeDialog;$('#show-lesson').onclick=()=>briefing(true);$('#to-home').onclick=home;});}
-function finish(){recordBest(save,run);save.active=null;persist();tone(900);const checks=Object.entries(run.checks);const independent=checks.filter(([,c])=>c.errors===0).length;openDialog(`<div class="finish-icon">${ico('shield')}</div><div class="eyebrow">SEKTOR 0${run.level} OSIGURAN</div><h2 id="dialog-title">Dobro odrađeno,<br>čuvaru.</h2><p class="dialog-lead">Zaštitu si postavio i isprobao. Sljedeći korak je primijeniti je u stvarnoj laboratorijskoj vježbi.</p><div class="pause-summary"><span>${score(run)}<small>bodova učenja</small></span><span>+${arcadeScore(run)}<small>arkadni bonus</small></span><span>${independent}/4<small>bez ispravka</small></span></div><ul class="results-list">${checks.map(([key,c])=>`<li>${ico('check')}<span>${CHECK_NAMES[key]}</span><small>${c.errors?'uz ispravak':'samostalno'}</small></li>`).join('')}</ul><p class="fine-print">Ovo je zapis vježbanja, a ne zaključna ocjena. Ponavljanjem možeš poboljšati najbolji rezultat.</p><button id="next" class="primary wide">${run.level<3?'Sljedeća misija':'Povratak na kartu'} ${ico('arrow')}</button><button id="results-home" class="text-button wide">Karta misija</button>`,()=>{$('#next').onclick=()=>{closeHook=null;if(run.level<3)start(run.level+1);else home();};$('#results-home').onclick=()=>{closeHook=null;home();};},home);}
-function perform(station:string,choice:string){const result=act(run,station,choice);recordBest(save,run);save.active=run.completed?null:run;persist();updateHUD();if(result.complete){closeDialog();finish();return;}if(result.ok){closeDialog();showResult(result);}else{const feedback=document.getElementById('feedback');if(feedback){feedback.innerHTML=`<strong>${result.title}</strong><p>${result.message}</p>`;feedback.hidden=false;}else showResult(result);}}
+function finish(){recordBest(save,run);save.active=null;persist();tone(900);const checks=Object.entries(run.checks);const independent=checks.filter(([,c])=>c.errors===0).length;openDialog(`<div class="finish-icon">${ico('shield')}</div><div class="eyebrow">SEKTOR 0${run.level} OSIGURAN</div><h2 id="dialog-title">Dobro odrađeno, <br>čuvaru.</h2><p class="dialog-lead">Zaštitu si postavio i isprobao. Sljedeći korak je primijeniti je u stvarnoj laboratorijskoj vježbi.</p><div class="pause-summary"><span>${score(run)}<small>bodova učenja</small></span><span>+${arcadeScore(run)}<small>arkadni bonus</small></span><span>${independent}/4<small>bez ispravka</small></span></div><ul class="results-list">${checks.map(([key,c])=>`<li>${ico('check')}<span>${CHECK_NAMES[key]}</span><small>${c.errors?'uz ispravak':'samostalno'}</small></li>`).join('')}</ul><p class="fine-print">Ovo je zapis vježbanja, a ne zaključna ocjena. Ponavljanjem možeš poboljšati najbolji rezultat.</p><button id="next" class="primary wide">${run.level<3?'Sljedeća misija':'Povratak na kartu'} ${ico('arrow')}</button><button id="results-home" class="text-button wide">Karta misija</button>`,()=>{$('#next').onclick=()=>{closeHook=null;if(run.level<3)start(run.level+1);else home();};$('#results-home').onclick=()=>{closeHook=null;home();};},home);}
+function perform(station:string,choice:string){const result=act(run,station,choice);recordBest(save,run);save.active=run.completed?null:run;persist();updateHUD();if(result.complete){closeDialog();finish();return;}if(result.ok){closeDialog();showResult(result);}else{const feedback=document.getElementById('feedback');if(feedback){revealFeedback(result.title,result.message);}else showResult(result);}}
 type Option=[string,string,string];
 function choices(s:Station,description:string,options:Option[],extra=''){openDialog(`<div class="eyebrow">${LEVELS[run.level-1].subtitle}</div><h2 id="dialog-title">${s.label}</h2><p class="dialog-lead">${description}</p>${extra}<div class="choices">${options.map(([value,label,detail])=>`<button class="choice" data-choice="${value}"><span><strong>${label}</strong><small>${detail}</small></span>${ico('arrow')}</button>`).join('')}</div><div id="feedback" class="feedback" role="status" hidden></div>`,()=>{document.querySelectorAll<HTMLButtonElement>('[data-choice]').forEach(b=>b.onclick=()=>perform(s.id,b.dataset.choice!));});}
 function openStation(s:Station){
@@ -109,7 +140,7 @@ function permissions(s:Station,kind:'schedule'|'grades'){
   const policy=kind==='schedule'?'Učenik i gost trebaju moći čitati javni raspored. Ovlašteni nastavnik treba ga moći čitati i mijenjati.':'Prema politici ove simulacije samo ovlašteni nastavnik smije čitati i mijenjati mapu Ocjene. Učenik i gost nemaju pristup ovoj mapi.';
   openDialog(`<div class="eyebrow">POSTAVKE PRISTUPA</div><h2 id="dialog-title">${s.label}</h2><p class="dialog-lead">${policy}</p><p class="small-note">Uređivanje uključuje i čitanje. Primijeni najmanje potrebne ovlasti.</p><div class="permission-table">${[['student','Učenik'],['teacher','Nastavnik'],['guest','Gost']].map(([key,name])=>`<label><span>${name}</span><select id="permission-${key}" aria-label="Prava: ${name}"><option value="none">Bez pristupa</option><option value="read">Čitanje</option><option value="write">Uređivanje</option></select></label>`).join('')}</div><button id="apply-permissions" class="primary wide">Primijeni i isprobaj ${ico('check')}</button><div id="feedback" class="feedback" role="status" hidden></div>`,()=>{$('#apply-permissions').onclick=()=>{
     const p={student:$<HTMLSelectElement>('#permission-student').value,teacher:$<HTMLSelectElement>('#permission-teacher').value,guest:$<HTMLSelectElement>('#permission-guest').value} as Permissions;
-    const res=applyPermissions(run,kind,p);bridge.changed();if(res.ok){closeDialog();showResult(res);}else{$('#feedback').hidden=false;$('#feedback').innerHTML=`<strong>${res.title}</strong><p>${res.message}</p>`;}
+    const res=applyPermissions(run,kind,p);bridge.changed();if(res.ok){closeDialog();showResult(res);}else{revealFeedback(res.title,res.message);}
   };});
 }
 function settings(){openDialog(`<div class="eyebrow">TVOJ NAČIN IGRANJA</div><h2 id="dialog-title">Postavke</h2><label class="setting-label" for="difficulty">Težina novih misija</label><select id="difficulty" class="wide-select"><option value="easy">Lagana — sporije smetnje, označeni ciljevi</option><option value="medium">Srednja — brže smetnje, označeni ciljevi</option><option value="hard">Teška — brže smetnje, bez zelenog kruga</option></select><p class="fine-print">Sigurnosni ciljevi ostaju isti. Težina se primjenjuje pri novom pokretanju misije.</p><label class="switch-row">Kratki zvučni efekti<input type="checkbox" id="sound"></label><label class="switch-row">Smanjeno gibanje i bljeskanje<input type="checkbox" id="reduced"></label><button id="save-settings" class="primary wide">Spremi postavke</button><details class="reset-details"><summary>Upravljanje napretkom</summary><p>Brisanje uklanja napredak samo na ovom uređaju.</p><button id="reset-progress" class="danger">Obriši lokalni napredak</button></details>`,()=>{
@@ -149,5 +180,6 @@ stick.addEventListener('pointermove',e=>{if(e.pointerId===stickPointer)moveStick
 document.addEventListener('visibilitychange',()=>{if(document.hidden){releaseStick();if(running){save.active=run.completed?null:run;persist();if(!dialog.open)pause();}}});
 window.addEventListener('blur',()=>{releaseStick();if(running&&!dialog.open)pause();});
 window.addEventListener('pagehide',()=>{if(running)save.active=run.completed?null:run;persist();});
-window.addEventListener('resize',()=>{if(running)game.scale.resize($('#game-stage').clientWidth,$('#game-stage').clientHeight);});
+function resizeGame(){if(running){game.scale.getParentBounds();game.scale.refresh();}}
+new ResizeObserver(resizeGame).observe($('#game-stage'));
 renderHome();persist();void setupOffline();
