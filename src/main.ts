@@ -28,10 +28,10 @@ app.innerHTML=`
  <section class="campaign"><div class="section-line"><div><span class="eyebrow">TVOJA KAMPANJA</span><h2>Od prvog koraka do oporavka.</h2></div><div class="xp-pill">${ico('bolt')}<strong id="total-xp">0</strong><span>XP</span></div></div><div id="missions" class="mission-grid"></div></section>
  <footer class="home-footer"><span id="save-status">Napredak se sprema na ovom uređaju.</span><button id="version" class="text-button">v${VERSION}</button></footer>
 </main>
-<section id="play" class="play" aria-label="Igra" inert aria-hidden="true"><header class="hud"><button id="back-map" class="hud-logo" aria-label="Pauza i karta misija">${ico('shield')}<span>SISgame</span></button><div class="hud-mission"><small id="level-number">SEKTOR 01</small><strong id="level-title">Zaključaj rizik</strong></div><div class="hud-stats"><div class="health" id="health" aria-label="Energija: 3 od 3">● ● ●</div><div class="score"><strong id="run-xp">0</strong><span>XP</span></div><button id="lesson" class="icon-button" aria-label="Pouka i cilj misije">${ico('help')}</button><button id="pause" class="icon-button" aria-label="Pauza">${ico('pause')}</button></div></header>
- <div id="notice-slot"></div><div id="game-stage"><div id="canvas-host"></div><button id="goal" class="goal"><span id="goal-count">0/4</span><span id="goal-text">Preuzmi službenu karticu</span><span class="goal-arrow">↗</span></button><div class="map-caption">DODIRNI TLO ZA KRETANJE</div><div class="controls"><div id="joystick" class="joystick" role="group" aria-label="Virtualna palica za kretanje"><div class="joy-cross"></div><div id="joy-thumb" class="joy-thumb"></div></div><div id="nearby" class="nearby" aria-live="polite"></div><div class="action-controls"><button id="shield" class="shield-control" aria-label="Aktiviraj štit">${ico('shield')}<span id="shield-label">Štit</span><kbd>Q</kbd></button><button id="action" class="action-control" disabled>${ico('bolt')}<span id="action-label">Priđi opremi</span><kbd>E</kbd></button></div></div></div>
+<section id="play" class="play" aria-label="Igra" inert aria-hidden="true"><header class="hud"><button id="back-map" class="hud-logo" aria-label="Pauza i karta misija">${ico('shield')}<span>SISgame</span></button><div id="hud-context" class="hud-context"><div class="hud-mission"><small id="level-number">SEKTOR 01</small><strong id="level-title">Zaključaj rizik</strong></div><div id="notice-slot"></div></div><div class="hud-stats"><div class="health" id="health" aria-label="Energija: 3 od 3">● ● ●</div><div class="score"><strong id="run-xp">0</strong><span>XP</span></div><button id="lesson" class="icon-button" aria-label="Pouka i cilj misije">${ico('help')}</button><button id="pause" class="icon-button" aria-label="Pauza">${ico('pause')}</button></div></header>
+ <div id="game-stage"><div id="canvas-host"></div><button id="goal" class="goal"><span id="goal-count">0/4</span><span id="goal-text">Preuzmi službenu karticu</span><span class="goal-arrow">↗</span></button><div class="map-caption">DODIRNI TLO ZA KRETANJE</div><div class="controls"><div id="joystick" class="joystick" role="group" aria-label="Virtualna palica za kretanje"><div class="joy-cross"></div><div id="joy-thumb" class="joy-thumb"></div></div><div id="nearby" class="nearby" aria-live="polite"></div><div class="action-controls"><button id="shield" class="shield-control" aria-label="Aktiviraj štit">${ico('shield')}<span id="shield-label">Štit</span><kbd>Q</kbd></button><button id="action" class="action-control" disabled>${ico('bolt')}<span id="action-label">Priđi opremi</span><kbd>E</kbd></button></div></div></div>
 </section>
-<dialog id="dialog" aria-labelledby="dialog-title"></dialog><div id="toast" class="toast" hidden><div id="toast-message" role="status" aria-live="polite" aria-atomic="true"></div><button id="toast-close" aria-label="Zatvori obavijest">×</button></div>`;
+<dialog id="dialog" aria-labelledby="dialog-title"></dialog><div id="toast" class="toast" hidden><button id="toast-message"><span id="toast-symbol" class="toast-symbol" aria-hidden="true">✓</span><span class="toast-copy"><strong id="toast-title"></strong><small>Pročitaj objašnjenje ↗</small></span></button><button id="toast-close" aria-label="Zatvori obavijest">×</button><span id="toast-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></span></div>`;
 
 const $=<T extends HTMLElement=HTMLElement>(s:string)=>document.querySelector<T>(s)!;
 let save:Save;let storageOK=true;
@@ -39,6 +39,7 @@ try {save=parseSave(localStorage.getItem(SAVE_KEY));}catch{save=emptySave();stor
 let run=save.active||newRun(1,save.settings.difficulty), running=false, near:Station|null=null;
 let closeHook:(()=>void)|null=null;let toastTimer:number|undefined;let dialogObserver:ResizeObserver|undefined;
 let audio:AudioContext|undefined;
+let lastNotice:{title:string;message:string;ok:boolean}|null=null;
 const dialog=$<HTMLDialogElement>('#dialog');
 const bridge:Bridge={paused:true,axes:{x:0,y:0},reducedMotion:save.settings.reducedMotion,
   interact:openStation,changed:()=>{if(running){save.active=run;recordBest(save,run);persist();updateHUD();}},result:showResult,nearby:s=>{near=s;updateNear();},hit:()=>{tone(180);updateHUD();},shield:remaining=>{
@@ -50,13 +51,22 @@ const game=new Phaser.Game({type:Phaser.AUTO,parent:'canvas-host',backgroundColo
 
 function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));storageOK=true;}catch{storageOK=false;}$('#save-status').textContent=storageOK?'Napredak se sprema na ovom uređaju.':'Spremanje trenutačno nije dostupno u ovom pregledniku.';}
 function tone(freq=650){if(!save.settings.sound)return;try{audio??=new AudioContext();void audio.resume();const osc=audio.createOscillator(),gain=audio.createGain();osc.type='sine';osc.frequency.value=freq;gain.gain.setValueAtTime(.05,audio.currentTime);gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.12);osc.connect(gain);gain.connect(audio.destination);osc.start();osc.stop(audio.currentTime+.12);}catch{/* sound is optional */}}
-function dismissToast(){window.clearTimeout(toastTimer);const el=$('#toast');el.hidden=true;el.classList.remove('visible');}
+function dismissToast(){window.clearTimeout(toastTimer);const el=$('#toast');el.hidden=true;el.classList.remove('visible');$('#hud-context').classList.remove('has-notice');}
 function scheduleToastDismiss(){window.clearTimeout(toastTimer);toastTimer=window.setTimeout(dismissToast,12000);}
 function toast(title:string,message:string,ok=true){
+  lastNotice={title,message,ok};
   const el=$('#toast');(running?$('#notice-slot'):app).append(el);
-  $('#toast-message').innerHTML=`<span class="toast-symbol" aria-hidden="true">${ok?'✓':'!'}</span><div><strong>${title}</strong><p>${message}</p></div>`;
+  $('#toast-title').textContent=title;$('#toast-symbol').textContent=ok?'✓':'!';
+  $('#toast-message').setAttribute('aria-label',`${title}. Pročitaj objašnjenje`);
+  $('#toast-status').textContent=`${title}. ${message}`;
+  $('#hud-context').classList.toggle('has-notice',running);
   el.className='toast visible'+(ok?'':' caution');el.hidden=false;scheduleToastDismiss();
 }
+function readNotice(){
+  if(!lastNotice)return;const notice=lastNotice;dismissToast();
+  openDialog(`<div class="eyebrow">OBJAŠNJENJE</div><h2 id="dialog-title">${notice.title}</h2><p class="dialog-lead">${notice.message}</p><button id="notice-read" class="primary wide">Razumijem ${ico('check')}</button>`,()=>$('#notice-read').onclick=closeDialog);
+}
+$('#toast-message').onclick=readNotice;
 $('#toast-close').onclick=dismissToast;
 $('#toast').addEventListener('pointerenter',()=>window.clearTimeout(toastTimer));
 $('#toast').addEventListener('pointerleave',scheduleToastDismiss);
@@ -71,7 +81,7 @@ function renderHome(){
   document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(b=>b.onclick=()=>start(Number(b.dataset.level),save.active?.level===Number(b.dataset.level)));
 }
 function start(level:number,resume=false){
-  if(dialog.open)closeDialog();dismissToast();run=resume&&save.active?save.active:newRun(level,save.settings.difficulty);running=true;bridge.paused=true;save.active=run;persist();
+  if(dialog.open)closeDialog();dismissToast();lastNotice=null;run=resume&&save.active?save.active:newRun(level,save.settings.difficulty);running=true;bridge.paused=true;save.active=run;persist();
   document.body.classList.add('playing');$('#home').hidden=true;$('#play').removeAttribute('inert');$('#play').setAttribute('aria-hidden','false');
   sector.startRun(run);near=null;updateNear();updateHUD();
   requestAnimationFrame(resizeGame);
@@ -91,7 +101,7 @@ function revealFeedback(title:string,message:string){
 }
 function openDialog(body:string,mount?:()=>void,onClose?:()=>void){
   dialogObserver?.disconnect();if(dialog.open)dialog.close();bridge.paused=true;releaseStick();sector.resetInput();closeHook=onClose||null;
-  dialog.innerHTML=`<header class="dialog-header"><div class="dialog-heading"></div><button id="dialog-close" class="dialog-close" aria-label="Zatvori" autofocus>×</button></header><div id="dialog-body" class="dialog-body" role="region" aria-label="Sadržaj prozora" tabindex="0"><div class="dialog-content">${body}</div></div><div id="dialog-scroll-hint" class="dialog-scroll-hint" aria-hidden="true" hidden>Pomakni za više ↓</div><footer class="dialog-actions" hidden></footer>`;
+  dialog.innerHTML=`<header class="dialog-header"><div class="dialog-heading"></div><button id="dialog-close" class="dialog-close" aria-label="Zatvori">×</button></header><div id="dialog-body" class="dialog-body" role="region" aria-label="Sadržaj prozora" tabindex="0"><div class="dialog-content">${body}</div></div><div id="dialog-scroll-hint" class="dialog-scroll-hint" aria-hidden="true" hidden>Pomakni za više ↓</div><footer class="dialog-actions" hidden></footer>`;
   const content=$('.dialog-content'),heading=$('.dialog-heading'),actions=$('.dialog-actions');
   for(const child of Array.from(content.children)){
     if(child.matches('.eyebrow,h2'))heading.append(child);
@@ -99,8 +109,8 @@ function openDialog(body:string,mount?:()=>void,onClose?:()=>void){
     else if(child.matches('button.wide'))actions.append(child);
     else if(child.matches('.stack-buttons')){actions.append(...Array.from(child.children));child.remove();}
   }
-  actions.hidden=!actions.childElementCount;document.body.classList.add('modal-open');
-  dialog.showModal();$('#dialog-close').onclick=closeDialog;mount?.();
+  actions.hidden=!actions.childElementCount;dialog.classList.toggle('permissions-dialog',!!content.querySelector('.permission-table'));document.body.classList.add('modal-open');
+  dialog.showModal();$('#dialog-close').onclick=closeDialog;mount?.();const title=$('#dialog-title');title.tabIndex=-1;title.focus({preventScroll:true});
   $('#dialog-body').addEventListener('scroll',syncDialogScroll,{passive:true});
   dialogObserver=new ResizeObserver(syncDialogScroll);dialogObserver.observe($('#dialog-body'));dialogObserver.observe(content);
   requestAnimationFrame(syncDialogScroll);
@@ -108,7 +118,7 @@ function openDialog(body:string,mount?:()=>void,onClose?:()=>void){
 function closeDialog(){const hook=closeHook;closeHook=null;dialogObserver?.disconnect();dialog.close();document.body.classList.remove('modal-open');bridge.paused=!running||run.completed;sector.resetInput();hook?.();}
 dialog.addEventListener('cancel',e=>{e.preventDefault();closeDialog();});
 function briefing(resume=false){const level=LEVELS[run.level-1];openDialog(`<div class="eyebrow">MISIJA 0${level.id} · ${level.subtitle}</div><h2 id="dialog-title">${resume?'Nastavljamo: ':''}${level.title}</h2><p class="dialog-lead">${level.description}</p><div class="lesson-grid">${level.lesson.map(([title,text],i)=>`<article><span>0${i+1}</span><div><h3>${title}</h3><p>${text}</p></div></article>`).join('')}</div><div class="note"><strong>Upravljanje</strong> Palica ili WASD / strelice za kretanje. E za radnju, Q ili razmak za štit. Dodir tla ili cilja također vodi lika. Crvene smetnje su arkadne prepreke; štit ih privremeno čini bezopasnima za lika.</div><button id="begin" class="primary wide">${resume?'Nastavi gdje si stao':'Kreni u misiju'} ${ico('arrow')}</button>`,()=>{$('#begin').onclick=()=>{closeDialog();if(!resume)toast('Prati zeleni krug','Dodirni cilj pri vrhu ako želiš pomoć pri kretanju. Žuti bitovi donose bonus.',true);};});}
-function pause(){if(!running)return;openDialog(`<div class="eyebrow">ODMOR ZA ČUVARA</div><h2 id="dialog-title">Misija je pauzirana.</h2><p class="dialog-lead">Napredak je spremljen na ovom uređaju. Nastavi kad budeš spreman.</p><div class="pause-summary"><span>${score(run)}/100<small>učenje</small></span><span>${arcadeScore(run)}<small>arkadni bonus</small></span><span>${run.health}/3<small>energija</small></span></div><div class="stack-buttons"><button id="resume" class="primary wide">Nastavi igru ${ico('arrow')}</button><button id="show-lesson" class="secondary wide">Ponovi pouku</button><button id="to-home" class="text-button">Karta misija</button></div>`,()=>{$('#resume').onclick=closeDialog;$('#show-lesson').onclick=()=>briefing(true);$('#to-home').onclick=home;});}
+function pause(){if(!running)return;openDialog(`<div class="eyebrow">ODMOR ZA ČUVARA</div><h2 id="dialog-title">Misija je pauzirana.</h2><p class="dialog-lead">Napredak je spremljen na ovom uređaju. Nastavi kad budeš spreman.</p><div class="pause-summary"><span>${score(run)}/100<small>učenje</small></span><span>${arcadeScore(run)}<small>arkadni bonus</small></span><span>${run.health}/3<small>energija</small></span></div><div class="stack-buttons"><button id="resume" class="primary wide">Nastavi igru ${ico('arrow')}</button><button id="show-lesson" class="secondary wide">Ponovi pouku</button><button id="to-home" class="text-button">Karta misija</button>${lastNotice?'<button id="last-notice" class="text-button">Posljednja poruka</button>':''}</div>`,()=>{$('#resume').onclick=closeDialog;$('#show-lesson').onclick=()=>briefing(true);$('#to-home').onclick=home;if(lastNotice)$('#last-notice').onclick=readNotice;});}
 function finish(){recordBest(save,run);save.active=null;persist();tone(900);const checks=Object.entries(run.checks);const independent=checks.filter(([,c])=>c.errors===0).length;openDialog(`<div class="finish-icon">${ico('shield')}</div><div class="eyebrow">SEKTOR 0${run.level} OSIGURAN</div><h2 id="dialog-title">Dobro odrađeno, <br>čuvaru.</h2><p class="dialog-lead">Zaštitu si postavio i isprobao. Sljedeći korak je primijeniti je u stvarnoj laboratorijskoj vježbi.</p><div class="pause-summary"><span>${score(run)}<small>bodova učenja</small></span><span>+${arcadeScore(run)}<small>arkadni bonus</small></span><span>${independent}/4<small>bez ispravka</small></span></div><ul class="results-list">${checks.map(([key,c])=>`<li>${ico('check')}<span>${CHECK_NAMES[key]}</span><small>${c.errors?'uz ispravak':'samostalno'}</small></li>`).join('')}</ul><p class="fine-print">Ovo je zapis vježbanja, a ne zaključna ocjena. Ponavljanjem možeš poboljšati najbolji rezultat.</p><button id="next" class="primary wide">${run.level<3?'Sljedeća misija':'Povratak na kartu'} ${ico('arrow')}</button><button id="results-home" class="text-button wide">Karta misija</button>`,()=>{$('#next').onclick=()=>{closeHook=null;if(run.level<3)start(run.level+1);else home();};$('#results-home').onclick=()=>{closeHook=null;home();};},home);}
 function perform(station:string,choice:string){const result=act(run,station,choice);recordBest(save,run);save.active=run.completed?null:run;persist();updateHUD();if(result.complete){closeDialog();finish();return;}if(result.ok){closeDialog();showResult(result);}else{const feedback=document.getElementById('feedback');if(feedback){revealFeedback(result.title,result.message);}else showResult(result);}}
 type Option=[string,string,string];
@@ -137,8 +147,8 @@ function openStation(s:Station){
 }
 function fileList(ids:string[]){return `<div class="system-list">${FILES.map(f=>`<span>${ids.includes(f.id)?'✓':'○'} ${f.name}</span>`).join('')}</div>`;}
 function permissions(s:Station,kind:'schedule'|'grades'){
-  const policy=kind==='schedule'?'Učenik i gost trebaju moći čitati javni raspored. Ovlašteni nastavnik treba ga moći čitati i mijenjati.':'Prema politici ove simulacije samo ovlašteni nastavnik smije čitati i mijenjati mapu Ocjene. Učenik i gost nemaju pristup ovoj mapi.';
-  openDialog(`<div class="eyebrow">POSTAVKE PRISTUPA</div><h2 id="dialog-title">${s.label}</h2><p class="dialog-lead">${policy}</p><p class="small-note">Uređivanje uključuje i čitanje. Primijeni najmanje potrebne ovlasti.</p><div class="permission-table">${[['student','Učenik'],['teacher','Nastavnik'],['guest','Gost']].map(([key,name])=>`<label><span>${name}</span><select id="permission-${key}" aria-label="Prava: ${name}"><option value="none">Bez pristupa</option><option value="read">Čitanje</option><option value="write">Uređivanje</option></select></label>`).join('')}</div><button id="apply-permissions" class="primary wide">Primijeni i isprobaj ${ico('check')}</button><div id="feedback" class="feedback" role="status" hidden></div>`,()=>{$('#apply-permissions').onclick=()=>{
+  const policy=kind==='schedule'?'Raspored čitaju učenik i gost, a ovlašteni nastavnik smije ga i uređivati.':'U ovoj misiji samo ovlašteni nastavnik smije uređivati Ocjene; učenik i gost nemaju pristup.';
+  openDialog(`<div class="eyebrow">POSTAVKE PRISTUPA</div><h2 id="dialog-title">${s.label}</h2><p class="dialog-lead permission-policy">${policy} <span>Uređivanje uključuje čitanje.</span></p><div class="permission-table">${[['student','Učenik'],['teacher','Nastavnik'],['guest','Gost']].map(([key,name])=>`<label><span>${name}</span><select id="permission-${key}" aria-label="Prava: ${name}"><option value="none">Bez pristupa</option><option value="read">Čitanje</option><option value="write">Uređivanje</option></select></label>`).join('')}</div><button id="apply-permissions" class="primary wide">Primijeni i isprobaj ${ico('check')}</button><div id="feedback" class="feedback" role="status" hidden></div>`,()=>{$('#apply-permissions').onclick=()=>{
     const p={student:$<HTMLSelectElement>('#permission-student').value,teacher:$<HTMLSelectElement>('#permission-teacher').value,guest:$<HTMLSelectElement>('#permission-guest').value} as Permissions;
     const res=applyPermissions(run,kind,p);bridge.changed();if(res.ok){closeDialog();showResult(res);}else{revealFeedback(res.title,res.message);}
   };});
@@ -181,5 +191,20 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){releaseSti
 window.addEventListener('blur',()=>{releaseStick();if(running&&!dialog.open)pause();});
 window.addEventListener('pagehide',()=>{if(running)save.active=run.completed?null:run;persist();});
 function resizeGame(){if(running){game.scale.getParentBounds();game.scale.refresh();}}
+// Fixed elements can retain old layout bounds while mobile browser chrome changes.
+// Follow the visible viewport at normal zoom; preserve the user's pinch zoom.
+function syncViewport(){
+  const viewport=window.visualViewport;
+  if(viewport&&Math.abs(viewport.scale-1)>.01)return;
+  document.documentElement.style.setProperty('--app-height',`${viewport?.height||window.innerHeight}px`);
+  document.documentElement.style.setProperty('--app-top',`${viewport?.offsetTop||0}px`);
+}
+let viewportFrame=0;
+function queueViewportSync(){cancelAnimationFrame(viewportFrame);viewportFrame=requestAnimationFrame(syncViewport);}
+window.addEventListener('resize',queueViewportSync);
+window.addEventListener('pageshow',queueViewportSync);
+window.visualViewport?.addEventListener('resize',queueViewportSync);
+window.visualViewport?.addEventListener('scroll',queueViewportSync);
+syncViewport();
 new ResizeObserver(resizeGame).observe($('#game-stage'));
 renderHome();persist();void setupOffline();
