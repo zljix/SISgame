@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { act, applyPermissions, collect, has, newRun, ready, score, nextTarget } from '../src/core.ts';
-import { emptySave, parseSave, recordBest, totalXP } from '../src/storage.ts';
+import { emptySave, parseSave, profile, recordBest, totalXP } from '../src/storage.ts';
 import { LEVELS, route, walls, movementTowards } from '../src/data.ts';
 
 test('Every mission station is reachable from the entrance without crossing walls',()=>{
@@ -26,8 +26,8 @@ test('Failure removes originals; restoring leaves the independent copy intact; v
 });
 test('Collecting a document twice does not substitute for a missing document',()=>{const r=newRun(3);for(let i=0;i<3;i++)collect(r,'rad');assert.equal(r.files.length,1);assert.equal(has(r,'collect'),false);});
 test('Best results persist across replays without farming repeated points',()=>{const s=emptySave(),r=newRun(1);collect(r,'card');act(r,'door','authorized');r.bits=['bit-0'];recordBest(s,r);recordBest(s,r);assert.equal(totalXP(s),30);recordBest(s,newRun(1));assert.equal(totalXP(s),30);});
-test('A valid interrupted run restores files, decisions, coordinates and settings',()=>{const s=emptySave(),r=newRun(3,'medium');collect(r,'rad');r.x=200;r.y=150;s.active=r;s.settings.sound=true;const parsed=parseSave(JSON.stringify(s));assert.deepEqual(parsed,s);});
-test('Corrupt or incompatible saved data does not prevent startup',()=>{assert.deepEqual(parseSave('broken'),emptySave());assert.deepEqual(parseSave('{"schema":9}'),emptySave());const s=parseSave('{"schema":1,"active":{"level":3,"difficulty":"easy","files":["rad","rad","unknown"],"x":-100,"y":1e100,"checks":{}},"best":{"1":{"learning":1e100,"arcade":-50}}}');assert.deepEqual(s.active?.files,['rad']);assert.equal(s.active?.x,48);assert.equal(s.best[1].learning,100);assert.equal(s.best[1].arcade,0);});
+test('A valid interrupted run restores files, decisions, coordinates and settings',()=>{const s=emptySave(),r=newRun(3,'medium');collect(r,'rad');r.x=200;r.y=150;profile(s).active=r;s.settings.sound=true;const parsed=parseSave(JSON.stringify(s));assert.deepEqual(parsed,s);});
+test('Corrupt or incompatible saved data does not prevent startup',()=>{assert.deepEqual(parseSave('broken'),emptySave());assert.deepEqual(parseSave('{"schema":9}'),emptySave());const s=parseSave('{"schema":1,"active":{"level":3,"difficulty":"easy","files":["rad","rad","unknown"],"x":-100,"y":1e100,"checks":{}},"best":{"1":{"learning":1e100,"arcade":-50}}}');assert.deepEqual(profile(s).active?.files,['rad']);assert.equal(profile(s).active?.x,48);assert.equal(profile(s).best[1].learning,100);assert.equal(profile(s).best[1].arcade,0);});
 
 test('Touch navigation reaches every waypoint even with slow frames without oscillating',()=>{
  const path=route(112,560,304,208,walls());let x=112,y=560,frames=0;

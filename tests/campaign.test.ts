@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { act, CHECKS, classifyMalware, configureServices, newRun, nextTarget, ready, score, secureSession } from '../src/core.ts';
 import { LEVELS, TARGET_TEXT, walls } from '../src/data.ts';
-import { emptySave, parseSave, recordBest, totalXP } from '../src/storage.ts';
+import { emptySave, parseSave, profile, recordBest, totalXP } from '../src/storage.ts';
 
 const answers = { a: 'trojan', b: 'worm', c: 'virus' } as const;
 const services = { updates: true, remote: false, coursework: true };
 
 test('Every added mission has its own layout and a reachable target for each learning step', () => {
-  assert.equal(new Set(LEVELS.slice(3).map(level => [...walls(level.id)].join('|'))).size, 3);
+  assert.equal(new Set(LEVELS.slice(3).map(level => [...walls(level.id)].join('|'))).size, LEVELS.length - 3);
   for (const level of LEVELS) {
     const run = newRun(level.id);
     assert.equal(score(run), 0);
@@ -124,15 +124,14 @@ test('Finished new missions are immutable and repeated actions do not farm point
   assert.deepEqual(run, before);
 });
 
-test('v0.1 progress and an interrupted old mission survive the six-mission update', () => {
-  const save = emptySave();
-  save.best = { '1': { learning: 100, arcade: 20, independent: 3, completed: true }, '2': { learning: 100, arcade: 35, independent: 4, completed: true }, '3': { learning: 100, arcade: 10, independent: 4, completed: true } };
-  save.active = newRun(2, 'hard');
-  const parsed = parseSave(JSON.stringify(save));
-  assert.deepEqual(parsed, save);
-  assert.equal(parsed.best[3].completed, true, 'completion of mission 3 unlocks mission 4');
-  assert.equal(parsed.best[4], undefined);
-  assert.equal(totalXP(parsed), 365);
+test('Old v0.1/v0.2 results and an interrupted mission migrate only to Standard', () => {
+  const active:any=newRun(2,'hard');delete active.content;delete active.review;delete active.networkRules;
+  const old={schema:1,settings:{difficulty:'hard',sound:true,reducedMotion:false},best:{'1':{learning:100,arcade:20,independent:3,completed:true},'2':{learning:100,arcade:35,independent:4,completed:true},'3':{learning:100,arcade:10,independent:4,completed:true}},active};
+  const parsed=parseSave(JSON.stringify(old));
+  assert.equal(parsed.schema,2);assert.equal(parsed.settings.content,'standard');assert.equal(parsed.settings.timed,false);
+  assert.equal(profile(parsed).active!.content,'standard');assert.equal(profile(parsed).active!.difficulty,'hard');
+  assert.deepEqual(profile(parsed).best,old.best);assert.deepEqual(profile(parsed,'junior'),{best:{},active:null});assert.deepEqual(profile(parsed,'expert'),{best:{},active:null});
+  assert.equal(totalXP(parsed),365);
 });
 
 test('All new mission checkpoints and results survive reload and preserve corrected decisions', () => {
@@ -141,10 +140,10 @@ test('All new mission checkpoints and results survive reload and preserve correc
     if (level === 4) { act(run, 'containment', 'isolate'); classifyMalware(run, { ...answers, a: 'virus' }); classifyMalware(run, answers); }
     if (level === 5) { secureSession(run, 'unknown', 'password'); secureSession(run, 'unknown', 'revoke'); act(run, 'identity', 'unique'); }
     if (level === 6) { act(run, 'patches', 'later'); act(run, 'patches', 'official'); act(run, 'accounts', 'standard'); }
-    save.active = run; recordBest(save, run);
+    profile(save).active = run; recordBest(save, run);
     const parsed = parseSave(JSON.stringify(save));
     assert.deepEqual(parsed, save);
-    assert.equal(nextTarget(parsed.active!), CHECKS[level][2]);
-    assert.equal(parsed.best[level].independent, 1);
+    assert.equal(nextTarget(profile(parsed).active!), CHECKS[level][2]);
+    assert.equal(profile(parsed).best[level].independent, 1);
   }
 });

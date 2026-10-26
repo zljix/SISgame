@@ -1,17 +1,20 @@
-import { DECISIONS, MALWARE_SAMPLES, SERVICE_RULES, type MalwareKind, type ServiceSettings } from './missions.ts';
+import { DECISIONS, flowsFor, samplesFor, servicesFor, type MalwareKind, type ServiceSettings } from './missions.ts';
+import { EXPERT_REVIEWS, JUNIOR_CHOICES, type ContentTier } from './curriculum.ts';
 
-export type Difficulty = 'easy' | 'medium' | 'hard';
+export type Difficulty = 'relaxed' | 'easy' | 'medium' | 'hard';
 export type Access = 'none' | 'read' | 'write';
 export type Permissions = { student: Access; teacher: Access; guest: Access };
 export type Check = { done: boolean; errors: number };
 export interface Run {
-  level: number; difficulty: Difficulty; x: number; y: number;
+  level: number; difficulty: Difficulty; content: ContentTier; x: number; y: number;
+  review: { enabled: boolean; started: boolean; remaining: number; expired: boolean; answers: Record<string,string> };
+  networkRules: Record<string, boolean>;
   flags: string[]; files: string[]; backup: string[]; bits: string[];
   checks: Record<string, Check>; health: number; hits: number; seconds: number;
   completed: boolean;
 }
-export interface Result { ok: boolean; title: string; message: string; complete?: boolean }
-export const VERSION = '0.2.0';
+export interface Result { ok: boolean; title: string; message: string; complete?: boolean; review?: boolean }
+export const VERSION = '0.3.0';
 export const FILES = [
   { id: 'rad', name: 'Završni rad', text: 'Završni rad · posljednja spremljena inačica' },
   { id: 'mjerenja', name: 'Mjerenja', text: 'Temperatura: 23 °C · 12 mjerenja' },
@@ -24,18 +27,22 @@ export const CHECKS: Record<number, string[]> = {
   4: ['containment', 'samples', 'recovery', 'malware-test'],
   5: ['sessions', 'identity', 'mfa', 'auth-test'],
   6: ['patches', 'accounts', 'services', 'harden-test'],
+  7: ['message', 'verify-sender', 'report', 'phish-test'],
+  8: ['channel', 'firewall', 'tls', 'network-test'],
 };
 export const CHECK_NAMES: Record<string, string> = {
   door: 'Kontrola pristupa prostoru', ups: 'Zaštita napajanja', shred: 'Sigurno uništavanje ispisa', drill: 'Provjera fizičke zaštite',
   schedule: 'Dostupnost rasporeda', grades: 'Najmanje potrebne ovlasti', encrypt: 'Šifriranje u prijenosu', deliver: 'Provjera zaštićenog prijenosa',
   collect: 'Odabir važnih podataka', backup: 'Odvojena sigurnosna kopija', restore: 'Obnova nakon kvara', verify: 'Provjera obnovljenog sadržaja',
-  containment: 'Izolacija i prijava incidenta', samples: 'Virus, crv i trojanski konj', recovery: 'Oporavak iz pouzdanog izvora', 'malware-test': 'Provjera prije povratka u rad',
+  containment: 'Izolacija i prijava incidenta', samples: 'Prepoznavanje štetnog ponašanja', recovery: 'Oporavak iz pouzdanog izvora', 'malware-test': 'Provjera prije povratka u rad',
   sessions: 'Zapisi i opoziv sesija', identity: 'Jedinstvena lozinka', mfa: 'Dva različita faktora', 'auth-test': 'Provjera prijave i ovlasti',
-  patches: 'Službene sigurnosne nadogradnje', accounts: 'Standardni račun i UAC', services: 'Samo potrebne usluge', 'harden-test': 'Siguran i dostupan sustav',
+  patches: 'Službene sigurnosne nadogradnje', accounts: 'Potrebne ovlasti računa', services: 'Samo potrebne usluge', 'harden-test': 'Siguran i dostupan sustav',
+  message: 'Pregled sumnjive poruke', 'verify-sender': 'Neovisna provjera pošiljatelja', report: 'Sigurna prijava obmane', 'phish-test': 'Provjera sigurnog nastavka',
+  channel: 'Zaštićen mrežni prijenos', firewall: 'Najmanji potreban mrežni pristup', tls: 'Provjera identiteta poslužitelja', 'network-test': 'Provjera dopuštenih i zabranjenih veza',
 };
-export function newRun(level: number, difficulty: Difficulty = 'easy'): Run {
+export function newRun(level: number, difficulty: Difficulty = 'easy', content: ContentTier = 'standard', timed = false): Run {
   if (!CHECKS[level]) throw new Error('Nepoznata misija');
-  return { level, difficulty, x: 112, y: 560, flags: [], files: [], backup: [], bits: [], checks: Object.fromEntries(CHECKS[level].map(k => [k, { done: false, errors: 0 }])), health: 3, hits: 0, seconds: 0, completed: false };
+  return { level, difficulty, content, review: {enabled:content==='expert'&&timed,started:false,remaining:90,expired:false,answers:{}}, networkRules:{}, x: 112, y: 560, flags: [], files: [], backup: [], bits: [], checks: Object.fromEntries(CHECKS[level].map(k => [k, { done: false, errors: 0 }])), health: 3, hits: 0, seconds: 0, completed: false };
 }
 export const has = (run: Run, flag: string) => run.flags.includes(flag);
 export function flag(run: Run, name: string) { if (!has(run, name)) run.flags.push(name); }
@@ -48,7 +55,7 @@ function good(run: Run, key: string, title: string, message: string): Result {
 }
 function wrong(run: Run, key: string, title: string, message: string): Result {
   if (run.checks[key] && !run.checks[key].done) run.checks[key].errors++;
-  return { ok: false, title, message };
+  return { ok: false, title, message:run.content==='junior'&&JUNIOR_CHOICES[key]?JUNIOR_CHOICES[key].help:message };
 }
 export function collect(run: Run, id: string): Result {
   if (id === 'card' && run.level === 1) { flag(run, id); return { ok: true, title: 'Službena kartica preuzeta', message: 'Kartica potvrđuje tvoju ovlast. Priđi ulaznim vratima i uključi provjeru pristupa.' }; }
@@ -69,6 +76,10 @@ export function act(run: Run, station: string, choice: string): Result {
   if (station === 'exit') {
     if (!ready(run)) return { ok: false, title: 'Provjera još nije gotova', message: 'Dovrši sve četiri sigurnosne zadaće. Dodirni trenutačni cilj za put do sljedećeg mjesta.' };
     run.completed = true; return { ok: true, title: 'Sektor je osiguran!', message: 'Zaštitu si postavio i provjerio njezin učinak.', complete: true };
+  }
+  if(run.content==='expert' && station===EXPERT_REVIEWS[run.level]?.station && !has(run,'expert-review')){
+    if(!CHECKS[run.level].slice(0,-1).every(key=>run.checks[key].done))return {ok:false,title:'Priprema nije dovršena',message:'Najprije dovrši prethodne tri sigurnosne zadaće.'};
+    return {ok:false,review:true,title:'Analiziraj završni slučaj',message:'Prije završne provjere primijeni mjere na novi slučaj.'};
   }
   if (run.level === 1) {
     if (station === 'door') {
@@ -134,24 +145,49 @@ export function act(run: Run, station: string, choice: string): Result {
 export function classifyMalware(run: Run, answers: Record<string, MalwareKind | ''>): Result {
   if (run.level !== 4 || run.completed) return { ok: false, title: 'Analiza nije dostupna', message: 'Pokreni misiju Sumnjivi program.' };
   if (!run.checks.containment.done) return { ok: false, title: 'Najprije izoliraj računalo', message: 'Ograniči mrežnu komunikaciju LAB-04 i prijavi incident prije analize.' };
-  if (MALWARE_SAMPLES.some(sample => !answers[sample.id])) return { ok: false, title: 'Dovrši razvrstavanje', message: 'Odaberi vrstu za sva tri izvještaja.' };
-  const mistaken = MALWARE_SAMPLES.find(sample => answers[sample.id] !== sample.kind);
+  const samples=samplesFor(run.content);
+  if (samples.some(sample => !answers[sample.id])) return { ok: false, title: 'Dovrši razvrstavanje', message: 'Odaberi vrstu za svaki prikazani izvještaj.' };
+  const mistaken = samples.find(sample => answers[sample.id] !== sample.kind);
   if (mistaken) return wrong(run, 'samples', `${mistaken.label}: pogledaj način rada`, mistaken.explanation);
-  return good(run, 'samples', 'Tri ponašanja su prepoznata', 'A: trojanski konj. B: crv. C: virus. Zaključak proizlazi iz opisanog ponašanja, ne iz naziva ili ikone datoteke. U stvarnosti jedan program može kombinirati više svojstava.');
+  return good(run, 'samples', 'Ponašanja su prepoznata', run.content==='junior'?'A: program koji vara (trojanski konj). B: program koji se sam širi (crv). Ne treba ih pokretati da bi proučio izvještaj.':'A: trojanski konj. B: crv. C: virus. Zaključak proizlazi iz opisanog ponašanja, ne iz naziva ili ikone datoteke. U stvarnosti jedan program može kombinirati više svojstava.');
 }
 export function secureSession(run: Run, event: string, response: string): Result {
   if (run.level !== 5 || run.completed) return { ok: false, title: 'Dnevnik nije dostupan', message: 'Pokreni misiju Tko se prijavio?' };
   if (!event || !response) return { ok: false, title: 'Odaberi događaj i postupak', message: 'Označi sumnjivu uspješnu prijavu i način zaštite računa.' };
-  if (event !== 'unknown') return wrong(run, 'sessions', 'Provjeri ishod i uređaj', event === 'typo' ? 'Pogrešna lozinka ovdje nije stvorila sesiju. Traži uspješnu prijavu koju vlasnik ne prepoznaje; i neuspjele pokušaje vrijedi pratiti.' : 'Vlasnik potvrđuje prijavu sa školskog uređaja. Sama uspješna prijava nije dokaz incidenta: usporedi uređaj i potvrdu vlasnika.');
+  if (event !== 'unknown') return wrong(run, 'sessions', 'Provjeri ishod i uređaj', event === 'vpn' ? 'Vlasnik potvrđuje svoj uređaj i službenu VPN vezu. Nova IP adresa sama nije dokaz upada; usporedi sve dokaze.' : event === 'typo' ? 'Pogrešna lozinka ovdje nije stvorila sesiju. Traži uspješnu prijavu koju vlasnik ne prepoznaje; i neuspjele pokušaje vrijedi pratiti.' : 'Vlasnik potvrđuje prijavu sa školskog uređaja. Sama uspješna prijava nije dokaz incidenta: usporedi uređaj i potvrdu vlasnika.');
   if (response !== 'revoke') return wrong(run, 'sessions', 'Sesija i dalje može biti aktivna', response === 'erase' ? 'Brisanje zapisa ne prekida pristup, a uklanja tragove. Sačuvaj zapise, prijavi događaj i opozovi sesije računa.' : 'Sama promjena lozinke ne mora prekinuti postojeću sesiju. Potrebno je i izričito opozvati sesije te provjeriti pristup.');
   return good(run, 'sessions', 'Sesije su opozvane, zapisi sačuvani', 'Prijava u 22:43 je izdvojena za istragu. U simulaciji administrator privremeno blokira prijave i opoziva sve sesije računa. Vlasnik sada treba novu lozinku i dodatni faktor.');
 }
 export function configureServices(run: Run, settings: ServiceSettings): Result {
   if (run.level !== 6 || run.completed) return { ok: false, title: 'Postavke nisu dostupne', message: 'Pokreni misiju Ojačaj sustav.' };
   if (!['patches', 'accounts'].every(key => run.checks[key].done)) return { ok: false, title: 'Najprije pripremi sustav', message: 'Primijeni nadogradnje i postavi standardni korisnički račun.' };
-  const mismatch = SERVICE_RULES.find(service => settings[service.id] !== service.expected);
+  const mismatch = servicesFor(run.content).find(service => settings[service.id] !== service.expected);
   if (mismatch) return wrong(run, 'services', `${mismatch.label}: provjeri politiku`, mismatch.expected ? 'Ova je usluga potrebna. Isključivanjem svih usluga narušavaš rad ili održavanje sustava. Uključi je i ukloni samo nepotrebnu uslugu.' : 'Udaljeni pristup ovoj stanici nije odobren ni potreban. Isključi ga; potrebne školske usluge ostavi uključene.');
   return good(run, 'services', 'Rade samo potrebne usluge', 'Školske nadogradnje i predaja radova ostaju dostupne. Nepotreban udaljeni pristup je isključen. Završna provjera ispitat će i sigurnost i rad nastave.');
+}
+export function configureFirewall(run:Run,rules:Record<string,boolean>):Result {
+  if(run.level!==8||run.completed)return {ok:false,title:'Pravila nisu dostupna',message:'Pokreni mrežnu misiju.'};
+  if(!run.checks.channel.done)return {ok:false,title:'Najprije odaberi zaštićen prijenos',message:'Odaberi kanal koji štiti školski rad na putu do portala.'};
+  run.networkRules={...(run.content==='junior'?{admin:true}:{}),...Object.fromEntries(flowsFor(run.content).map(flow=>[flow.id,rules[flow.id]===true]))};
+  const mismatch=flowsFor(run.content).find(flow=>run.networkRules[flow.id]!==flow.allow);
+  if(mismatch)return wrong(run,'firewall','Provjeri učinak pravila',mismatch.allow?'Potrebna veza je blokirana. Dopusti školski rad i odobreno upravljanje, uz ograničenje izvora.':'Nepoznati izvor dobio je pristup upravljanju. Odbij tu vezu; otvaranje svih veza nije potrebno.');
+  return good(run,'firewall','Potrebne veze prolaze',run.content==='junior'?'Učenik može predati rad. Nepoznata osoba ne može upravljati školskim računalom.':'Učenik može predati rad. Ovlaštena administracija ostaje dopuštena, a nepoznati izvor ne može upravljati poslužiteljem.');
+}
+export function submitExpertReview(run:Run,answers:Record<string,string>):Result {
+  const review=EXPERT_REVIEWS[run.level];
+  if(run.content!=='expert'||run.completed||!review)return {ok:false,title:'Analiza nije dostupna',message:'Ovaj zadatak pripada razini Expert.'};
+  if(!CHECKS[run.level].slice(0,-1).every(key=>run.checks[key].done))return {ok:false,title:'Priprema nije dovršena',message:'Najprije primijeni mjere na prethodne tri stanice.'};
+  if(run.review.enabled&&!run.review.started)return {ok:false,title:'Pokreni izazov ili isključi mjerenje',message:'Najprije pročitaj slučaj. Mjerenje je opcionalno i ne utječe na bodove znanja.'};
+  run.review.answers=Object.fromEntries(review.questions.filter(question=>question.choices.some(([value])=>value===answers[question.id])).map(question=>[question.id,answers[question.id]]));
+  if(review.questions.some(question=>!answers[question.id]))return {ok:false,title:'Dovrši plan postupanja',message:'Odaberi postupak za svaku stavku.'};
+  const mistaken=review.questions.find(question=>answers[question.id]!==question.answer);
+  if(mistaken)return wrong(run,review.station,'Provjeri: '+mistaken.label,mistaken.feedback);
+  flag(run,'expert-review');return {ok:true,title:'Plan je obrazložen činjenicama',message:'Odabrane mjere odgovaraju dokazima i ograničenjima slučaja.'};
+}
+export function advanceReviewClock(run:Run,seconds:number){
+  if(!run.review.enabled||!run.review.started||run.review.expired||has(run,'expert-review')||run.completed||!Number.isFinite(seconds)||seconds<=0)return;
+  run.review.remaining=Math.max(0,run.review.remaining-seconds);
+  run.review.expired=run.review.remaining===0;
 }
 export function applyPermissions(run: Run, kind: 'schedule' | 'grades', p: Permissions): Result {
   if (run.level !== 2 || run.completed) return { ok: false, title: 'Postavke nisu dostupne', message: 'Pokreni misiju Samo za ovlaštene.' };

@@ -34,7 +34,7 @@ export class Sector extends Phaser.Scene {
     const bitTiles=[[3,14],[8,18],[8,9],[3,7],[13,5],[18,3],[18,12],[13,18],[23,11],[28,8],[29,16],[24,19]];
     bitTiles.forEach(([x,y],i)=>{const id='bit-'+i;const sprite=this.add.image(x*TILE+16,y*TILE+16,'bit').setDepth(3);this.bits.push({id,sprite});});
     const paths=[[[3,3],[8,3],[8,8],[3,8]],[[13,10],[18,10],[18,18],[13,18]],[[23,3],[28,3],[28,11],[23,11]]];
-    paths.forEach((points,i)=>{const ps=points.map(([x,y])=>({x:x*TILE+16,y:y*TILE+16}));const sprite=this.add.sprite(ps[0].x,ps[0].y,'threat').setDepth(9);this.threats.push({sprite,points:ps,step:1});if(i===2&&this.run.difficulty==='easy')sprite.setAlpha(.8);});
+    if(this.run.difficulty!=='relaxed')paths.forEach((points,i)=>{const ps=points.map(([x,y])=>({x:x*TILE+16,y:y*TILE+16}));const sprite=this.add.sprite(ps[0].x,ps[0].y,'threat').setDepth(9);this.threats.push({sprite,points:ps,step:1});if(i===2&&this.run.difficulty==='easy')sprite.setAlpha(.8);});
     this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT') as Record<string,Phaser.Input.Keyboard.Key>;
     this.input.on('pointerdown',(p:Phaser.Input.Pointer)=>{if(!this.bridge.paused){const point=this.cameras.main.getWorldPoint(p.x,p.y);this.walkTo(point.x,point.y);}});
     this.scale.on('resize',this.resize,this);this.events.once('shutdown',()=>this.scale.off('resize',this.resize,this));
@@ -47,7 +47,7 @@ export class Sector extends Phaser.Scene {
   walkTo(x:number,y:number){this.path=route(this.player.x,this.player.y,x,y,this.blocked);if(this.path.length)this.path.unshift({x:Math.floor(this.player.x/TILE)*TILE+16,y:Math.floor(this.player.y/TILE)*TILE+16});}
   guide(){const s=LEVELS[this.run.level-1].stations.find(s=>s.id===nextTarget(this.run));if(s)this.walkTo(s.x,s.y);}
   use(){if(!this.bridge.paused&&this.near)this.bridge.interact(this.near);}
-  shield(){if(this.bridge.paused||this.cooldown>0)return;this.shieldFor=2.5;this.cooldown=7;this.burst(this.player.x,this.player.y,0x66e3b3);}
+  shield(){if(this.run.difficulty==='relaxed'||this.bridge.paused||this.cooldown>0)return;this.shieldFor=2.5;this.cooldown=7;this.burst(this.player.x,this.player.y,0x66e3b3);}
   canStand(x:number,y:number){return [[-10,-10],[10,-10],[-10,10],[10,10]].every(([dx,dy])=>!this.blocked.has(`${Math.floor((x+dx)/TILE)},${Math.floor((y+dy)/TILE)}`));}
   move(dx:number,dy:number){if(this.canStand(this.player.x+dx,this.player.y))this.player.x+=dx;if(this.canStand(this.player.x,this.player.y+dy))this.player.y+=dy;}
   sync(){
@@ -82,7 +82,7 @@ export class Sector extends Phaser.Scene {
     this.pathLine.clear();if(this.path.length&&!this.bridge.reducedMotion){this.pathLine.lineStyle(2,0x66e3b3,.23);this.pathLine.beginPath();this.pathLine.moveTo(this.player.x,this.player.y);for(const p of this.path)this.pathLine.lineTo(p.x,p.y);this.pathLine.strokePath();}
     const target=LEVELS[this.run.level-1].stations.find(s=>s.id===nextTarget(this.run));
     if(target){this.ring.setPosition(target.x,target.y).setVisible(this.run.difficulty!=='hard');this.ring.setScale(this.bridge.reducedMotion?1:1+Math.sin(this.tick*3)*.1);}
-    const threatSpeed={easy:35,medium:55,hard:75}[this.run.difficulty];
+    const threatSpeed={relaxed:0,easy:35,medium:55,hard:75}[this.run.difficulty];
     for(const t of this.threats){
       const p=t.points[t.step],dx=p.x-t.sprite.x,dy=p.y-t.sprite.y,d=Math.hypot(dx,dy);if(d<3)t.step=(t.step+1)%t.points.length;else{t.sprite.x+=dx/d*threatSpeed*dt;t.sprite.y+=dy/d*threatSpeed*dt;}
       if(!this.bridge.reducedMotion)t.sprite.angle=Math.sin(this.tick*3)*6;

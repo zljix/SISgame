@@ -1,3 +1,4 @@
+import type { ContentTier } from './curriculum.ts';
 // Fictional classroom scenarios. No samples, credentials or system changes are used.
 export type DecisionOption = { id: string; label: string; detail: string; feedback: string };
 export type Decision = {
@@ -100,3 +101,52 @@ export const VERIFICATION_REPORTS: Record<string, [string, string][]> = {
   'auth-test': [['Vlasnik i oba faktora', 'Prijava prihvaćena'], ['Stara lozinka ili nedostajući ključ', 'Prijava odbijena'], ['Opozvana stara sesija', 'Pristup odbijen'], ['Učenik mijenja Ocjene', 'Odbijeno: nema potrebnu ovlast']],
   'harden-test': [['Predaja školskog rada', 'Dopuštena i uspješna'], ['Sigurnosne nadogradnje', 'Kanal nadogradnji dostupan'], ['Nepotreban udaljeni pristup', 'Usluga isključena'], ['Neovlaštena instalacija', 'Standardnom računu odbijena']],
 };
+
+export function samplesFor(tier: ContentTier) {
+  if(tier!=='junior')return MALWARE_SAMPLES;
+  return [
+    {...MALWARE_SAMPLES[0],evidence:'Obećava korisnu igru, ali potajno uzima privatne podatke.',explanation:'Trojanski konj se predstavlja kao koristan program, a skriva štetnu radnju.'},
+    {...MALWARE_SAMPLES[1],evidence:'Sam se kopira preko mreže na druga računala.',explanation:'Crv se može samostalno širiti s računala na računalo.'},
+  ];
+}
+export function eventsFor(tier: ContentTier) {
+  if(tier==='junior')return LOGIN_EVENTS.filter(event=>event.id!=='typo');
+  if(tier==='expert')return [...LOGIN_EVENTS,{id:'vpn',time:'16:05',device:'SLUŽBENI-VPN',outcome:'Uspješna prijava',detail:'Nova mrežna adresa · vlasnik potvrđuje uređaj i prijavu'}];
+  return LOGIN_EVENTS;
+}
+export function servicesFor(tier: ContentTier) { return tier==='junior'?SERVICE_RULES.filter(rule=>rule.id!=='updates'):SERVICE_RULES; }
+
+const decision=(level:number,description:string,requires:string[],correct:string,options:[string,string,string][],message:string):Decision=>({level,description,requires,locked:'Najprije dovrši prethodne korake označene na cilju.',correct,options:options.map(([id,label,detail])=>({id,label,detail,feedback:id===correct?'':detail+' Ponovno pročitaj cilj i odaberi postupak koji čuva podatke i potreban pristup.'})),title:'Postupak je primijenjen',message});
+Object.assign(DECISIONS,{
+  message:decision(7,'Školska poruka prijeti gašenjem računa i traži lozinku. Pregledaj poruku prije ikakve prijave.',[],'inspect',[
+    ['trust','Vjeruj logotipu','Poruka izgleda kao školska obavijest.'],['inspect','Zastani i provjeri zahtjev','Ne upisuj tajne podatke u ponuđenu stranicu.'],['forward','Pošalji prijatelju da isproba','Druga osoba otvara istu sumnjivu poveznicu.'],
+  ],'Prijetnja hitnim gašenjem i zahtjev za lozinkom traže oprez. Logotip se može kopirati. Sumnjivu poveznicu ne isprobavamo niti šaljemo prijateljima.'),
+  'verify-sender':decision(7,'Provjeri postoji li stvarna školska obavijest. Ne oslanjaj se na kontakt iz sumnjive poruke.',['message'],'known',[
+    ['reply','Odgovori na istu poruku','Odgovor može ponovno stići prevarantu.'],['known','Provjeri poznatim putem','Otvori spremljenu školsku oznaku ili kontaktiraj nastavnika poznatim kontaktom.'],
+  ],'Provjera poznatim putem vodi do stvarne škole. U ovom scenariju škola potvrđuje da zahtjev nije njezin.'),
+  report:decision(7,'Škola je potvrdila da poruka nije njezina. Sačuvaj podatke potrebne za prijavu i zaštiti druge.',['verify-sender'],'report',[
+    ['share','Objavi poveznicu da je svi vide','Drugi bi je mogli otvoriti.'],['report','Prijavi školskom administratoru','Koristi dogovoreni kanal, zatim ukloni poruku iz pristigle pošte.'],
+  ],'Poruka je prijavljena poznatim školskim kanalom u simulaciji. Ne prosljeđuješ aktivnu poveznicu prijateljima. Administrator može upozoriti druge i obraditi incident.'),
+  'phish-test':decision(7,'Provjeri da lažna prijava ostaje zatvorena, a prava školska usluga dostupna.',['message','verify-sender','report'],'test',[
+    ['test','Provjeri siguran nastavak','Prava oznaka radi; lažnoj stranici nisu predani podatci.'],
+  ],'Prava školska stranica dostupna je iz poznate oznake. Lozinka i kod nisu predani lažnoj stranici, a sumnjiva poruka je prijavljena.'),
+  channel:decision(8,'Učenik šalje rad školskom portalu. Odaberi prijenos koji štiti sadržaj i provjerava pravi poslužitelj.',[],'https',[
+    ['http','Obični HTTP','Sadržaj ove veze nije zaštićen TLS-om.'],['https','HTTPS uz valjan certifikat','Zaštićen prijenos do provjerenog imena poslužitelja.'],
+  ],'Odabran je HTTPS. Zaštita prijenosa uključuje i valjanu provjeru poslužitelja; sama oznaka HTTPS ne znači da je svaka stranica pouzdana.'),
+  tls:decision(8,'Prilikom prijave pojavljuje se upozorenje: certifikat nije izdan za ime školskog portala.',['channel','firewall'],'stop',[
+    ['bypass','Zanemari upozorenje','Nastavi unositi lozinku.'],['stop','Zaustavi prijavu i prijavi problem','Administrator treba ispraviti potvrdu identiteta poslužitelja.'],
+  ],'Prijava je zaustavljena. U simulaciji administrator postavlja odgovarajući valjani certifikat, a preglednik ponovno provjerava ime, rok valjanosti i povjerenje. Tek tada dopušta prijavu.'),
+  'network-test':decision(8,'Isprobaj dopuštene i zabranjene veze nakon ispravka certifikata.',['channel','firewall','tls'],'test',[
+    ['test','Pošalji probne zahtjeve','Predaja rada i ovlaštena administracija trebaju raditi; neovlaštena administracija ne smije.'],
+  ],'Školski HTTPS zahtjev prolazi. Administracija prolazi samo iz odobrene mreže, a neovlaštena veza je odbijena. Poslužitelj se predstavlja odgovarajućim certifikatom.'),
+});
+Object.assign(VERIFICATION_REPORTS,{
+  'phish-test':[['Poznata školska oznaka','Prava usluga dostupna'],['Lažna prijava','Lozinka i kod nisu poslani'],['Prijava poruke','Administrator je obaviješten'],['Zaštita drugih','Sumnjiva poveznica nije dijeljena']],
+  'network-test':[['Učenik → HTTPS','Predaja rada dopuštena'],['Administrator → SSH','Odobrena mreža dopuštena'],['Nepoznati izvor → SSH','Veza odbijena'],['Certifikat portala','Ime, valjanost i povjerenje provjereni']],
+});
+export const NETWORK_FLOWS = [
+  {id:'web',label:'Učenik → školski portal',detail:'HTTPS · TCP 443 · predaja rada je potrebna',allow:true},
+  {id:'admin',label:'Upravljačka mreža → poslužitelj',detail:'SSH · TCP 22 · odobrena administracija',allow:true},
+  {id:'outside',label:'Nepoznati izvor → poslužitelj',detail:'SSH · TCP 22 · nema ovlast za upravljanje',allow:false},
+];
+export function flowsFor(tier:ContentTier){return tier==='junior'?NETWORK_FLOWS.filter(flow=>flow.id!=='admin'):NETWORK_FLOWS;}

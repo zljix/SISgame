@@ -1,3 +1,4 @@
+import { JUNIOR_LESSONS, type ContentTier } from './curriculum.ts';
 export interface Station { id: string; label: string; x: number; y: number; icon: string; color: number; collectible?: boolean }
 export interface Level { id: number; title: string; subtitle: string; description: string; color: string; lesson: [string, string][]; stations: Station[]; rooms?: [string, string, string]; floors?: [number, number, number]; debrief?: string }
 const at = (id: string, label: string, x: number, y: number, icon: string, color = 0x60d8ff, collectible = false): Station => ({ id, label, x: x * 32 + 16, y: y * 32 + 16, icon, color, collectible });
@@ -33,7 +34,20 @@ export const LEVELS: Level[] = [
     ['Smanji svakodnevne ovlasti', 'Učenik radi kao standardni korisnik. Administrator odobrava potrebne promjene sustava. UAC je jedna od zaštitnih mjera.'],
     ['Zadrži potreban rad', 'Ukloni nepotrebne usluge, ali omogući nastavu i nadogradnje. Isprobaj dopuštene i zabranjene radnje prije predaje računala.'],
   ], stations: [at('patches', 'Sigurnosne nadogradnje', 6, 5, 'update', 0x7ddbdd), at('accounts', 'Korisnički računi', 16, 4, 'access', 0xb6a3ff), at('services', 'Upravljačka ploča usluga', 26, 6, 'network', 0xffcf76), at('harden-test', 'Provjera radne stanice', 26, 17, 'check', 0x67e7ab), exit] },
+  { id: 7, title: 'Ne nasjedaj poruci', subtitle: 'PHISHING I PROVJERA', description: 'Pregledaj sumnjivu poruku, provjeri pošiljatelja i prijavi pokušaj prijevare.', color: '#ffa68b', rooms: ['PORUKE', 'PROVJERA', 'ODGOVOR'], floors: [0x3a303a, 0x2e354b, 0x203c42], debrief: 'Zašto HTTPS na poveznici iz poruke ne dokazuje da je poruku poslala škola?', lesson: [
+    ['Phishing', 'Lažna poruka može oponašati školu, tražiti hitan odgovor i voditi na stranicu koja krade lozinku. U igri čitaš izmišljenu poruku.'],
+    ['Neovisna provjera', 'Za provjeru koristi ranije poznati broj ili službeni portal iz vlastite oznake. Odgovaranje na sumnjivu poruku nije neovisna provjera.'],
+    ['Prijava i zaštita', 'Prijavi sumnjivu poruku školskom administratoru i sačuvaj podatke za istragu. Nemoj je prosljeđivati razredu niti upisivati lozinku.'],
+  ], stations: [at('message', 'Sumnjiva poruka', 5, 5, 'file', 0xffa68b), at('verify-sender', 'Provjera pošiljatelja', 16, 4, 'access'), at('report', 'Prijava prijevare', 16, 16, 'log'), at('phish-test', 'Provjera odgovora', 26, 17, 'check', 0xb4a1ff), exit] },
+  { id: 8, title: 'Mreža pod nadzorom', subtitle: 'VATROZID I TLS', description: 'Omogući potreban prijenos, ograniči pristup i provjeri certifikat poslužitelja.', color: '#80d8ff', rooms: ['PRIJENOS', 'PRAVILA', 'POSLUŽITELJ'], floors: [0x183748, 0x203c44, 0x28354b], debrief: 'Što štiti TLS, a što pravila vatrozida? Zašto su školi potrebne obje mjere?', lesson: [
+    ['Zaštićen prijenos', 'HTTPS koristi TLS za zaštitu podataka u prijenosu i provjeru poslužitelja. Ne jamči da je sadržaj stranice pošten.'],
+    ['Potrebne veze', 'Vatrozid dopušta ili blokira veze prema pravilima. Dopusti školski rad i odobreno upravljanje, a blokiraj neovlašten pristup.'],
+    ['Provjera certifikata', 'Certifikat treba odgovarati nazivu poslužitelja, biti važeći i dolaziti iz pouzdanog lanca. Upozorenje o pogrešnom nazivu treba istražiti i ispraviti.'],
+  ], stations: [at('channel', 'Zaštićen kanal', 5, 5, 'key'), at('firewall', 'Mrežna pravila', 16, 4, 'network', 0xffcf76), at('tls', 'Provjera certifikata', 26, 5, 'lock'), at('network-test', 'Provjera mreže', 26, 17, 'check', 0x67e7ab), exit] },
 ];
+export function levelContent(level:Level,tier:ContentTier):Level {
+  return tier==='junior'?{...level,...JUNIOR_LESSONS[level.id],debrief:undefined}:level;
+}
 export const TARGET_TEXT: Record<string, string> = {card:'Preuzmi službenu karticu',door:'Postavi kontrolu ulaza',ups:'Zaštiti napajanje poslužitelja',paper:'Preuzmi osjetljiv ispis',shred:'Sigurno uništi ispis',drill:'Isprobaj zaštitu',exit:'Dođi do izlaza',schedule:'Uredi prava na javni raspored',grades:'Uredi prava na mapu Ocjene',secret:'Preuzmi povjerljivu datoteku',encrypt:'Šifriraj datoteku',deliver:'Predaj i provjeri datoteku',rad:'Pronađi završni rad',mjerenja:'Pronađi mjerenja',nacrt:'Pronađi nacrt',backup:'Pripremi odvojenu kopiju',failure:'Pokreni probni kvar',verify:'Provjeri obnovljeni sadržaj'};
 export const TILE = 32, COLS = 32, ROWS = 22;
 Object.assign(TARGET_TEXT, { containment: 'Izoliraj i prijavi LAB-04', samples: 'Razvrstaj laboratorijske izvještaje', recovery: 'Obnovi sustav iz pouzdanog izvora', 'malware-test': 'Provjeri povratak u rad', sessions: 'Istraži sumnjivu prijavu', identity: 'Postavi jedinstvenu lozinku', mfa: 'Dodaj drugi faktor prijave', 'auth-test': 'Isprobaj zaštitu računa', patches: 'Primijeni sigurnosne nadogradnje', accounts: 'Postavi potrebne ovlasti', services: 'Uredi potrebne usluge', 'harden-test': 'Provjeri rad i zaštitu' });
@@ -41,7 +55,10 @@ const PASSAGES: Record<number, number[][]> = {
   4: [[3,4,16,17],[5,6,17,18],[7,8,9],[13,14,15],[25,26,27]],
   5: [[5,6,14,15],[3,4,17,18],[3,4,5],[17,18,19],[23,24,25]],
   6: [[8,9,16,17],[5,6,18,19],[6,7,8],[13,14,15],[27,28,29]],
+  7: [[4,5,17,18],[5,6,16,17],[6,7,8],[15,16,17],[25,26,27]],
+  8: [[6,7,15,16],[4,5,17,18],[4,5,6],[14,15,16],[27,28,29]],
 };
+Object.assign(TARGET_TEXT,{message:'Pregledaj sumnjivu poruku','verify-sender':'Provjeri pošiljatelja neovisnim putem',report:'Prijavi pokušaj prijevare','phish-test':'Provjeri postupak zaštite',channel:'Odaberi zaštićen prijenos',firewall:'Postavi potrebne mrežne veze',tls:'Provjeri identitet poslužitelja','network-test':'Isprobaj mrežnu zaštitu'});
 export function walls(level = 1): Set<string> {
   const w = new Set<string>();
   const [left, right, west, center, east] = PASSAGES[level] || [[5,6,16,17],[9,10,17,18],[4,5,6],[15,16,17],[25,26,27]];

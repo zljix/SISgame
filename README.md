@@ -1,6 +1,20 @@
 # SISgame — Čuvari sustava
 
-Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, namijenjena učenicima srednje tehničke škole. Inačica **0.2.0** sadrži šest dovršivih misija, hrvatske upute, dodirne kontrole i tipkovnicu.
+Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, prvenstveno za uzrast **13–18 godina**, uz jednostavniji sadržaj za mlađe igrače. Inačica **0.3.0** sadrži osam dovršivih misija, hrvatske upute, dodirne kontrole i tipkovnicu.
+
+## Jedna igra, tri razine sadržaja
+
+| Nastavni sadržaj | Orijentacijska dob | Prilagodba zadataka |
+| --- | --- | --- |
+| Junior | 11–13 | Kraće pouke, slikovni koraci, dva izvještaja i jednostavniji izbori; dio postavki je pripremljen. |
+| Standard | 14–16 | Puni scenariji, objašnjenja pojmova i postupno povezivanje zaštitnih mjera. |
+| Expert | 16+ | Dodatna analiza dokaza i ograničenja u svakoj misiji; završna provjera traži obrazložen plan od tri odluke. |
+
+**Nastavni sadržaj i tempo igranja biraju se odvojeno.** Svaki sadržaj može se igrati bez smetnji ili uz lagan, srednji odnosno brz arkadni tempo. Tempo se može promijeniti i za započetu misiju preko postavki na karti, uz sačuvane sigurnosne odluke. Expert nema obvezno odbrojavanje: opcionalni izazov od 90 sekundi počinje tek pritiskom na tipku nakon čitanja slučaja. Može se isključiti tijekom zadatka. Zatvaranje prozora i odlazak u pozadinu pauziraju mjerenje; istek dopušta nastavak bez kazne.
+
+Dobne oznake su razvojna i pedagoška preporuka, **nisu formalna PEGI klasifikacija**. Igra ne traži datum rođenja. Odabir treba prilagoditi predznanju, čitanju i potrebama učenika; primjerenost treba potvrditi testiranjem u razredu.
+
+![Odvojeni izbor nastavnog sadržaja i tempa](media/content-settings-v0.3.0.jpg)
 
 ## Što je u igri
 
@@ -11,10 +25,12 @@ Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, namijenjena u
 4. **Sumnjivi program** — izolacija incidenta, virus/crv/trojanski konj, rootkit i pouzdan oporavak.
 5. **Tko se prijavio?** — analiza dnevnika, opoziv sesija, jedinstvena lozinka, MFA i provjera prijave.
 6. **Ojačaj sustav** — službene nadogradnje, standardni račun/UAC, potrebne usluge i provjera dostupnosti.
+7. **Ne nasjedaj poruci** — pregled izmišljene lažne poruke, neovisna provjera, prijava i siguran nastavak rada.
+8. **Mreža pod nadzorom** — HTTPS, pravila dopuštenih veza, upozorenje o certifikatu i provjera zaštite.
 
 Nove misije imaju različite prolaze, boje prostorija i opremu. Uz odluke na terminalima dodani su razvrstavanje izvještaja, pregled dnevnika i upravljačka ploča usluga. Završne provjere prikazuju učinak mjera; rezultati nude i pitanje za primjenu gradiva.
 
-[Nastavni sadržaj, rješenja i stručni izvori](CONTENT.md) opisani su zasebno. Postojeći napredak iz 0.1.x ostaje sačuvan; dovršena treća misija otključava četvrtu.
+[Nastavni sadržaj, rješenja i stručni izvori](CONTENT.md) opisani su zasebno. Svaka razina sadržaja ima svoj napredak i započetu misiju. Postojeći napredak iz 0.1.x i 0.2.x automatski se prenosi u Standard; dovršena šesta misija otključava sedmu.
 
 ![Razvrstavanje izvještaja u novoj laboratorijskoj misiji](media/campaign-samples-v0.2.0.jpg)
 
@@ -41,7 +57,7 @@ Visina igre prati vidljivo područje preglednika pri promjeni orijentacije i pri
 - **Pomoć pri kretanju:** dodir/klik tla ili trenutačnog cilja pokreće kretanje do odredišta uz obilazak zidova. Ručno kretanje prekida tu putanju.
 - Igra se prilagođava uspravnom i vodoravnom zaslonu. Na mobitelu je vodoravni prikaz pregledniji.
 - U pozadini se igra pauzira. Zvuk je početno isključen, a postavke nude smanjeno gibanje.
-- Težine mijenjaju brzinu smetnji i označavanje cilja; nastavni ciljevi su isti.
+- Tempo mijenja samo arkadne smetnje i oznaku cilja na tlu. U načinu **Bez smetnji** nema sudara ni potrebe za štitom. Dodir cilja i dalje vodi do sljedeće stanice.
 
 ## Objava na GitHub Pagesu — ručno, kada vlasnik odluči
 
@@ -64,7 +80,9 @@ Preglednik može obrisati lokalnu pohranu ili predmemoriju, primjerice nakon kor
 
 ## Napredak i vrednovanje
 
-Napredak se sprema u `localStorage` pod ključem `sisgame.save.v1`, bez imena i prijave. Spremanje se obavlja tijekom igranja, nakon odluka i pri napuštanju. Ako je pohrana blokirana, igra prikazuje upozorenje i nastavlja raditi.
+Napredak se sprema u `localStorage` pod zadržanim ključem `sisgame.save.v1`, bez imena i prijave. Format je sada `schema: 2`, s odvojenim profilima za Junior, Standard i Expert; stari `schema: 1` migrira se u Standard. Spremanje se obavlja tijekom igranja, nakon odluka i pri napuštanju. Ako je pohrana blokirana, igra prikazuje upozorenje i nastavlja raditi.
+
+Statusna traka i kampanja prikazuju samo bodove učenja. Arkadni bonus prikazuje se zasebno u pauzi i rezultatu. Brzina, sudari, energija i istek opcionalnog vremena ne mijenjaju bodove učenja ni oznaku samostalne odluke. Rezultati različitih razina sadržaja nisu usporedive standardizirane ocjene.
 
 Lokalni rezultati su evidencija vježbanja, **nisu kriptografski dokaz znanja ili identiteta**. Korisnik može izmijeniti podatke u svojem pregledniku. Za pouzdano formalno vrednovanje potrebni su prijava, poslužiteljska obrada provjerljivih događaja i odgovarajuća provjera samostalnosti; samo potpisivanje broja bodova koji je poslao klijent nije dovoljno.
 
@@ -81,6 +99,7 @@ npm run build
 
 `npm run build` provjerava TypeScript, izrađuje `docs/` i generira potpun popis datoteka za offline predmemoriju. Izvorni kôd je u `src/`; `docs/` treba ponovno izgraditi nakon svake izmjene. Nakon izmjene potrebno je commitati i izvorne i izgrađene datoteke. Ovisnosti su zaključane u `package-lock.json`.
 
+- `src/curriculum.ts` — razine sadržaja, Junior prilagodbe, pojmovi i Expert slučajevi.
 - `src/missions.ts` — sadržaj novih odluka, izvještaji, zapisi i pravila usluga.
 - `src/core.ts` — nastavna pravila i prijelazi stanja.
 - `src/game.ts` — Phaser, mapa, kretanje, prepreke i likovi.
@@ -91,11 +110,11 @@ npm run build
 
 ## Provjera prije uporabe u razredu
 
-23 automatizirana testa provjeravaju pravila svih šest misija, dostupnost mjesta na svakoj mapi, preduvjete, pogrešne odluke, sprečavanje ponovnog zbrajanja bodova, kompatibilnost starog napretka i offline paket. Pregled u računalnom pregledniku ne zamjenjuje probu na stvarnom iPhoneu i Androidu. Prije nastavne uporabe provjerite višestruki dodir, okretanje zaslona, zaključavanje/otključavanje, povratak nakon zatvaranja, zvuk, offline pokretanje i ažuriranje.
+32 automatizirana testa provjeravaju pravila svih osam misija u sve tri razine sadržaja, dostupnost mjesta na svakoj mapi, preduvjete, pogrešne odluke, sprečavanje ponovnog zbrajanja bodova, migraciju starog napretka, neovisne profile, opcionalni sat, odvojeno bodovanje i offline paket. Pregled u računalnom pregledniku ne zamjenjuje probu na stvarnom iPhoneu i Androidu. Prije nastavne uporabe provjerite višestruki dodir, okretanje zaslona, zaključavanje/otključavanje, povratak nakon zatvaranja, zvuk, offline pokretanje i ažuriranje.
 
-Nove konzole pregledane su u Chromeu na 956 × 440 i 956 × 378 uz simulirane sigurne rubove te na 568 × 320 i 390 × 844. Na nižem širokom prikazu sva tri izvještaja, zapisa dnevnika i prekidača usluga stanu bez pomicanja. Na najmanjim prikazima duži sadržaj pomiče se unutar prozora, a zatvaranje i glavna tipka ostaju dostupni.
+Postavke, Junior obrasci, Expert analiza i mrežna konzola provjereni su u Chromeu na 956 × 440, 956 × 378 uz simulirane sigurne rubove, 568 × 320 i 390 × 844. Dulji sadržaj pomiče se unutar prozora; zatvaranje i glavna tipka ostaju dostupni. Provjereni su ispravak Expert odgovora, nastavak nakon isteka vremena i povratak u započetu misiju nakon promjene sadržaja.
 
-Nastavni okvir obuhvaća sedam cjelina i 26 tema. Ova inačica ima šest misija koje objedinjuju dio tema; mrežni i operativni scenariji ostaju za nastavak razvoja. Detaljna veza s gradivom nalazi se u [CONTENT.md](CONTENT.md).
+Nastavni okvir obuhvaća sedam cjelina i 26 tema. Ova inačica ima osam misija koje objedinjuju dio tema; ne pokriva svih 26 nastavnih tema. IDS/IPS, Wi-Fi i širi operativni scenariji ostaju za nastavak razvoja. Detaljna veza s gradivom nalazi se u [CONTENT.md](CONTENT.md).
 
 ## Izvori i ovisnosti
 
