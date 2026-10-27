@@ -1,5 +1,6 @@
 import { CHECKS, FILES, newRun, type Difficulty, type Run, score, arcadeScore } from './core.ts';
 import { EXPERT_REVIEWS, TIERS, type ContentTier } from './curriculum.ts';
+import { alertsFor, verdictsFor, WIFI_GUESTS, WIFI_SECURITY } from './network.ts';
 export type Best = { learning: number; arcade: number; independent: number; completed: boolean };
 export type Profile = { best: Record<string, Best>; active: Run | null };
 export type Save = { schema: 2; settings: { content: ContentTier; difficulty: Difficulty; timed: boolean; sound: boolean; reducedMotion: boolean }; profiles: Record<ContentTier,Profile> };
@@ -23,6 +24,11 @@ function parseRun(a:any,tier:ContentTier):Run|null {
   if(tier==='expert'&&a.review){r.review.started=a.review.started===true;r.review.remaining=clamp(a.review.remaining,0,90);r.review.expired=a.review.expired===true||r.review.remaining===0;}
   if(tier==='expert')for(const question of EXPERT_REVIEWS[r.level].questions){const value=a.review?.answers?.[question.id];if(question.choices.some(([choice])=>choice===value))r.review.answers[question.id]=value;}
   for(const key of ['web','admin','outside'])if(typeof a.networkRules?.[key]==='boolean')r.networkRules[key]=a.networkRules[key];
+  if(r.level===9)for(const report of alertsFor(tier)){const value=a.alertAnswers?.[report.id];if(verdictsFor(tier).some(([id])=>id===value))r.alertAnswers[report.id]=value;}
+  if(r.level===10){
+    if(tier!=='junior'&&WIFI_SECURITY.some(([id])=>id===a.wifiSettings?.security))r.wifiSettings.security=a.wifiSettings.security;
+    if(WIFI_GUESTS.some(([id])=>id===a.wifiSettings?.guests))r.wifiSettings.guests=a.wifiSettings.guests;
+  }
   return r;
 }
 export function parseSave(raw:string|null): Save {

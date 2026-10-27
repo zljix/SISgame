@@ -150,3 +150,48 @@ export const NETWORK_FLOWS = [
   {id:'outside',label:'Nepoznati izvor → poslužitelj',detail:'SSH · TCP 22 · nema ovlast za upravljanje',allow:false},
 ];
 export function flowsFor(tier:ContentTier){return tier==='junior'?NETWORK_FLOWS.filter(flow=>flow.id!=='admin'):NETWORK_FLOWS;}
+
+Object.assign(DECISIONS, {
+  sensors: {
+    level: 9, description: 'Uspoređuješ dva probna načina rada. IDS šalje upozorenje administratoru. IPS uz otkrivanje može zaustaviti promet prema pravilima. Koji zaključak odgovara tome?', requires: [], locked: '', correct: 'compare',
+    options: [
+      {id:'auto',label:'Svaki alarm već je zaustavio vezu',detail:'Čim vidim upozorenje, smatram promet blokiranim.',feedback:'IDS u ovom načinu upozorava, ali ne blokira vezu. Provjeri što je alat stvarno učinio; alarm nije dokaz blokiranja.'},
+      {id:'compare',label:'Razlikuj upozorenje i blokiranje',detail:'Provjeri zapis IDS-a i učinak pravila IPS-a.',feedback:''},
+      {id:'perfect',label:'Bez alarma nema prijetnje',detail:'Osloni se samo na zaslon senzora.',feedback:'Senzor može propustiti prijetnju. Izostanak alarma nije dokaz da incidenta nema; usporedi i druge zapise.'},
+    ], title:'Uloge senzora su jasne',message:'IDS je u probi zabilježio i prijavio događaj. IPS je uz zapis zaustavio probnu vezu koja odgovara pravilu. Sada provjeri stvarno značenje svakog upozorenja.',
+  },
+  response: {
+    level:9, description:'Potvrđen je neovlašten pristup LAB-09. Administrator je odobrio izolaciju tog uređaja i pravilo za potvrđeni štetni promet. Školski portal mora ostati dostupan.',requires:['sensors','alerts'],locked:'Najprije usporedi senzore i razvrstaj sigurnosne zapise.',correct:'targeted',
+    options:[
+      {id:'all',label:'Blokiraj sav školski promet',detail:'Zaustavi i portal, nadogradnje i nastavu.',feedback:'Potvrđeni incident je ograničen na LAB-09. U ovom slučaju široka zabrana prekida potreban rad bez opravdanja. Primijeni odobrenu ciljanu mjeru.'},
+      {id:'disable',label:'Ugasi upozorenja',detail:'Na ploči više nema alarma.',feedback:'Gašenje upozorenja ne zaustavlja incident. Ostavljaš neovlašteni pristup i gubiš nadzor.'},
+      {id:'targeted',label:'Izoliraj LAB-09 i sačuvaj zapise',detail:'Primijeni odobreno ciljano pravilo; provjeri ostali rad.',feedback:''},
+    ],title:'Incident je ograničen',message:'LAB-09 je izoliran za obradu. Ciljano IPS pravilo zaustavlja potvrđeni štetni promet. Zapisi ostaju dostupni administratoru, a školski portal radi. Izolacija nije dokaz uklonjenog uzroka incidenta.',
+  },
+  'detection-test':decision(9,'U odobrenoj simulaciji isprobaj ciljano pravilo i normalan školski rad. Ne šalju se stvarni napadi.',['sensors','alerts','response'],'test',[
+    ['test','Pokreni sigurnu probu','Provjeri blokiranje, dopušteni rad i sačuvane zapise.'],
+  ],'Probni štetni promet je zaustavljen, predaja rada prolazi, a odobreno održavanje nije pogrešno blokirano. LAB-09 ostaje izoliran do oporavka. Zapisi su sačuvani za nastavak obrade.'),
+  'wifi-identity': {
+    level:10,description:'Na popisu je više sličnih Wi-Fi naziva. Mreža Škola_Free ima najjači signal, ali nema potvrđenog vlasnika. Trebaš se povezati prema odobrenim školskim uputama.',requires:[],locked:'',correct:'known',
+    options:[
+      {id:'strongest',label:'Odaberi najjači signal',detail:'Mreža Škola_Free ima sve crtice.',feedback:'Jačina signala govori o vezi, ne o vlasniku. I nepoznata pristupna točka može imati jak signal.'},
+      {id:'known',label:'Provjeri poznatim školskim kontaktom',detail:'Preuzmi odobrene postavke i slijedi upute za povezivanje.',feedback:''},
+      {id:'name',label:'Vjeruj nazivu Škola',detail:'Naziv zvuči kao službena mreža.',feedback:'SSID, odnosno naziv mreže, može se kopirati. Sam naziv nije potvrda identiteta pristupne točke.'},
+    ],title:'Upute dolaze iz provjerenog izvora',message:'Poznatim školskim kontaktom dobivene su odobrene postavke za ovaj prostor. Ne biraš mrežu samo prema nazivu ili signalu. Sljedeće pripremaš zaštićenu i odvojenu vezu za goste.',
+  },
+  'wifi-maintenance': {
+    level:10,description:'Odvojena mreža za goste je pripremljena. Na pristupnoj točki ostala je početna administratorska lozinka, a proizvođač nudi sigurnosnu nadogradnju.',requires:['wifi-identity','wifi-config'],locked:'Najprije provjeri mrežu i pripremi zaštitu veze s odvojenim pristupom gostiju.',correct:'maintain',
+    options:[
+      {id:'rename',label:'Promijeni samo naziv mreže',detail:'Nov naziv umjesto staroga.',feedback:'Naziv ne mijenja administratorsku lozinku niti popravlja propust. Potrebna je zaštita upravljanja i službena nadogradnja.'},
+      {id:'maintain',label:'Zaštiti upravljanje i nadogradi',detail:'Zasebna administratorska lozinka, službena nadogradnja i provjera.',feedback:''},
+      {id:'hide',label:'Sakrij naziv mreže',detail:'Naziv se ne prikazuje na uobičajenom popisu.',feedback:'Skrivanje SSID-a nije zamjena za zaštitu pristupa ni nadogradnje. Mreža se time ne čini nevidljivom napadaču.'},
+    ],title:'Pristupna točka je pripremljena',message:'U simulaciji administrator mijenja početnu lozinku za upravljanje, čuva je odvojeno od lozinke za goste i primjenjuje službenu nadogradnju. Sada treba isprobati povezivanje i odvajanje.',
+  },
+  'wifi-test':decision(10,'Gost treba otvoriti školski javni portal preko HTTPS-a, ali ne smije do interne školske mreže ili upravljanja pristupnom točkom.',['wifi-identity','wifi-config','wifi-maintenance'],'test',[
+    ['test','Isprobaj gostujuću vezu','Provjeri i dopušteni internet i zabranjeni interni pristup.'],
+  ],'Gost se povezuje zaštićenom vezom i može koristiti internet. Provjera interne školske mreže i upravljanja je odbijena. Web se i dalje koristi preko HTTPS-a; Wi-Fi zaštita ne zamjenjuje zaštitu cijelog web-prijenosa.'),
+});
+Object.assign(VERIFICATION_REPORTS, {
+  'detection-test':[['Probni štetni promet','Ciljano IPS pravilo blokira vezu.'],['Školski portal','Dopuštena predaja rada prolazi.'],['Odobrena provjera','Potvrđeno održavanje nije pogrešno blokirano.'],['Obrada incidenta','LAB-09 ostaje izoliran; zapisi su sačuvani.']],
+  'wifi-test':[['Bežična veza','WPA3-Personal i zasebna duga lozinka.'],['Gost → internet','Potreban pristup je dopušten.'],['Gost → interna mreža','Pristup je blokiran pravilima odvajanja.'],['Upravljanje i web','Upravljanje je zaštićeno; web koristi HTTPS.']],
+});

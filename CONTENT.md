@@ -1,6 +1,6 @@
-# SISgame — sadržaj kampanje 0.3.0
+# SISgame — sadržaj kampanje 0.4.0
 
-Igra ima osam misija i 32 sigurnosne zadaće po razini sadržaja. Misija traje koliko učeniku treba za istraživanje i odluke; nema vremenske kazne za čitanje. Nakon pouke učenik postavlja mjere, ispravlja pogreške i provjerava rezultat. Izlaz se otvara tek nakon četiri dovršene zadaće.
+Igra ima deset misija i 40 sigurnosne zadaće po razini sadržaja. Misija traje koliko učeniku treba za istraživanje i odluke; nema vremenske kazne za čitanje. Nakon pouke učenik postavlja mjere, ispravlja pogreške i provjerava rezultat. Izlaz se otvara tek nakon četiri dovršene zadaće.
 
 ## Dob, predznanje i pristupačnost
 
@@ -14,6 +14,8 @@ Primarna razvojna publika je 13–18 godina, s naglaskom na srednju školu. Juni
 | Zlonamjerni programi | Dva izvještaja: trojanski konj i crv | Tri izvještaja, uključujući virus; rootkit u oporavku | Tri izvještaja + posljedice krađe vjerodajnica |
 | Prijave | Dva zapisa | Tri zapisa, uključujući odbijenu lozinku | Četiri zapisa, uključujući legitimni VPN |
 | Usluge i mreža | Dvije promjenjive postavke; ostale su pripremljene | Tri usluge / mrežne veze | Puni skup + prioritizacija ranjivosti i mrežna ograničenja |
+| IDS/IPS zapisi | Dva kratka zapisa i dva zaključka | Tri zapisa i tri zaključka | Puni skup + slučaj propuštene prijetnje |
+| Wi-Fi | WPA3 unaprijed pripremljen; dva izbora pristupa gostiju | Izbor zaštite i tri mogućnosti gostujućeg pristupa | Puni skup + provjera stvarnog odvajanja |
 | Završetak | Provjera mjera | Provjera mjera i pitanje za primjenu | Obvezna analiza triju odluka prije završne provjere |
 
 Tempo (bez smetnji / lagan / srednji / brz) ne bira nastavni sadržaj. Expert može biti bez smetnji i bez sata. Junior može imati brz arkadni tempo. Brzina i refleksi ne određuju bodove učenja.
@@ -22,7 +24,7 @@ Opcionalni Expert izazov ima 90 sekundi **aktivnog rješavanja dodatnog slučaja
 
 ## Veza s nastavnim okvirom
 
-Sadržaj nastavlja SIS priručnik i okvir od sedam cjelina / 26 tema. Jedna misija može objediniti više tema; osam misija **ne predstavlja svih 26 lekcija**.
+Sadržaj nastavlja SIS priručnik i okvir od sedam cjelina / 26 tema. Jedna misija može objediniti više tema; deset misija **ne predstavlja svih 26 lekcija**.
 
 | Misija | Područje | Što učenik treba pokazati |
 | --- | --- | --- |
@@ -34,8 +36,10 @@ Sadržaj nastavlja SIS priručnik i okvir od sedam cjelina / 26 tema. Jedna misi
 | 6. Ojačaj sustav | Računalni sloj, tema 16 | Primijeniti provjerene nadogradnje, koristiti standardni račun i ostaviti samo potrebne usluge. |
 | 7. Ne nasjedaj poruci | Socijalni inženjering i operativni postupci | Prepoznati sumnjiv zahtjev, provjeriti ga neovisnim putem i sigurno prijaviti. |
 | 8. Mreža pod nadzorom | Mrežni sloj i sigurni protokoli | Dopustiti potreban promet, ograničiti administraciju i reagirati na pogrešan certifikat. |
+| 9. Trag iza alarma | Mrežni nadzor i odgovor na incident | Razlikovati IDS i IPS, zaključivati iz dodatnih dokaza i primijeniti ciljani odgovor uz očuvanje rada. |
+| 10. Wi-Fi za prave goste | Bežična mreža i odvajanje pristupa | Provjeriti mrežu poznatim putem, zaštititi vezu i provjeriti granice gostujućeg pristupa. |
 
-Za daljnje proširenje ostaju samostalni scenariji procjene imovine i rizika, IDS/IPS, Wi-Fi i širi operativni postupci. Mrežne veze, TLS i phishing sada imaju zasebne misije. Opisi misija 4–6 u nastavku odgovaraju Standardu; Junior pojednostavljenja i Expert dodatci navedeni su zasebno.
+Za daljnje proširenje ostaju samostalni scenariji procjene imovine i rizika i širi operativni postupci. Mrežne veze, TLS i phishing sada imaju zasebne misije. Opisi misija 4–6 u nastavku odgovaraju Standardu; Junior pojednostavljenja i Expert dodatci navedeni su zasebno.
 
 ## 4. Sumnjivi program
 
@@ -98,6 +102,30 @@ Za daljnje proširenje ostaju samostalni scenariji procjene imovine i rizika, ID
 
 **Expert:** plan navodi potrebnu uslugu TCP 443, ograničenje TCP 22 na upravljačku mrežu i popravak certifikata. Poznavanje brojeva portova uvodi se u pouci slučaja prije primjene.
 
+## 9. Trag iza alarma
+
+**Scenarij:** učenik uz ovlaštenog administratora istražuje izmišljene zapise i priprema ciljani odgovor. Nema slanja stvarnih napada.
+
+1. **Senzori:** usporedi IDS koji u probi javlja događaj s IPS-om koji uz otkrivanje može zaustaviti promet prema pravilu. Alarm nije dokaz da je promet blokiran; izostanak alarma nije potvrda da nema incidenta.
+2. **Zapisi:** A odgovara potvrđenom nalogu za održavanje (odobreni rad); B sadrži potvrđenu neovlaštenu promjenu (incident); C sadrži odbijene pokušaje bez pregledanih drugih zapisa (daljnja provjera). Junior obrađuje A i B. Nepotpun obrazac ne bilježi pogrešku, a pogrešan potpuni odgovor objašnjava koji dokaz treba ponovno razmotriti.
+3. **Odgovor:** izoliraj LAB-09 i primijeni odobreno ciljano pravilo uz sačuvane zapise. U ovom ograničenom slučaju nisu opravdani gašenje nadzora ni blokiranje svih školskih veza. Izolacija ne dokazuje uklonjen uzrok.
+4. **Provjera:** probni štetni promet je blokiran, predaja rada i odobrena provjera prolaze, a zapisi ostaju dostupni. LAB-09 ostaje izoliran do daljnje obrade i oporavka.
+
+**Expert:** dnevnik potvrđuje incident iako senzor šuti. Obradi dokaz, ograniči iznimku za odobrenu provjeru na potvrđen izvor/opseg/termin te isprobaj i zaštitu i potreban rad.
+
+## 10. Wi-Fi za prave goste
+
+**Scenarij:** mali školski prostor prima goste. Svi uređaji u ovom scenariju podržavaju WPA3-Personal. To je namjerno ograničen didaktički primjer, a ne univerzalan projekt školske bežične infrastrukture; poslovna autentifikacija i stariji uređaji nisu obuhvaćeni.
+
+1. **Identitet mreže:** preuzmi odobrene postavke poznatim školskim kontaktom. Najjači signal ili poznati SSID sami ne potvrđuju vlasnika.
+2. **Postavke:** odaberi WPA3-Personal i internet bez pristupa internoj školskoj mreži. Simulacija postavlja zasebnu dugu Wi-Fi lozinku bez traženja stvarnih tajnih podataka. Tri pokazatelja prikazuju posljedice odabira: zaštitu bežične veze, internet gosta i internu mrežu. WEP i nezaštićena veza ne ispunjavaju ovaj zadatak; potpuna zabrana prometa onemogućuje potreban rad. Junior ima WPA3 pripremljen i bira između odvojenog i preširokog pristupa.
+3. **Održavanje:** ovlašteni administrator mijenja početnu lozinku za upravljanje i primjenjuje službenu nadogradnju. Skriveni ili promijenjeni SSID to ne zamjenjuje. Lozinka za upravljanje nije ista namjena kao lozinka za spajanje gosta.
+4. **Provjera:** gost ima internet, ali ne i put do interne školske mreže i upravljanja. Web-prijenos i dalje treba HTTPS. Naziv Gost nije dokaz odvajanja; potrebno je provjeriti učinak mrežnih pravila.
+
+**Expert:** i uz WPA3 gost može imati preširoka mrežna prava. Ispravi odvajanje, provjeri ga iz gostujuće mreže i zadrži HTTPS za web.
+
+Nedovršeni odabiri na konzolama upozorenja i Wi-Fi postavki automatski se spremaju. Obnova provjerava dopuštene vrijednosti, ne pretvara ih u službeno dokazane rezultate.
+
 ## Expert slučajevi i očekivani zaključci
 
 | Misija | Novi dokaz ili ograničenje | Plan koji odgovara slučaju |
@@ -110,6 +138,8 @@ Za daljnje proširenje ostaju samostalni scenariji procjene imovine i rizika, ID
 | 6 | Javni servis aktivno je napadan, lokalna aplikacija ima kozmetičku grešku. | Prioritet javnom servisu; službena zakrpa; provjera zaštite i dostupnosti. |
 | 7 | Lažna domena ima valjan HTTPS certifikat. | Prepoznati domenu, razumjeti granice TLS-a, provjeriti poznatim putem. |
 | 8 | Potrebni su školski web i ograničeni SSH; certifikat ima pogrešno ime. | Dopustiti potreban web, ograničiti administraciju, ispraviti certifikat. |
+| 9 | Senzor šuti, ali drugi izvor potvrđuje incident; odobreni skener stvara lažne alarme. | Obraditi potvrđen dokaz, usko ograničiti iznimku i provjeriti zaštitu i dostupnost. |
+| 10 | WPA3 je uključen, ali gost vidi internu mapu. | Popraviti mrežna pravila, isprobati ih iz uloge gosta i zadržati HTTPS. |
 
 Dodatni slučajevi su provjera primjene na novim činjenicama. Tri ispravne odluke otključavaju zadnju sigurnosnu zadaću; same ne daju dodatne bodove. Netočan potpun plan bilježi ispravak završne zadaće, nepotpun obrazac traži dopunu bez kazne.
 
@@ -134,7 +164,7 @@ Predviđeno, ali još nije provedeno: isprobati s učenicima različitog predzna
 
 ## Stručna provjera novih scenarija
 
-Dopunjeno 26. listopada 2026. Izvori podupiru načela; dijalozi, uređaji, izvještaji i nastavni zadatci izvorno su napisani za igru.
+Dopunjeno 27. listopada 2026. Izvori podupiru načela; dijalozi, uređaji, izvještaji i nastavni zadatci izvorno su napisani za igru.
 
 - [NIST SP 800-83 Rev. 1 — Malware Incident Prevention and Handling](https://csrc.nist.gov/pubs/sp/800/83/r1/final): vrste zlonamjernih programa, ograničavanje incidenta i pouzdan oporavak.
 - [NIST SP 800-63B-4 — Authentication and Authenticator Management](https://pages.nist.gov/800-63-4/sp800-63b.html): različiti faktori autentifikacije, jedinstvene lozinke i upravitelji lozinki.
@@ -143,3 +173,7 @@ Dopunjeno 26. listopada 2026. Izvori podupiru načela; dijalozi, uređaji, izvje
 
 - [FTC — How To Recognize and Avoid Phishing Scams](https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams): provjera poznatim neovisnim kontaktom i prijava sumnjive poruke.
 - [OWASP — Transport Layer Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html): zaštita prijenosa i valjana provjera identiteta poslužitelja.
+
+- [NIST SP 800-94 — Guide to Intrusion Detection and Prevention Systems](https://csrc.nist.gov/pubs/sp/800/94/final): osnovna razlika IDS/IPS, lažni alarmi, propuštene prijetnje i prilagodba pravila. Riječ je o završnom izdanju iz 2007.; nacrt revizije 1 nije postao završno izdanje. Koristi se za temeljne pojmove, ne kao pregled aktualnih proizvoda.
+- [Apple — Recommended settings for Wi-Fi routers and access points](https://support.apple.com/en-us/102766): WPA3-Personal uz kompatibilne uređaje, izbjegavanje WEP-a, ograničenja skrivenog SSID-a i održavanje uređaja.
+- [FTC — How To Secure Your Home Wi-Fi Network](https://consumer.ftc.gov/articles/how-secure-your-home-wi-fi-network): zasebna zaštita upravljanja i Wi-Fi pristupa te odvajanje gostujuće mreže. Kućni okvir izvora ovdje podupire osnovna načela malog didaktičkog scenarija.

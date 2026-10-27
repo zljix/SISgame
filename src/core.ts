@@ -1,5 +1,6 @@
 import { DECISIONS, flowsFor, samplesFor, servicesFor, type MalwareKind, type ServiceSettings } from './missions.ts';
 import { EXPERT_REVIEWS, JUNIOR_CHOICES, type ContentTier } from './curriculum.ts';
+import { alertsFor, verdictsFor, WIFI_GUESTS, WIFI_SECURITY, wifiPreview, type AlertVerdict, type WifiSettings } from './network.ts';
 
 export type Difficulty = 'relaxed' | 'easy' | 'medium' | 'hard';
 export type Access = 'none' | 'read' | 'write';
@@ -9,12 +10,14 @@ export interface Run {
   level: number; difficulty: Difficulty; content: ContentTier; x: number; y: number;
   review: { enabled: boolean; started: boolean; remaining: number; expired: boolean; answers: Record<string,string> };
   networkRules: Record<string, boolean>;
+  alertAnswers: Record<string, AlertVerdict>;
+  wifiSettings: WifiSettings;
   flags: string[]; files: string[]; backup: string[]; bits: string[];
   checks: Record<string, Check>; health: number; hits: number; seconds: number;
   completed: boolean;
 }
 export interface Result { ok: boolean; title: string; message: string; complete?: boolean; review?: boolean }
-export const VERSION = '0.3.0';
+export const VERSION = '0.4.0';
 export const FILES = [
   { id: 'rad', name: 'Završni rad', text: 'Završni rad · posljednja spremljena inačica' },
   { id: 'mjerenja', name: 'Mjerenja', text: 'Temperatura: 23 °C · 12 mjerenja' },
@@ -29,6 +32,8 @@ export const CHECKS: Record<number, string[]> = {
   6: ['patches', 'accounts', 'services', 'harden-test'],
   7: ['message', 'verify-sender', 'report', 'phish-test'],
   8: ['channel', 'firewall', 'tls', 'network-test'],
+  9: ['sensors', 'alerts', 'response', 'detection-test'],
+  10: ['wifi-identity', 'wifi-config', 'wifi-maintenance', 'wifi-test'],
 };
 export const CHECK_NAMES: Record<string, string> = {
   door: 'Kontrola pristupa prostoru', ups: 'Zaštita napajanja', shred: 'Sigurno uništavanje ispisa', drill: 'Provjera fizičke zaštite',
@@ -39,10 +44,12 @@ export const CHECK_NAMES: Record<string, string> = {
   patches: 'Službene sigurnosne nadogradnje', accounts: 'Potrebne ovlasti računa', services: 'Samo potrebne usluge', 'harden-test': 'Siguran i dostupan sustav',
   message: 'Pregled sumnjive poruke', 'verify-sender': 'Neovisna provjera pošiljatelja', report: 'Sigurna prijava obmane', 'phish-test': 'Provjera sigurnog nastavka',
   channel: 'Zaštićen mrežni prijenos', firewall: 'Najmanji potreban mrežni pristup', tls: 'Provjera identiteta poslužitelja', 'network-test': 'Provjera dopuštenih i zabranjenih veza',
+  sensors: 'Razlika otkrivanja i sprječavanja', alerts: 'Zaključivanje iz sigurnosnih zapisa', response: 'Ciljano ograničavanje incidenta', 'detection-test': 'Provjera zaštite i dopuštenog rada',
+  'wifi-identity': 'Provjera mreže poznatim putem', 'wifi-config': 'Zaštita Wi-Fi veze i odvajanje gostiju', 'wifi-maintenance': 'Zaštita i održavanje pristupne točke', 'wifi-test': 'Provjera gostujućeg pristupa',
 };
 export function newRun(level: number, difficulty: Difficulty = 'easy', content: ContentTier = 'standard', timed = false): Run {
   if (!CHECKS[level]) throw new Error('Nepoznata misija');
-  return { level, difficulty, content, review: {enabled:content==='expert'&&timed,started:false,remaining:90,expired:false,answers:{}}, networkRules:{}, x: 112, y: 560, flags: [], files: [], backup: [], bits: [], checks: Object.fromEntries(CHECKS[level].map(k => [k, { done: false, errors: 0 }])), health: 3, hits: 0, seconds: 0, completed: false };
+  return { level, difficulty, content, review: {enabled:content==='expert'&&timed,started:false,remaining:90,expired:false,answers:{}}, networkRules:{}, alertAnswers:{}, wifiSettings:{security:content==='junior'?'wpa3':'',guests:''}, x: 112, y: 560, flags: [], files: [], backup: [], bits: [], checks: Object.fromEntries(CHECKS[level].map(k => [k, { done: false, errors: 0 }])), health: 3, hits: 0, seconds: 0, completed: false };
 }
 export const has = (run: Run, flag: string) => run.flags.includes(flag);
 export function flag(run: Run, name: string) { if (!has(run, name)) run.flags.push(name); }
@@ -172,6 +179,27 @@ export function configureFirewall(run:Run,rules:Record<string,boolean>):Result {
   const mismatch=flowsFor(run.content).find(flow=>run.networkRules[flow.id]!==flow.allow);
   if(mismatch)return wrong(run,'firewall','Provjeri učinak pravila',mismatch.allow?'Potrebna veza je blokirana. Dopusti školski rad i odobreno upravljanje, uz ograničenje izvora.':'Nepoznati izvor dobio je pristup upravljanju. Odbij tu vezu; otvaranje svih veza nije potrebno.');
   return good(run,'firewall','Potrebne veze prolaze',run.content==='junior'?'Učenik može predati rad. Nepoznata osoba ne može upravljati školskim računalom.':'Učenik može predati rad. Ovlaštena administracija ostaje dopuštena, a nepoznati izvor ne može upravljati poslužiteljem.');
+}
+export function classifyAlerts(run:Run,answers:Record<string,string>):Result {
+  if(run.level!==9||run.completed||run.checks.alerts.done)return {ok:false,title:'Analiza nije dostupna',message:'Nastavi do sljedećeg cilja u misiji Trag iza alarma.'};
+  if(!run.checks.sensors.done)return {ok:false,title:'Najprije upoznaj senzore',message:'Na prvoj stanici usporedi upozorenje IDS-a i blokiranje IPS-a.'};
+  const reports=alertsFor(run.content),verdicts=verdictsFor(run.content);
+  run.alertAnswers=Object.fromEntries(reports.filter(report=>verdicts.some(([id])=>id===answers[report.id])).map(report=>[report.id,answers[report.id] as AlertVerdict]));
+  if(reports.some(report=>!run.alertAnswers[report.id]))return {ok:false,title:'Dovrši pregled zapisa',message:'Odaberi zaključak za svaki prikazani zapis. Prazan odabir ne bilježi se kao pogreška.'};
+  const mistaken=reports.find(report=>run.alertAnswers[report.id]!==report.answer);
+  if(mistaken)return wrong(run,'alerts','Provjeri zapis '+mistaken.id.replace('maintenance','A').replace('compromised','B').replace('probe','C'),mistaken.feedback);
+  return good(run,'alerts','Dokazi su razvrstani',run.content==='junior'?'A je dopuštena školska provjera. B je potvrđen neovlašten pristup. Zatraži ciljanu zaštitu LAB-09.':'A: potvrđeno održavanje. B: potvrđen incident na LAB-09. C: odbijeni pokušaji traže daljnju provjeru. Zadrži zapise i ograniči potvrđeni incident.');
+}
+export function configureWifi(run:Run,settings:WifiSettings):Result {
+  if(run.level!==10||run.completed||run.checks['wifi-config'].done)return {ok:false,title:'Postavke nisu dostupne',message:'Nastavi do sljedećeg cilja u misiji Wi-Fi za prave goste.'};
+  if(!run.checks['wifi-identity'].done)return {ok:false,title:'Najprije provjeri mrežu',message:'Koristi poznati školski kontakt i odobrene upute za povezivanje.'};
+  run.wifiSettings={security:run.content==='junior'?'wpa3':WIFI_SECURITY.some(([id])=>id===settings.security)?settings.security:'',guests:WIFI_GUESTS.some(([id])=>id===settings.guests)?settings.guests:''};
+  if(!run.wifiSettings.security||!run.wifiSettings.guests)return {ok:false,title:'Odaberi obje postavke',message:'Postavi zaštitu Wi-Fi veze i pristup gostiju prije provjere.'};
+  const preview=wifiPreview(run.wifiSettings);
+  if(!preview.protectedRadio)return wrong(run,'wifi-config','Zaštiti bežičnu vezu','Svi uređaji u ovoj misiji podržavaju WPA3-Personal. WEP je zastario, a otvorena mreža nema traženu zaštitu. Odaberi WPA3 i zasebnu dugu lozinku.');
+  if(!preview.guestInternet)return wrong(run,'wifi-config','Gostima je potreban internet','Zadatak traži pristup internetu. Potpuna zabrana ne ispunjava cilj; odvoji goste od interne školske mreže.');
+  if(preview.guestInternal)return wrong(run,'wifi-config','Gosti ne trebaju interne podatke','Dopusti internet, ali mrežnim pravilima odvoji goste od interne školske mreže. Sam naziv Gost nije zaštita.');
+  return good(run,'wifi-config','Gostujuća mreža je odvojena','WPA3-Personal i zasebna duga lozinka štite bežičnu vezu. U simulaciji su primijenjena i pravila odvajanja: gosti imaju internet, ali nemaju put do interne školske mreže.');
 }
 export function submitExpertReview(run:Run,answers:Record<string,string>):Result {
   const review=EXPERT_REVIEWS[run.level];
