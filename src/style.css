@@ -450,3 +450,33 @@ dialog {
 .step-outcome.safe { color:#9ae9c5; }
 .prepared-step { padding:12px; border-radius:8px; background:#25413f; color:#bae6d2!important; }
 @media(max-width:700px) { .operations-grid,.risk-cards,.response-steps { grid-template-columns:minmax(0,1fr); } }
+
+/* Transfer practice reuses the scrollable dialog and its fixed action area. */
+.practice-banner { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:20px 0; padding:20px; background:#193c40; border:1px solid #43716b; border-radius:14px; }
+.practice-banner strong { color:#d7f8e8; font-size:17px; }
+.practice-banner p { color:#aecfc8; font-size:13px; line-height:1.6; margin:7px 0 0; }
+.practice-banner button { flex-shrink:0; }
+.practice-list { display:grid; gap:10px; margin:18px 0; }
+.practice-card { display:flex; gap:12px; align-items:center; width:100%; text-align:left; border:1px solid #425b70; border-radius:10px; padding:14px; background:#142c3d; color:#d4e4ec; }
+.practice-card > span:nth-child(2) { flex:1; min-width:0; }
+.practice-card strong { display:block; font-size:15px; line-height:1.5; }
+.practice-card small { display:block; font-size:12px; line-height:1.6; color:#b4c8d5; margin-top:4px; }
+.practice-card.completed { border-color:#4d8c72; }
+.practice-card:disabled { opacity:.65; cursor:default; }
+.practice-number { display:grid; place-items:center; flex-shrink:0; width:34px; height:34px; background:#29475c; border-radius:8px; font:700 13px ui-monospace,monospace; }
+.practice-reminder { border:1px solid #456476; border-radius:8px; padding:12px 14px; margin:14px 0; font-size:14px; line-height:1.6; background:#193441; }
+.practice-reminder summary { cursor:pointer; font-weight:700; color:#b5e7d0; min-height:24px; }
+.practice-reminder p { margin:10px 0 0; }
+.practice-questions { grid-template-columns:minmax(0,1fr); gap:16px; }
+.practice-questions label { font-size:14px; line-height:1.6; }
+.practice-questions legend { font-size:14px; line-height:1.55; }
+.practice-questions fieldset:disabled { opacity:1; }
+.practice-questions fieldset:disabled label { cursor:default; }
+.practice-feedback { margin:10px 0 0; padding:12px; border-left:3px solid #e5b675; color:#f5d7a9; background:#343642; font-size:13px; line-height:1.65; }
+.practice-feedback.correct { color:#b9ebd2; background:#1c3c3b; border-color:#65d9a3; }
+.practice-success { padding:16px; margin-top:16px; border:1px solid #65a588; border-radius:10px; background:#1d3e3c; color:#c4f5dd; font-size:14px; line-height:1.6; }
+.practice-success p { margin:6px 0 0; }
+.practice-terms { font-size:14px; line-height:1.6; }
+.practice-terms dt { color:#beddee; font-weight:700; margin-top:14px; }
+.practice-terms dd { margin:4px 0; color:#bbceda; }
+@media(max-width:600px) { .practice-banner { align-items:stretch; flex-direction:column; padding:16px; } }

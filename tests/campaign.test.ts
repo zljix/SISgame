@@ -130,7 +130,7 @@ test('Old v0.1/v0.2 results and an interrupted mission migrate only to Standard'
   const parsed=parseSave(JSON.stringify(old));
   assert.equal(parsed.schema,2);assert.equal(parsed.settings.content,'standard');assert.equal(parsed.settings.timed,false);
   assert.equal(profile(parsed).active!.content,'standard');assert.equal(profile(parsed).active!.difficulty,'hard');
-  assert.deepEqual(profile(parsed).best,old.best);assert.deepEqual(profile(parsed,'junior'),{best:{},active:null});assert.deepEqual(profile(parsed,'expert'),{best:{},active:null});
+  assert.deepEqual(profile(parsed).best,old.best);assert.deepEqual(profile(parsed,'junior'),{best:{},active:null,practice:{}});assert.deepEqual(profile(parsed,'expert'),{best:{},active:null,practice:{}});
   assert.equal(totalXP(parsed),365);
 });
 
