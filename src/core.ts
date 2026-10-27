@@ -1,6 +1,7 @@
 import { DECISIONS, flowsFor, samplesFor, servicesFor, type MalwareKind, type ServiceSettings } from './missions.ts';
 import { EXPERT_REVIEWS, JUNIOR_CHOICES, type ContentTier } from './curriculum.ts';
 import { alertsFor, verdictsFor, WIFI_GUESTS, WIFI_SECURITY, wifiPreview, type AlertVerdict, type WifiSettings } from './network.ts';
+import { budgetFor, cleanMeasures, cleanResponse, prioritiesFor, priorityFor, RESPONSE_ORDER, riskPreview, risksFor, type ResponseStep, type RiskPriority } from './operations.ts';
 
 export type Difficulty = 'relaxed' | 'easy' | 'medium' | 'hard';
 export type Access = 'none' | 'read' | 'write';
@@ -12,12 +13,15 @@ export interface Run {
   networkRules: Record<string, boolean>;
   alertAnswers: Record<string, AlertVerdict>;
   wifiSettings: WifiSettings;
+  riskAnswers: Record<string, RiskPriority>;
+  riskMeasures: string[];
+  responseOrder: ResponseStep[];
   flags: string[]; files: string[]; backup: string[]; bits: string[];
   checks: Record<string, Check>; health: number; hits: number; seconds: number;
   completed: boolean;
 }
 export interface Result { ok: boolean; title: string; message: string; complete?: boolean; review?: boolean }
-export const VERSION = '0.4.0';
+export const VERSION = '0.5.0';
 export const FILES = [
   { id: 'rad', name: 'Završni rad', text: 'Završni rad · posljednja spremljena inačica' },
   { id: 'mjerenja', name: 'Mjerenja', text: 'Temperatura: 23 °C · 12 mjerenja' },
@@ -34,6 +38,8 @@ export const CHECKS: Record<number, string[]> = {
   8: ['channel', 'firewall', 'tls', 'network-test'],
   9: ['sensors', 'alerts', 'response', 'detection-test'],
   10: ['wifi-identity', 'wifi-config', 'wifi-maintenance', 'wifi-test'],
+  11: ['assets', 'risk-analysis', 'risk-plan', 'risk-test'],
+  12: ['incident-report', 'response-plan', 'recovery-source', 'incident-test'],
 };
 export const CHECK_NAMES: Record<string, string> = {
   door: 'Kontrola pristupa prostoru', ups: 'Zaštita napajanja', shred: 'Sigurno uništavanje ispisa', drill: 'Provjera fizičke zaštite',
@@ -46,10 +52,12 @@ export const CHECK_NAMES: Record<string, string> = {
   channel: 'Zaštićen mrežni prijenos', firewall: 'Najmanji potreban mrežni pristup', tls: 'Provjera identiteta poslužitelja', 'network-test': 'Provjera dopuštenih i zabranjenih veza',
   sensors: 'Razlika otkrivanja i sprječavanja', alerts: 'Zaključivanje iz sigurnosnih zapisa', response: 'Ciljano ograničavanje incidenta', 'detection-test': 'Provjera zaštite i dopuštenog rada',
   'wifi-identity': 'Provjera mreže poznatim putem', 'wifi-config': 'Zaštita Wi-Fi veze i odvajanje gostiju', 'wifi-maintenance': 'Zaštita i održavanje pristupne točke', 'wifi-test': 'Provjera gostujućeg pristupa',
+  assets: 'Imovina, prijetnje i slabosti', 'risk-analysis': 'Prioritet prema vjerojatnosti i učinku', 'risk-plan': 'Mjere unutar raspoloživog plana', 'risk-test': 'Provjera mjera i preostalog rizika',
+  'incident-report': 'Činjenična prijava poznatim kanalom', 'response-plan': 'Plan ograničavanja, oporavka i provjere', 'recovery-source': 'Pouzdana kopija i poznati gubitak rada', 'incident-test': 'Odobren povratak i pouke incidenta',
 };
 export function newRun(level: number, difficulty: Difficulty = 'easy', content: ContentTier = 'standard', timed = false): Run {
   if (!CHECKS[level]) throw new Error('Nepoznata misija');
-  return { level, difficulty, content, review: {enabled:content==='expert'&&timed,started:false,remaining:90,expired:false,answers:{}}, networkRules:{}, alertAnswers:{}, wifiSettings:{security:content==='junior'?'wpa3':'',guests:''}, x: 112, y: 560, flags: [], files: [], backup: [], bits: [], checks: Object.fromEntries(CHECKS[level].map(k => [k, { done: false, errors: 0 }])), health: 3, hits: 0, seconds: 0, completed: false };
+  return { level, difficulty, content, review: {enabled:content==='expert'&&timed,started:false,remaining:90,expired:false,answers:{}}, networkRules:{}, alertAnswers:{}, wifiSettings:{security:content==='junior'?'wpa3':'',guests:''}, riskAnswers:{}, riskMeasures:[], responseOrder:cleanResponse([],content), x: 112, y: 560, flags: [], files: [], backup: [], bits: [], checks: Object.fromEntries(CHECKS[level].map(k => [k, { done: false, errors: 0 }])), health: 3, hits: 0, seconds: 0, completed: false };
 }
 export const has = (run: Run, flag: string) => run.flags.includes(flag);
 export function flag(run: Run, name: string) { if (!has(run, name)) run.flags.push(name); }
@@ -200,6 +208,40 @@ export function configureWifi(run:Run,settings:WifiSettings):Result {
   if(!preview.guestInternet)return wrong(run,'wifi-config','Gostima je potreban internet','Zadatak traži pristup internetu. Potpuna zabrana ne ispunjava cilj; odvoji goste od interne školske mreže.');
   if(preview.guestInternal)return wrong(run,'wifi-config','Gosti ne trebaju interne podatke','Dopusti internet, ali mrežnim pravilima odvoji goste od interne školske mreže. Sam naziv Gost nije zaštita.');
   return good(run,'wifi-config','Gostujuća mreža je odvojena','WPA3-Personal i zasebna duga lozinka štite bežičnu vezu. U simulaciji su primijenjena i pravila odvajanja: gosti imaju internet, ali nemaju put do interne školske mreže.');
+}
+export function assessRisks(run: Run, answers: Record<string, string>): Result {
+  if (run.level !== 11 || run.completed || run.checks['risk-analysis'].done) return {ok:false,title:'Procjena nije dostupna',message:'Nastavi do sljedećeg cilja misije o riziku.'};
+  if (!run.checks.assets.done) return {ok:false,title:'Najprije popiši imovinu',message:'Na prvoj stanici poveži podatke, usluge i uređaje s potrebama škole.'};
+  const risks = risksFor(run.content), priorities = prioritiesFor(run.content);
+  run.riskAnswers = Object.fromEntries(risks.filter(risk => priorities.some(([id]) => id === answers[risk.id])).map(risk => [risk.id, answers[risk.id] as RiskPriority]));
+  if (risks.some(risk => !run.riskAnswers[risk.id])) return {ok:false,title:'Dovrši procjenu',message:'Odaberi prioritet za svaki prikazani slučaj. Prazan odabir nije pogreška.'};
+  const mistaken = risks.find(risk => run.riskAnswers[risk.id] !== priorityFor(risk.likelihood, risk.impact));
+  if (mistaken) return wrong(run,'risk-analysis',mistaken.label + ': usporedi dokaze',mistaken.feedback);
+  return good(run,'risk-analysis','Prioriteti su obrazloženi','Sada odaberi mjere koje djeluju na opisane slabosti. Ni mala cijena uređaja ni lijep izgled ne govore koliko su važni podatci koje čuva.');
+}
+export function planRiskMeasures(run: Run, selected: readonly string[]): Result {
+  if (run.level !== 11 || run.completed || run.checks['risk-plan'].done) return {ok:false,title:'Plan nije dostupan',message:'Nastavi do sljedećeg cilja misije o riziku.'};
+  if (!run.checks['risk-analysis'].done) return {ok:false,title:'Najprije procijeni rizike',message:'Poveži vjerojatnost i učinak za svaki slučaj prije raspodjele resursa.'};
+  run.riskMeasures = cleanMeasures(selected,run.content);
+  if (!run.riskMeasures.length) return {ok:false,title:'Odaberi mjere',message:'Označi što želiš provesti. Prikaz ispod pokazuje trošak i očekivani učinak.'};
+  const preview = riskPreview(run.content,run.riskMeasures);
+  if (preview.cost > budgetFor(run.content)) return wrong(run,'risk-plan','Plan prelazi raspoložive resurse','Za ovu vježbu imaš ograničen broj jedinica rada. Izostavi mjeru koja ne rješava važniji opisani rizik.');
+  if (!run.riskMeasures.includes('backup')) return wrong(run,'risk-plan','Radovi i dalje nemaju kopiju','UPS može pomoći pri nestanku struje, ali ne spašava jedine primjerke s pokvarenog diska. Odaberi odvojenu kopiju i provjeru obnove.');
+  if (run.content !== 'junior' && !run.riskMeasures.includes('accounts')) return wrong(run,'risk-plan','Zajednički pristup je ostao','Nakon arhive zaštiti i račun za promjenu rasporeda. Ukloni zajedničku lozinku i dodijeli najmanje potrebne ovlasti.');
+  return good(run,'risk-plan','Mjere odgovaraju rizicima','Plan stane u raspoložive resurse. Kopija ublažava gubitak pri kvaru; kvar i dalje može nastati. Predviđeni učinak treba provjeriti na sljedećoj stanici.');
+}
+export function planIncidentResponse(run: Run, order: readonly string[]): Result {
+  if (run.level !== 12 || run.completed || run.checks['response-plan'].done) return {ok:false,title:'Plan nije dostupan',message:'Nastavi do sljedećeg cilja misije o incidentu.'};
+  if (!run.checks['incident-report'].done) return {ok:false,title:'Najprije prijavi činjenice',message:'Sačuvaj opažanja i prijavi događaj poznatim školskim kanalom.'};
+  run.responseOrder = cleanResponse(order,run.content);
+  if (run.responseOrder.some(step => !step)) return {ok:false,title:'Dovrši sva tri koraka',message:'Odaberi redoslijed prema planu ovog slučaja. Prazno polje nije pogrešna odluka.'};
+  const mismatch = run.responseOrder.findIndex((step,index) => step !== RESPONSE_ORDER[index]);
+  if (mismatch !== -1) return wrong(run,'response-plan','Provjeri korak ' + (mismatch+1),[
+    'Najprije ograniči širenje uz administratora i očuvaj dokaze. Brisanje zapisa otežava istragu; samo obnavljanje ne zaustavlja incident.',
+    'Kad je širenje ograničeno, administrator uklanja uzrok i priprema obnovu iz provjerenog izvora. Ponavljanje izolacije nije oporavak.',
+    'Prije povratka provjeri sadržaj, ovlasti i rad usluge. Administrator odobrava povezivanje uz nadzor. Prijava i čuvanje dokaza traju kroz sve korake.',
+  ][mismatch]);
+  return good(run,'response-plan','Plan je spreman za provedbu','Slijed je provjeren na modelu. Sada odaberi pouzdan izvor podataka. Komunikacija i čuvanje dokaza provode se tijekom cijelog postupka.');
 }
 export function submitExpertReview(run:Run,answers:Record<string,string>):Result {
   const review=EXPERT_REVIEWS[run.level];

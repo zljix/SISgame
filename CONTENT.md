@@ -1,6 +1,6 @@
-# SISgame — sadržaj kampanje 0.4.0
+# SISgame — sadržaj kampanje 0.5.0
 
-Igra ima deset misija i 40 sigurnosne zadaće po razini sadržaja. Misija traje koliko učeniku treba za istraživanje i odluke; nema vremenske kazne za čitanje. Nakon pouke učenik postavlja mjere, ispravlja pogreške i provjerava rezultat. Izlaz se otvara tek nakon četiri dovršene zadaće.
+Igra ima dvanaest misija i 48 sigurnosnih zadaća po razini sadržaja. Misija traje koliko učeniku treba za istraživanje i odluke; nema vremenske kazne za čitanje. Nakon pouke učenik postavlja mjere, ispravlja pogreške i provjerava rezultat. Izlaz se otvara tek nakon četiri dovršene zadaće.
 
 ## Dob, predznanje i pristupačnost
 
@@ -16,6 +16,8 @@ Primarna razvojna publika je 13–18 godina, s naglaskom na srednju školu. Juni
 | Usluge i mreža | Dvije promjenjive postavke; ostale su pripremljene | Tri usluge / mrežne veze | Puni skup + prioritizacija ranjivosti i mrežna ograničenja |
 | IDS/IPS zapisi | Dva kratka zapisa i dva zaključka | Tri zapisa i tri zaključka | Puni skup + slučaj propuštene prijetnje |
 | Wi-Fi | WPA3 unaprijed pripremljen; dva izbora pristupa gostiju | Izbor zaštite i tri mogućnosti gostujućeg pristupa | Puni skup + provjera stvarnog odvajanja |
+| Rizik i mjere | Dva slučaja bez računanja; tri jedinice rada | Tri slučaja, ocjene V × U; pet jedinica rada | Puni skup + preostali rizik i provjera učinka |
+| Plan incidenta | Prvi i zadnji korak; srednji pripremljen | Tri koraka i posljedice redoslijeda | Puni skup + provjera ovlasti, nastavak rada i pouke |
 | Završetak | Provjera mjera | Provjera mjera i pitanje za primjenu | Obvezna analiza triju odluka prije završne provjere |
 
 Tempo (bez smetnji / lagan / srednji / brz) ne bira nastavni sadržaj. Expert može biti bez smetnji i bez sata. Junior može imati brz arkadni tempo. Brzina i refleksi ne određuju bodove učenja.
@@ -24,7 +26,7 @@ Opcionalni Expert izazov ima 90 sekundi **aktivnog rješavanja dodatnog slučaja
 
 ## Veza s nastavnim okvirom
 
-Sadržaj nastavlja SIS priručnik i okvir od sedam cjelina / 26 tema. Jedna misija može objediniti više tema; deset misija **ne predstavlja svih 26 lekcija**.
+Sadržaj nastavlja SIS priručnik i okvir od sedam cjelina / 26 tema. Jedna misija može objediniti više tema; dvanaest misija **ne predstavlja svih 26 lekcija**.
 
 | Misija | Područje | Što učenik treba pokazati |
 | --- | --- | --- |
@@ -38,8 +40,10 @@ Sadržaj nastavlja SIS priručnik i okvir od sedam cjelina / 26 tema. Jedna misi
 | 8. Mreža pod nadzorom | Mrežni sloj i sigurni protokoli | Dopustiti potreban promet, ograničiti administraciju i reagirati na pogrešan certifikat. |
 | 9. Trag iza alarma | Mrežni nadzor i odgovor na incident | Razlikovati IDS i IPS, zaključivati iz dodatnih dokaza i primijeniti ciljani odgovor uz očuvanje rada. |
 | 10. Wi-Fi za prave goste | Bežična mreža i odvajanje pristupa | Provjeriti mrežu poznatim putem, zaštititi vezu i provjeriti granice gostujućeg pristupa. |
+| 11. Što prvo zaštititi? | Imovina, rizik i mjere | Povezati imovinu s nastavom, odrediti prioritete iz zadanih procjena i odabrati provedive mjere. |
+| 12. Smireno kroz incident | Operativni odgovor i oporavak | Prijaviti činjenice, složiti plan, odabrati pouzdan izvor i provjeriti povratak uz nadzor. |
 
-Za daljnje proširenje ostaju samostalni scenariji procjene imovine i rizika i širi operativni postupci. Mrežne veze, TLS i phishing sada imaju zasebne misije. Opisi misija 4–6 u nastavku odgovaraju Standardu; Junior pojednostavljenja i Expert dodatci navedeni su zasebno.
+Procjena imovine i rizika te plan odgovora na incident sada imaju samostalne misije. Za daljnje proširenje ostaju dodatni slučajevi i provjera prijenosa naučenog u praktičan rad. Mrežne veze, TLS i phishing također imaju zasebne misije. Opisi misija 4–6 u nastavku odgovaraju Standardu; Junior pojednostavljenja i Expert dodatci navedeni su zasebno.
 
 ## 4. Sumnjivi program
 
@@ -126,6 +130,42 @@ Za daljnje proširenje ostaju samostalni scenariji procjene imovine i rizika i �
 
 Nedovršeni odabiri na konzolama upozorenja i Wi-Fi postavki automatski se spremaju. Obnova provjerava dopuštene vrijednosti, ne pretvara ih u službeno dokazane rezultate.
 
+## 11. Što prvo zaštititi?
+
+**Scenarij:** škola mora zaštititi radove i potrebne usluge uz ograničene resurse. Popis obuhvaća arhivu, račun za promjenu rasporeda i javni plakat. Ocjene su zadane procjene školskog tima za sljedeći mjesec.
+
+1. **Imovina:** poveži podatke, usluge i uređaje s nastavom te zabilježi odgovorne osobe i posljedice problema. Nabavna cijena uređaja nije jedino mjerilo vrijednosti.
+2. **Procjena:** u školskom modelu vjerojatnost i učinak imaju ocjene 1–3. Umnožak 1–2 daje nizak, 3–4 srednji, a 6–9 visok prioritet. Ocjene nisu izmjerene vjerojatnosti i ne daju novčani gubitak.
+3. **Plan mjera:** pet jedinica rada rasporedi na odvojenu kopiju s probom obnove (3) i osobne račune s potrebnim ovlastima (2). Dodatni UPS ne uklanja opisani kvar diska; ukras plakata ne štiti podatke. Prikaz troška i očekivanog preostalog rizika mijenja se odmah, a potvrda bilježi odluku.
+4. **Provjera:** odabrane mjere provode se u simulaciji. Uspoređuju se obnovljeni radovi i provjeravaju ovlasti. Administrator prati preostali rizik i planira zamjenu problematičnog diska.
+
+| Slučaj | Vjerojatnost | Učinak | Početni prioritet | Učinak ciljane mjere u modelu |
+| --- | --- | --- | --- | --- |
+| Jedini radovi na disku koji javlja greške | 3 | 3 | 9 — visok | Provjerena kopija smanjuje učinak na 1; 3 — srednji. Kvar je i dalje moguć. |
+| Zajednička lozinka za promjenu rasporeda | 2 | 2 | 4 — srednji | Uklanjanje zajedničkog pristupa smanjuje procijenjenu vjerojatnost na 1; 2 — nizak. |
+| Rijetka promjena boje ukrasa na javnom plakatu | 1 | 1 | 1 — nizak | Nije prioritet prije zaštite radova i ovlasti; nema učinka na sadržaj ni nastavu. |
+
+**Junior:** samo arhiva i plakat, bez umnoška ocjena. Učenik bira visok ili nizak prioritet i raspolaže s tri jedinice rada. Točan plan je odvojena kopija s probom obnove. Račun za promjenu rasporeda nije dio njegova završnog izvještaja.
+
+**Pitanje nakon igre:** Zašto kopija smanjuje posljedicu kvara, a ne mora smanjiti vjerojatnost da se disk pokvari?
+
+**Očekivano obrazloženje:** kopija omogućuje povrat podataka, ali ne uklanja hardversku slabost. Najnovije promjene nakon izrade kopije i dalje mogu nedostajati. Nije ispravno tvrditi da je rizik nula. Zamjenu diska i učestalost kopija treba zasebno planirati.
+
+## 12. Smireno kroz incident
+
+**Scenarij:** u 09:10 na LAB-12 nije moguće otvoriti školske radove. Uzrok i opseg u početku nisu poznati. Učenik sudjeluje uz ovlaštenog administratora, bez pristupa stvarnim sustavima.
+
+1. **Prijava:** poznatim školskim kanalom prijavi uređaj, vrijeme i opažanja, uz sačuvanu poruku i jasno označen nepoznati uzrok. Ne nagađaj krivca i ne objavljuj dokumente u razrednoj grupi.
+2. **Plan:** složi tri koraka za ovaj slučaj: ograničavanje širenja uz prijavu i čuvanje dokaza; uklanjanje uzroka i priprema obnove iz provjerenog izvora; provjera rada i ovlasti prije odobrenog povratka uz nadzor. Konzola pokazuje posljedice redoslijeda. Time se provjerava **plan**, ne izvodi stvarna promjena uređaja. Komunikacija i rad s dokazima traju kroz cijeli postupak; aktivnosti se u praksi mogu preklapati.
+3. **Izvor obnove:** nakon odobrenog ograničavanja i uklanjanja uzroka biraj kopiju A iz 08:00, koja je provjerena i čista. Kopija B iz 09:00 potvrđeno je oštećena. Izmjena iz 08:20 nije u kopiji A i mora biti prijavljena kao nedostajuća. Povrat čiste kopije uz tvrdnju da ništa nije izgubljeno također je pogrešan odgovor.
+4. **Povratak i pouke:** provjeri dokumente, ovlasti i uslugu. Administrator odobrava povezivanje uz nadzor. Izvještaj bilježi nedostajući rad te odgovornu osobu i rok provjere poboljšanih kopija.
+
+**Junior:** srednji korak popravka je pripremljen. Učenik odabire prvi i završni korak među dvije mogućnosti po koraku. Izvor obnove bira između oštećene novije kopije i čiste starije uz prijavu gubitka rada.
+
+**Pitanje nakon igre:** Što prijaviti ako kopija ne sadrži posljednju izmjenu? Kako iz incidenta napraviti korisno poboljšanje?
+
+**Očekivano obrazloženje:** navesti točno što je obnovljeno i što nedostaje; ne izjednačiti pokretanje računala s punim oporavkom. Poboljšanje treba imati odgovornu osobu, rok i provjeru provedbe.
+
 ## Expert slučajevi i očekivani zaključci
 
 | Misija | Novi dokaz ili ograničenje | Plan koji odgovara slučaju |
@@ -140,12 +180,14 @@ Nedovršeni odabiri na konzolama upozorenja i Wi-Fi postavki automatski se sprem
 | 8 | Potrebni su školski web i ograničeni SSH; certifikat ima pogrešno ime. | Dopustiti potreban web, ograničiti administraciju, ispraviti certifikat. |
 | 9 | Senzor šuti, ali drugi izvor potvrđuje incident; odobreni skener stvara lažne alarme. | Obraditi potvrđen dokaz, usko ograničiti iznimku i provjeriti zaštitu i dostupnost. |
 | 10 | WPA3 je uključen, ali gost vidi internu mapu. | Popraviti mrežna pravila, isprobati ih iz uloge gosta i zadržati HTTPS. |
+| 11 | Kopija je provjerena, ali disk i dalje javlja greške, a novije izmjene nisu kopirane. | Razlikovati vjerojatnost kvara od gubitka rada, provjeriti obnovu i evidentirati preostali rizik s odgovornom osobom i rokom. |
+| 12 | Obnovljena mapa gostu dopušta izmjene; odvojena učionica radi, a poboljšanje kopija nema vlasnika. | Ispraviti ovlasti prije povezivanja, sačuvati opravdano dostupan rad i dodijeliti provjerljiv zadatak poboljšanja. |
 
 Dodatni slučajevi su provjera primjene na novim činjenicama. Tri ispravne odluke otključavaju zadnju sigurnosnu zadaću; same ne daju dodatne bodove. Netočan potpun plan bilježi ispravak završne zadaće, nepotpun obrazac traži dopunu bez kazne.
 
 ## Veza mehanike i sigurnosnog problema
 
-Postavljanje prava određuje tko smije čitati i mijenjati sadržaj. Odvojena kopija preživljava simulirani kvar, a obnova vraća datoteke koje igrač otvara i uspoređuje. Mrežni prekidači pokazuju učinak pravila na potreban i neovlašten pristup. Izvještaji i dnevnici traže zaključivanje iz opisanog ponašanja, a završne provjere traže prethodno provedene mjere.
+Postavljanje prava određuje tko smije čitati i mijenjati sadržaj. Odvojena kopija preživljava simulirani kvar, a obnova vraća datoteke koje igrač otvara i uspoređuje. Mrežni prekidači pokazuju učinak pravila na potreban i neovlašten pristup. Plan mjera pokazuje potrošene jedinice i preostali rizik; plan incidenta prikazuje posljedice redoslijeda prije potvrde. Ti su prikazi pomoć u učenju, pa oznaka „samostalno” znači bez pogrešne predaje, a ne rad bez takve pomoći. Izvještaji i dnevnici traže zaključivanje iz opisanog ponašanja, a završne provjere traže prethodno provedene mjere.
 
 Kretanje, bitovi, crvene prepreke i štit ostaju arkadni dio. Ne predstavljaju djelovanje antivirusnog programa i nisu dokaz znanja. Konzole su didaktički modeli; igra ne izvodi stvarno šifriranje, mrežne napade ili promjene školskih računa. Za razvoj prema dubljoj simulaciji treba testiranjem utvrditi gdje učenici razumiju posljedicu, a gdje samo pamte položaj točne tipke.
 
@@ -177,3 +219,5 @@ Dopunjeno 27. listopada 2026. Izvori podupiru načela; dijalozi, uređaji, izvje
 - [NIST SP 800-94 — Guide to Intrusion Detection and Prevention Systems](https://csrc.nist.gov/pubs/sp/800/94/final): osnovna razlika IDS/IPS, lažni alarmi, propuštene prijetnje i prilagodba pravila. Riječ je o završnom izdanju iz 2007.; nacrt revizije 1 nije postao završno izdanje. Koristi se za temeljne pojmove, ne kao pregled aktualnih proizvoda.
 - [Apple — Recommended settings for Wi-Fi routers and access points](https://support.apple.com/en-us/102766): WPA3-Personal uz kompatibilne uređaje, izbjegavanje WEP-a, ograničenja skrivenog SSID-a i održavanje uređaja.
 - [FTC — How To Secure Your Home Wi-Fi Network](https://consumer.ftc.gov/articles/how-secure-your-home-wi-fi-network): zasebna zaštita upravljanja i Wi-Fi pristupa te odvajanje gostujuće mreže. Kućni okvir izvora ovdje podupire osnovna načela malog didaktičkog scenarija.
+- [NIST SP 800-30 Rev. 1 — Guide for Conducting Risk Assessments](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-30r1.pdf): kontekst procjene, prijetnje, slabosti, vjerojatnost i učinak. Ljestvica V × U, njezini pragovi i jedinice rada u igri vlastiti su didaktički model, ne preuzeta NIST ljestvica.
+- [NIST SP 800-61 Rev. 3 — Incident Response Recommendations](https://csrc.nist.gov/pubs/sp/800/61/r3/final): usklađen odgovor, očuvanje dokaza, komunikacija, provjera izvora za obnovu, provjera obnovljenih sustava i poboljšanje postupaka. Tri koraka u igri odnose se na određeni školski slučaj; nisu tvrdnja da se sve aktivnosti u praksi provode strogo jedna nakon druge.

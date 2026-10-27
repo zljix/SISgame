@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
 import './style.css';
-import { act, advanceReviewClock, applyPermissions, arcadeScore, CHECK_NAMES, classifyAlerts, classifyMalware, collect, configureFirewall, configureServices, configureWifi, FILES, has, newRun, nextTarget, ready, score, secureSession, submitExpertReview, VERSION, type Difficulty, type Permissions, type Result, type Run } from './core.ts';
+import { act, advanceReviewClock, applyPermissions, arcadeScore, assessRisks, CHECK_NAMES, classifyAlerts, classifyMalware, collect, configureFirewall, configureServices, configureWifi, FILES, has, newRun, nextTarget, planIncidentResponse, planRiskMeasures, ready, score, secureSession, submitExpertReview, VERSION, type Difficulty, type Permissions, type Result, type Run } from './core.ts';
 import { LEVELS, levelContent, missionNumber, TARGET_TEXT, type Station } from './data.ts';
 import { DECISIONS, eventsFor, flowsFor, samplesFor, servicesFor, VERIFICATION_REPORTS, type MalwareKind } from './missions.ts';
 import { EXPERT_REVIEWS, JUNIOR_CHOICES, JUNIOR_LESSONS, JUNIOR_REPORTS, TERMS, TIERS, TIER_INFO, type ContentTier } from './curriculum.ts';
 import { alertsFor, verdictsFor, WIFI_GUESTS, WIFI_SECURITY, wifiPreview, type AlertVerdict, type WifiSettings } from './network.ts';
+import { budgetFor, cleanResponse, measuresFor, prioritiesFor, PRIORITIES, responseOptions, responsePreview, riskPreview, risksFor, type RiskPriority } from './operations.ts';
 import { Sector, type Bridge } from './game.ts';
 import { emptySave, parseSave, profile, recordBest, SAVE_KEY, totalLearning, type Save } from './storage.ts';
 
@@ -85,7 +86,7 @@ function renderHome(){
   const complete=Object.values(profile(save).best).filter(b=>b.completed).length;
   $('#total-xp').textContent=String(totalLearning(save));
   $('#play-primary').innerHTML=`${profile(save).active?'Nastavi misiju':complete===LEVELS.length?'Igraj ponovno':'Započni misiju'} ${ico('arrow')}`;
-  $('#missions').innerHTML=LEVELS.map((base,i)=>{const level=levelContent(base,save.settings.content);const b=profile(save).best[level.id],unlocked=i===0||!!profile(save).best[LEVELS[i-1].id]?.completed;return `<button class="mission-card ${b?.completed?'completed':''}" data-level="${level.id}" ${unlocked?'':'disabled'} style="--accent:${level.color}"><div class="mission-top"><span class="sector-number">${missionNumber(level.id)}</span><span class="mission-symbol">${ico((['shield','lock','file','bug','key','gear','help','shield','radar','wifi'] as const)[i])}</span><span class="mission-state">${b?.completed?'ZAVRŠENO':unlocked?'DOSTUPNO':'ZAKLJUČANO'}</span></div><span class="eyebrow">${level.subtitle}</span><h3>${level.title}</h3><p>${level.description}</p><div class="mission-foot"><span>${b?.completed?`${b.learning} učenje · ${b.arcade} bonus`:'4 sigurnosne zadaće'}</span>${ico(unlocked?'arrow':'lock')}</div><div class="mission-progress"><span style="width:${b?.learning||0}%"></span></div></button>`;}).join('');
+  $('#missions').innerHTML=LEVELS.map((base,i)=>{const level=levelContent(base,save.settings.content);const b=profile(save).best[level.id],unlocked=i===0||!!profile(save).best[LEVELS[i-1].id]?.completed;return `<button class="mission-card ${b?.completed?'completed':''}" data-level="${level.id}" ${unlocked?'':'disabled'} style="--accent:${level.color}"><div class="mission-top"><span class="sector-number">${missionNumber(level.id)}</span><span class="mission-symbol">${ico((['shield','lock','file','bug','key','gear','help','shield','radar','wifi','radar','file'] as const)[i])}</span><span class="mission-state">${b?.completed?'ZAVRŠENO':unlocked?'DOSTUPNO':'ZAKLJUČANO'}</span></div><span class="eyebrow">${level.subtitle}</span><h3>${level.title}</h3><p>${level.description}</p><div class="mission-foot"><span>${b?.completed?`${b.learning} učenje · ${b.arcade} bonus`:'4 sigurnosne zadaće'}</span>${ico(unlocked?'arrow':'lock')}</div><div class="mission-progress"><span style="width:${b?.learning||0}%"></span></div></button>`;}).join('');
   document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(b=>b.onclick=()=>start(Number(b.dataset.level),profile(save).active?.level===Number(b.dataset.level)));
 }
 function start(level:number,resume=false){
@@ -127,7 +128,7 @@ function closeDialog(){stopReviewClock();const hook=closeHook;closeHook=null;dia
 dialog.addEventListener('cancel',e=>{e.preventDefault();closeDialog();});
 function briefing(resume=false){
   const level=levelContent(LEVELS[run.level-1],run.content),junior=run.content==='junior';
-  const flowIcons:Record<number,(keyof typeof icons)[]>={1:['key','check','shield'],2:['file','lock','key'],3:['file','download','check'],4:['bug','lock','help'],5:['lock','key','check'],6:['download','key','check'],7:['pause','help','shield'],8:['file','shield','lock'],9:['radar','file','shield'],10:['wifi','lock','check']};
+  const flowIcons:Record<number,(keyof typeof icons)[]>={1:['key','check','shield'],2:['file','lock','key'],3:['file','download','check'],4:['bug','lock','help'],5:['lock','key','check'],6:['download','key','check'],7:['pause','help','shield'],8:['file','shield','lock'],9:['radar','file','shield'],10:['wifi','lock','check'],11:['file','radar','shield'],12:['file','download','check']};
   const flow=junior?`<ol class="visual-steps" aria-label="Koraci zaštite">${JUNIOR_LESSONS[run.level].flow.map((label,i)=>`<li>${ico(flowIcons[run.level][i])}<span>${i+1}. ${label}</span></li>`).join('')}</ol>`:'';
   const glossary=!junior?`<details class="glossary"><summary>Pojmovi ove misije</summary><dl>${TERMS[run.level].map(([word,definition])=>`<dt>${word}</dt><dd>${definition}</dd>`).join('')}</dl></details>`:'';
   openDialog(`<div class="eyebrow">${TIER_INFO[run.content].name} · MISIJA ${missionNumber(level.id)}</div><h2 id="dialog-title">${resume?'Nastavljamo: ':''}${level.title}</h2><p class="dialog-lead">${level.description}</p>${flow}<div class="lesson-grid">${level.lesson.map(([title,text],i)=>`<article><span>0${i+1}</span><div><h3>${title}</h3><p>${text}</p></div></article>`).join('')}</div>${glossary}<div class="note"><strong>Upravljanje</strong> Palica ili WASD / strelice za kretanje. Dodirni cilj za pomoć pri kretanju. Priđi opremi i pritisni Djeluj ili E. ${run.difficulty==='relaxed'?'Igraš bez arkadnih smetnji.':'Q, razmak ili Štit štite lika od arkadnih smetnji.'} Čitanje pauzira kretanje.</div>${run.content==='expert'?'<p class="fine-print">Prije završne provjere analizirat ćeš dodatni slučaj. Vremenski izazov je opcionalan i ne mijenja bodove učenja.</p>':''}<button id="begin" class="primary wide">${resume?'Nastavi gdje si stao':'Kreni u misiju'} ${ico('arrow')}</button>`,()=>{$('#begin').onclick=()=>{closeDialog();if(!resume)toast('Dodirni cilj za pomoć pri kretanju','Žuti bitovi donose zaseban arkadni bonus. Sudari ne mijenjaju bodove učenja.');};});
@@ -147,6 +148,9 @@ function openStation(s:Station){
   if(s.id==='firewall')return firewallConsole();
   if(s.id==='alerts')return alertConsole();
   if(s.id==='wifi-config')return wifiConsole();
+  if(s.id==='risk-analysis')return riskConsole();
+  if(s.id==='risk-plan')return measuresConsole();
+  if(s.id==='response-plan')return responseConsole();
   const decision=DECISIONS[s.id];
   if(decision?.level===run.level)return choices(s,decision.description,decision.options.map(o=>[o.id,o.label,o.detail]),s.id==='message'?messageEvidence():decision.requires.length?`<div class="system-list">${decision.requires.map(key=>`<span>${run.checks[key]?.done?'✓':'○'} ${CHECK_NAMES[key]}</span>`).join('')}</div>`:'');
   if(s.id==='door')return choices(s,'Osiguraj da u sobu mogu ući samo osobe koje imaju ovlast.',[['authorized','Uključi provjeru kartice','Ovlaštenu karticu prihvati, neovlaštenu odbij.'],['camera','Uključi samo kameru','Vrata ostaju otvorena, a kamera snima.'],['closed','Zabrani pristup svima','Ni ovlaštene osobe neće moći ući.']]);
@@ -226,6 +230,48 @@ function wifiConsole(){
     update();$('#apply-wifi').onclick=()=>submitConsole(configureWifi(run,read()));
   });
 }
+function riskConsole(){
+  const junior=run.content==='junior',risks=risksFor(run.content),priorities=prioritiesFor(run.content);
+  openDialog(`<div class="eyebrow">POVEŽI DOKAZE I PRIORITET</div><h2 id="dialog-title">Što traži bržu zaštitu?</h2>
+    <p class="dialog-lead">${junior?'Usporedi koliko se problem može dogoditi i koliko bi naštetio školskom radu. Odaberi visok ili nizak prioritet.':'Tim je za sljedeći mjesec procijenio vjerojatnost (V) i učinak (U): 1 malo, 2 umjereno, 3 veliko. Pomnoži zadane ocjene i odredi prioritet prema školskoj ljestvici.'}</p>
+    ${junior?'':`<div class="risk-scale" aria-label="Pravilo školskog modela"><span>V × U = prioritet</span><span class="priority low">1–2 · nizak</span><span class="priority medium">3–4 · srednji</span><span class="priority high">6–9 · visok</span></div><p class="fine-print">Ocjene su procjena tima u izmišljenom slučaju. Ova ljestvica nije univerzalna formula ni izračun novčanog gubitka.</p>`}
+    <div class="evidence-cards risk-cards" style="--card-count:${risks.length}">${risks.map((risk,index)=>`<article class="evidence-card"><div class="risk-index">SLUČAJ ${index+1}</div><h3>${risk.label}</h3><p>${junior?risk.simple:risk.evidence}</p>${junior?'':`<div class="risk-ratings"><span>Vjerojatnost <b>${risk.likelihood}</b></span><span>Učinak <b>${risk.impact}</b></span></div>`}<label for="risk-${risk.id}">Prioritet zaštite</label><select id="risk-${risk.id}"><option value="">Odaberi prioritet</option>${priorities.map(([id,label])=>`<option value="${id}" ${run.riskAnswers[risk.id]===id?'selected':''}>${label}</option>`).join('')}</select></article>`).join('')}</div>
+    <p class="fine-print">Odabiri se spremaju. Prazno polje nije pogrešna odluka.</p><div id="feedback" class="feedback" role="status" hidden></div><button id="assess-risks" class="primary wide">Provjeri prioritete ${ico('check')}</button>`,()=>{
+    const read=()=>Object.fromEntries(risks.map(risk=>[risk.id,$<HTMLSelectElement>(`#risk-${risk.id}`).value as RiskPriority]).filter(([,value])=>value));
+    for(const risk of risks)$(`#risk-${risk.id}`).onchange=()=>{run.riskAnswers=read();bridge.changed();};
+    $('#assess-risks').onclick=()=>submitConsole(assessRisks(run,read()));
+  });
+}
+function measuresConsole(){
+  const tier=run.content,junior=tier==='junior',measures=measuresFor(tier),risks=risksFor(tier),budget=budgetFor(tier);
+  const priorityName=(id:RiskPriority)=>PRIORITIES.find(([key])=>key===id)?.[1]||'';
+  openDialog(`<div class="eyebrow">OGRANIČENI RESURSI · STVARNI PRIORITETI</div><h2 id="dialog-title">Složi plan zaštite.</h2>
+    <p class="dialog-lead">${junior?'Odaberi zaštitu važnih radova. Na raspolaganju su tri jedinice rada.':'Na raspolaganju je pet jedinica rada. Prvo zaštiti arhivu visokog prioriteta, zatim račun srednjeg prioriteta. Odaberi mjere koje stanu u plan.'} Jedinice su dogovorena vrijednost ove vježbe.</p>
+    <div class="budget-strip"><span>Planirano / dostupno</span><output id="measure-budget" aria-live="polite"></output></div>
+    <div class="operations-grid"><div class="measure-list">${measures.map(measure=>`<label class="measure-option"><input type="checkbox" id="measure-${measure.id}" ${run.riskMeasures.includes(measure.id)?'checked':''}><span><strong>${measure.label}</strong><small>${junior?measure.simple:measure.detail}</small></span><b class="measure-cost" aria-label="${measure.cost} jedinica rada">${measure.cost}</b></label>`).join('')}</div>
+    <section class="risk-outcomes" aria-label="Očekivani učinak plana"><h3>Prije → poslije mjere</h3><p class="fine-print">${junior?'Kopija čuva radove, ali ne popravlja disk.':'Preostali rizik je procjena nakon mjere. Sljedeća stanica provjerava njezin učinak.'}</p>${risks.map(risk=>`<article><h4>${risk.label}</h4><output id="remaining-${risk.id}" aria-live="polite"></output><p id="effect-${risk.id}"></p></article>`).join('')}</section></div>
+    <div id="feedback" class="feedback" role="status" hidden></div><button id="apply-measures" class="primary wide">Predaj plan zaštite ${ico('check')}</button>`,()=>{
+    const read=()=>measures.filter(measure=>$<HTMLInputElement>(`#measure-${measure.id}`).checked).map(measure=>measure.id);
+    const paint=()=>{const preview=riskPreview(tier,read());const budgetOutput=$('#measure-budget');budgetOutput.textContent=`${preview.cost} / ${budget}${preview.cost>budget?' · prekoračeno':''}`;budgetOutput.classList.toggle('over-budget',preview.cost>budget);
+      for(const row of preview.rows){const output=$(`#remaining-${row.id}`);output.textContent=`${priorityName(row.before)} → ${priorityName(row.after)}`;output.className='priority '+row.after;$(`#effect-${row.id}`).textContent=row.detail;}
+    };
+    for(const measure of measures)$(`#measure-${measure.id}`).onchange=()=>{run.riskMeasures=read();bridge.changed();paint();};
+    paint();$('#apply-measures').onclick=()=>submitConsole(planRiskMeasures(run,read()));
+  });
+}
+function responseConsole(){
+  const tier=run.content,junior=tier==='junior',labels=['Na početku','Nakon ograničavanja','Prije povratka'];
+  openDialog(`<div class="eyebrow">PROBA PLANA · LAB-12</div><h2 id="dialog-title">Od prijave do povratka.</h2>
+    <p class="dialog-lead">${junior?'Odaberi prvi i posljednji korak. Administratorov popravak u sredini već je pripremljen.':'Složi tri koraka za ovaj slučaj. Najprije ograniči širenje, zatim pripremi oporavak, a prije povratka provjeri rad i ovlasti.'}</p>
+    <div class="response-steps evidence-cards" style="--card-count:3">${labels.map((label,index)=>`<article class="evidence-card"><div class="response-number" aria-hidden="true">${index+1}</div><h3>${label}</h3>${junior&&index===1?'<p class="prepared-step">Pripremljeno: administrator uklanja uzrok i vraća provjerene podatke.</p>':`<label for="response-${index}">Postupak u koraku ${index+1}</label><select id="response-${index}"><option value="">Odaberi postupak</option>${responseOptions(tier,index).map(step=>`<option value="${step.id}" ${run.responseOrder[index]===step.id?'selected':''}>${junior?step.simple:step.label}</option>`).join('')}</select>`}<div class="step-outcome" id="response-effect-${index}" role="status"></div></article>`).join('')}</div>
+    <p class="fine-print">Ovo je proba odabranog slijeda, a ne promjena stvarnog računala. Prijava, komunikacija i čuvanje dokaza traju cijelo vrijeme. Koraci se u stvarnosti mogu preklapati.</p>
+    <div id="feedback" class="feedback" role="status" hidden></div><button id="apply-response" class="primary wide">Provjeri plan postupanja ${ico('check')}</button>`,()=>{
+    const read=()=>cleanResponse(labels.map((_,index)=>junior&&index===1?'recover':$<HTMLSelectElement>(`#response-${index}`).value),tier);
+    const paint=()=>responsePreview(read()).steps.forEach((step,index)=>{const output=$(`#response-effect-${index}`);output.textContent=step.text;output.classList.toggle('safe',step.ok);});
+    for(let index=0;index<3;index++){if(junior&&index===1)continue;$(`#response-${index}`).onchange=()=>{run.responseOrder=read();bridge.changed();paint();};}
+    paint();$('#apply-response').onclick=()=>submitConsole(planIncidentResponse(run,read()));
+  });
+}
 let reviewTimer:number|undefined;
 function stopReviewClock(){if(reviewTimer!==undefined){clearInterval(reviewTimer);reviewTimer=undefined;if(running){profile(save,run.content).active=run;persist();}}}
 function openExpertReview(station:string,choice:string){
@@ -277,7 +323,7 @@ async function setupOffline(){if(!import.meta.env.PROD||!('serviceWorker'in navi
 
 $('#play-primary').onclick=()=>{if(profile(save).active)start(profile(save).active!.level,true);else start(LEVELS.find(l=>!profile(save).best[l.id]?.completed)?.id||1);};
 $('#content-level').onchange=()=>{save.settings.content=$<HTMLSelectElement>('#content-level').value as ContentTier;persist();renderHome();};$('#pace-settings').onclick=settings;
-$('#how-play').onclick=how;$('#home-settings').onclick=settings;$('#version').onclick=()=>openDialog(`<div class="eyebrow">SISGAME ${VERSION}</div><h2 id="dialog-title">Kampanja raste.</h2><p class="dialog-lead">Deset igrivih misija za Junior, Standard i Expert. Novo: istraga sigurnosnih upozorenja, IDS/IPS i odvojena Wi-Fi mreža za goste. Novi obrasci pamte nedovršene odabire. Napredak iz prethodne inačice ostaje sačuvan u svakoj razini sadržaja.</p><button id="version-close" class="primary wide">U redu</button>`,()=>$('#version-close').onclick=closeDialog);
+$('#how-play').onclick=how;$('#home-settings').onclick=settings;$('#version').onclick=()=>openDialog(`<div class="eyebrow">SISGAME ${VERSION}</div><h2 id="dialog-title">Kampanja raste.</h2><p class="dialog-lead">Dvanaest igrivih misija za Junior, Standard i Expert. Novo: procjena rizika, raspodjela mjera uz ograničene resurse i slaganje plana odgovora na incident. Prikaz posljedica pomaže povezati odluku s ishodom. Novi obrasci pamte nedovršene odabire. Napredak iz prethodne inačice ostaje sačuvan u svakoj razini sadržaja.</p><button id="version-close" class="primary wide">U redu</button>`,()=>$('#version-close').onclick=closeDialog);
 document.querySelectorAll<HTMLButtonElement>('.offline-button').forEach(b=>b.onclick=offlineInfo);
 $('#pause').onclick=pause;$('#back-map').onclick=pause;$('#lesson').onclick=()=>briefing(true);$('#goal').onclick=()=>{if(!bridge.paused)sector.guide();};$('#action').onclick=()=>sector.use();$('#shield').onclick=()=>sector.shield();
 document.addEventListener('keydown',e=>{if(!running||dialog.open)return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if(e.repeat)return;if(e.key.toLowerCase()==='e')sector.use();if(e.key.toLowerCase()==='q'||e.key===' ')sector.shield();if(e.key==='Escape'){e.preventDefault();pause();}});
