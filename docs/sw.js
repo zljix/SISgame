@@ -1,8 +1,8 @@
 // Generated from the exact built assets. Cache scope stays within this game.
 const ROOT=new URL('./',self.location.href);
 const PREFIX='sisgame:'+ROOT.pathname+':';
-const CACHE=PREFIX+'c90f89b6ac130c';
-const ASSETS=["./THIRD_PARTY_NOTICES.txt","./assets/index-Bkcs6f4o.css","./assets/index-CAPXLZYb.js","./assets/phaser-CmOm-Ik1.js","./assets/rolldown-runtime-WkwZ5CU-.js","./icons/apple-touch-icon.png","./icons/icon-192.png","./icons/icon-512.png","./icons/icon.svg","./icons/maskable-512.png","./index.html","./manifest.webmanifest"];
+const CACHE=PREFIX+'2367d9c8d5239c';
+const ASSETS=["./THIRD_PARTY_NOTICES.txt","./assets/index-B18WXLNI.js","./assets/index-Cp5Y6uNb.css","./assets/phaser-CmOm-Ik1.js","./assets/rolldown-runtime-WkwZ5CU-.js","./icons/apple-touch-icon.png","./icons/icon-192.png","./icons/icon-512.png","./icons/icon.svg","./icons/maskable-512.png","./index.html","./manifest.webmanifest"];
 self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);await cache.addAll(ASSETS);})()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith(PREFIX)&&key!==CACHE)await caches.delete(key);await self.clients.claim();})()));
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();if(event.data?.type==='CHECK_CACHE')event.waitUntil((async()=>{const cache=await caches.open(CACHE);const matches=await Promise.all(ASSETS.map(url=>cache.match(new URL(url,ROOT).href)));event.ports[0]?.postMessage({type:'OFFLINE_READY',ready:matches.every(Boolean)});})());});

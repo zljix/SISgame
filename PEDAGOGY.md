@@ -1,6 +1,6 @@
 # Metodička i didaktička analiza SISgamea
 
-Analizirana osnova: **0.8.0**, commit `030de51`. Prilagodbe: **0.9.0**. Datum: 27. listopada 2026. Ovo je stručna analiza sadržaja i ponašanja koda, bez istraživanja s učenicima i bez tvrdnje o izmjerenoj učinkovitosti.
+Analizirana osnova: **0.8.0**, commit `030de51`. Prilagodbe: **0.9.0**, dopunjene slobodnim izborom tema u **0.10.0**. Datum: 27. listopada 2026. Ovo je stručna analiza sadržaja i ponašanja koda, bez istraživanja s učenicima i bez tvrdnje o izmjerenoj učinkovitosti.
 
 ## Polazište i nalaz
 
@@ -42,7 +42,15 @@ Završene zadaće pokazuju da je učenik prošao vođene postupke. Dodatni sluč
 
 Za prvi susret odabrati jednu misiju i tempo bez smetnji. Učenik pročita ishod i pouku, rastumači primjer, zatim primijeni postupak i provjeri posljedicu. Nakon pogreške prvo čita objašnjenje pa mijenja odluku. Na završetku usmeno ili kratko pisano odgovara na pitanje za obrazlaganje, uspoređuje ga s ponuđenim primjerom i prelazi na novi slučaj. Pri sljedećem susretu nastavnik može zadati drukčije činjenice i tražiti prisjećanje prije ponovnog čitanja pouke.
 
-Za naprednijeg učenika primjer ostaje sklopljen, a Expert dodaje dokaze i ograničenja. Brže kretanje i veći arkadni bonus ne tumače se kao veće sigurnosno znanje. Slijed kampanje podupire postupnost, ali zaključane misije ograničavaju izravan nastavnikov izbor teme; izbornik slobodnog nastavnog redoslijeda nije dio ove prilagodbe.
+Za naprednijeg učenika primjer ostaje sklopljen, a Expert dodaje dokaze i ograničenja. Brže kretanje i veći arkadni bonus ne tumače se kao veće sigurnosno znanje. Slijed kampanje podupire postupnost. Ograničenje izravnog izbora nastavne teme iz 0.9.0 obrađeno je zasebnim načinom rada u 0.10.0, opisanim u nastavku.
+
+## Dopuna 0.10.0: izbor teme i odvojeno praćenje
+
+Učenik ili nastavnik može odabrati bilo koju postojeću misiju kroz **Vježbe po temama**. Zahtjevnije teme nude podsjetnik iz povezanih prethodnih pouka; sadržaj se preuzima iz iste razine kako Junior ne bi dobio neprilagođeni stručni odlomak. Nakon izbora slijede redovna pouka, primjer, praktični zadatak, obrazlaganje i novi slučaj.
+
+Kampanja zadržava svoj postupni slijed. Tematski način vodi zasebne najbolje rezultate i dodatnu primjenu, a svaka tema čuva vlastiti započeti pokušaj. Promjena teme time ne kažnjava učenika gubitkom odabira. Pregled rada i kopije jasno razlikuju dva načina; isti postupak proveden dvaput ne postaje jedinstven veći rezultat znanja. Obnova starijeg zapisa izričito pokazuje da nema tematskog rada te čuva prethodno stanje za povratak.
+
+Slobodan izbor nije tvrdnja da su sve teme jednako lagane niti da podsjetnik zamjenjuje cjelovito predznanje. Nastavnik prema cilju sata bira temu i razinu te provjerava učenikovo razumijevanje. U ovoj doradi nisu dodani novi sigurnosni ishodi niti formalno vrednovanje.
 
 ## Osnova odluka i granice
 

@@ -1,0 +1,249 @@
+{
+  "format": "sisgame-progress",
+  "formatVersion": 1,
+  "gameVersion": "0.9.0",
+  "createdAt": "2026-10-27T08:20:00.000Z",
+  "save": {
+    "schema": 2,
+    "settings": {
+      "content": "expert",
+      "difficulty": "easy",
+      "timed": false,
+      "sound": false,
+      "reducedMotion": false
+    },
+    "profiles": {
+      "junior": {
+        "best": {
+          "13": {
+            "learning": 100,
+            "arcade": 0,
+            "independent": 4,
+            "completed": true
+          },
+          "14": {
+            "learning": 25,
+            "arcade": 0,
+            "independent": 1,
+            "completed": false
+          }
+        },
+        "active": {
+          "level": 14,
+          "difficulty": "easy",
+          "content": "junior",
+          "review": {
+            "enabled": false,
+            "started": false,
+            "remaining": 90,
+            "expired": false,
+            "answers": {}
+          },
+          "networkRules": {},
+          "alertAnswers": {},
+          "wifiSettings": {
+            "security": "wpa3",
+            "guests": ""
+          },
+          "riskAnswers": {},
+          "riskMeasures": [],
+          "responseOrder": [
+            "",
+            "recover",
+            ""
+          ],
+          "signatureKey": "school",
+          "signatureAnswers": {
+            "approved": "accept",
+            "edited": "hold"
+          },
+          "x": 112,
+          "y": 560,
+          "flags": [
+            "sign-keys"
+          ],
+          "files": [],
+          "backup": [],
+          "bits": [],
+          "checks": {
+            "sign-keys": {
+              "done": true,
+              "errors": 0
+            },
+            "sign-lab": {
+              "done": false,
+              "errors": 0
+            },
+            "sign-share": {
+              "done": false,
+              "errors": 0
+            },
+            "sign-test": {
+              "done": false,
+              "errors": 0
+            }
+          },
+          "health": 3,
+          "hits": 0,
+          "seconds": 0,
+          "completed": false
+        },
+        "practice": {}
+      },
+      "standard": {
+        "best": {
+          "13": {
+            "learning": 100,
+            "arcade": 0,
+            "independent": 4,
+            "completed": true
+          },
+          "14": {
+            "learning": 25,
+            "arcade": 0,
+            "independent": 1,
+            "completed": false
+          }
+        },
+        "active": {
+          "level": 14,
+          "difficulty": "easy",
+          "content": "standard",
+          "review": {
+            "enabled": false,
+            "started": false,
+            "remaining": 90,
+            "expired": false,
+            "answers": {}
+          },
+          "networkRules": {},
+          "alertAnswers": {},
+          "wifiSettings": {
+            "security": "",
+            "guests": ""
+          },
+          "riskAnswers": {},
+          "riskMeasures": [],
+          "responseOrder": [
+            "",
+            "",
+            ""
+          ],
+          "signatureKey": "school",
+          "signatureAnswers": {
+            "approved": "accept",
+            "edited": "hold"
+          },
+          "x": 112,
+          "y": 560,
+          "flags": [
+            "sign-keys"
+          ],
+          "files": [],
+          "backup": [],
+          "bits": [],
+          "checks": {
+            "sign-keys": {
+              "done": true,
+              "errors": 0
+            },
+            "sign-lab": {
+              "done": false,
+              "errors": 0
+            },
+            "sign-share": {
+              "done": false,
+              "errors": 0
+            },
+            "sign-test": {
+              "done": false,
+              "errors": 0
+            }
+          },
+          "health": 3,
+          "hits": 0,
+          "seconds": 0,
+          "completed": false
+        },
+        "practice": {}
+      },
+      "expert": {
+        "best": {
+          "13": {
+            "learning": 100,
+            "arcade": 0,
+            "independent": 4,
+            "completed": true
+          },
+          "14": {
+            "learning": 25,
+            "arcade": 0,
+            "independent": 1,
+            "completed": false
+          }
+        },
+        "active": {
+          "level": 14,
+          "difficulty": "easy",
+          "content": "expert",
+          "review": {
+            "enabled": false,
+            "started": false,
+            "remaining": 90,
+            "expired": false,
+            "answers": {}
+          },
+          "networkRules": {},
+          "alertAnswers": {},
+          "wifiSettings": {
+            "security": "",
+            "guests": ""
+          },
+          "riskAnswers": {},
+          "riskMeasures": [],
+          "responseOrder": [
+            "",
+            "",
+            ""
+          ],
+          "signatureKey": "school",
+          "signatureAnswers": {
+            "approved": "accept",
+            "edited": "hold"
+          },
+          "x": 112,
+          "y": 560,
+          "flags": [
+            "sign-keys"
+          ],
+          "files": [],
+          "backup": [],
+          "bits": [],
+          "checks": {
+            "sign-keys": {
+              "done": true,
+              "errors": 0
+            },
+            "sign-lab": {
+              "done": false,
+              "errors": 0
+            },
+            "sign-share": {
+              "done": false,
+              "errors": 0
+            },
+            "sign-test": {
+              "done": false,
+              "errors": 0
+            }
+          },
+          "health": 3,
+          "hits": 0,
+          "seconds": 0,
+          "completed": false
+        },
+        "practice": {}
+      }
+    }
+  }
+}
