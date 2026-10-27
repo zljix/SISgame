@@ -1,6 +1,6 @@
 # SISgame — Čuvari sustava
 
-Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, prvenstveno za uzrast **13–18 godina**, uz jednostavniji sadržaj za mlađe igrače. Inačica **0.6.0** sadrži dvanaest dovršivih misija, dvanaest dodatnih slučajeva za primjenu, hrvatske upute, dodirne kontrole i tipkovnicu.
+Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, prvenstveno za uzrast **13–18 godina**, uz jednostavniji sadržaj za mlađe igrače. Inačica **0.7.0** sadrži dvanaest dovršivih misija, dvanaest dodatnih slučajeva za primjenu, pregled rada s prijenosom napretka, hrvatske upute, dodirne kontrole i tipkovnicu.
 
 ## Jedna igra, tri razine sadržaja
 
@@ -32,7 +32,7 @@ Dobne oznake su razvojna i pedagoška preporuka, **nisu formalna PEGI klasifikac
 11. **Što prvo zaštititi?** — popis imovine, procjena prioriteta, izbor mjera uz ograničene resurse i provjera preostalog rizika.
 12. **Smireno kroz incident** — činjenična prijava, slaganje plana postupanja, izbor čiste kopije i odobren povratak uz nadzor.
 
-U inačici 0.6.0 kampanja ima **48 sigurnosnih zadaća po razini sadržaja**. Ploča rizika povezuje vjerojatnost i učinak s prioritetom. Plan mjera prikazuje trošak i očekivani preostali rizik dok učenik bira zaštitu. Konzola odgovora prikazuje posljedice odabranog slijeda, uključujući preuranjenu obnovu i gubitak dokaza.
+U inačici 0.7.0 kampanja ima **48 sigurnosnih zadaća po razini sadržaja**. Ploča rizika povezuje vjerojatnost i učinak s prioritetom. Plan mjera prikazuje trošak i očekivani preostali rizik dok učenik bira zaštitu. Konzola odgovora prikazuje posljedice odabranog slijeda, uključujući preuranjenu obnovu i gubitak dokaza.
 
 Junior uspoređuje dva rizika, ima tri jedinice rada i pripremljen srednji korak odgovora. Standard i Expert procjenjuju tri rizika te raspolažu s pet jedinica rada. Expert dodatno provjerava ograničenja kopije i ovlasti nakon obnove. Svi novi odabiri spremaju se za nastavak. Ljestvica rizika i jedinice rada su izmišljeni školski model, a ne univerzalna formula ili stvarni troškovnik.
 
@@ -57,6 +57,18 @@ Na karti odaberite **Primjena znanja**, ili nakon završetka misije **Primijeni 
 - Nepotpuna predaja ne broji se kao pokušaj. Potpun odgovor dobiva objašnjenje uz svako pitanje. Ponovni pritisak bez promjene odgovora ne povećava broj pokušaja.
 - Nedovršeni odabiri i posljednja predaja čuvaju se odvojeno po razinama. Riješen slučaj ostaje dostupan za čitanje, s oznakom **iz prve** ili **uz ispravak**; pregled preporučuje teme u kojima je trebala korekcija.
 - „Iz prve” opisuje prvu potpunu predaju uz dostupnu pomoć. To je povratna informacija za vježbanje, ne dokaz samostalnog praktičnog rada. Nakon rješenja slijedi mali prijedlog primjene uz nastavnika.
+
+## Moj rad i kopije — novo u 0.7.0
+
+Na početnoj karti odaberite **Moj rad**, ili **Postavke → Upravljanje napretkom → Moj rad i kopije**. Pregled po razinama prikazuje završene misije, najbolje rezultate, aktivni pokušaj, dodatnu primjenu i teme za ponavljanje. Promjena razine u tom pregledu ne mijenja odabrani sadržaj igre.
+
+- **Preuzmi kopiju (JSON)** čuva sve tri razine, postavke, započete misije i nedovršene odabire. Sačuvajte datoteku izvan podataka preglednika; na drugom uređaju otvorite igru i odaberite je pod **Obnovi napredak iz JSON kopije**.
+- **Preuzmi sažetak (TXT)** daje čitljiv pregled svih triju razina i svih misija, uz odvojene bodove učenja i arkadni bonus. Sažetak služi čitanju i razgovoru o radu; za obnovu je potreban JSON.
+- Odabir kopije najprije otvara usporedbu trenutačnog rada i učitanih podataka. **Tek potvrda zamjenjuje sve tri razine i postavke; zapisi se ne spajaju.** Nečitljive, nepotpune ili nepodržane kopije i datoteke veće od 1 MiB odbijaju se prije zamjene.
+- Prije svake obnove igra sprema jedan prethodni zapis. **Pregledaj prethodni zapis za povratak** omogućuje njegovu usporedbu i obnovu. Ako spremanje prethodnog zapisa ne uspije, obnova se ne primjenjuje. Taj lokalni zapis nije zamjena za preuzetu kopiju: brisanje lokalnog napretka ili podataka preglednika uklanja i njega.
+- Prije spremanja provjerava se je li drugi prozor promijenio lokalni napredak. Ako se promjena otkrije, igra zaustavlja prepisivanje i traži da sačuvate otvoreni rad kao kopiju te osvježite igru. Ovo nije sustav istodobnog rada ni automatska sinkronizacija.
+
+Datoteke se pripremaju lokalno; igra ih ne šalje nastavniku ili poslužitelju. Preglednik određuje način preuzimanja ili otvaranja datoteke. Format kopije je `sisgame-progress`, verzija formata `1`, s inačicom igre u polju `gameVersion` i napretkom `schema: 2`; prethodni zapis koristi zaseban ključ `sisgame.restore-point.v1`. Provjera formata ne potvrđuje identitet ili istinitost rezultata.
 
 ## Mobilni vodoravni prikaz (0.1.2)
 
@@ -124,6 +136,7 @@ npm run build
 - `src/network.ts` — sigurnosni zapisi, Wi-Fi postavke i izračun prikazanih posljedica.
 - `src/operations.ts` — slučajevi rizika, planiranje mjera, redoslijed odgovora i prikaz posljedica.
 - `src/practice.ts` — 12 dodatnih slučajeva, prilagodbe razinama, objašnjenja i evidencija primjene.
+- `src/progress.ts` — pregled rezultata, JSON kopije, provjera i obnova uz prethodni zapis te TXT sažetak.
 - `src/missions.ts` — sadržaj novih odluka, izvještaji, zapisi i pravila usluga.
 - `src/core.ts` — nastavna pravila i prijelazi stanja.
 - `src/game.ts` — Phaser, mapa, kretanje, prepreke i likovi.
@@ -131,19 +144,19 @@ npm run build
 - `src/main.ts` — izbornici, kontrole, konfiguracija zaštite i PWA.
 - `src/storage.ts` — lokalni napredak, validacija formata i najbolji rezultati.
 - `tests/` — provjere ključnih pravila, oporavka podataka, putanja i spremanja.
-- `scripts/check-ui.mjs` — 285 lokalnih provjera kontrola misija 11–12 i svih dodatnih slučajeva uz Happy DOM; nema pristupa mreži, stvarnom pregledniku ni igraćem platnu. Happy DOM je samo razvojna ovisnost.
+- `scripts/check-ui.mjs` — lokalne provjere kontrola misija 11–12, svih dodatnih slučajeva i upravljanja kopijama uz Happy DOM; nema pristupa mreži, stvarnom pregledniku ni igraćem platnu. Happy DOM je samo razvojna ovisnost.
 
 ## Provjera prije uporabe u razredu
 
-61 automatizirani test provjerava pravila svih dvanaest misija u sve tri razine sadržaja, dostupnost mjesta na svakoj mapi, preduvjete, pogrešne odluke, sprečavanje ponovnog zbrajanja bodova, migraciju starog napretka, neovisne profile, opcionalni sat, odvojeno bodovanje, 12 dodatnih slučajeva, čuvanje prvog rezultata i offline paket. Pregled u računalnom pregledniku ne zamjenjuje probu na stvarnom iPhoneu i Androidu. Prije nastavne uporabe provjerite višestruki dodir, okretanje zaslona, zaključavanje/otključavanje, povratak nakon zatvaranja, zvuk, offline pokretanje i ažuriranje.
+75 automatiziranih testova provjerava pravila svih dvanaest misija u sve tri razine sadržaja, dostupnost mjesta na svakoj mapi, preduvjete, pogrešne odluke, sprečavanje ponovnog zbrajanja bodova, migraciju starog napretka, neovisne profile, opcionalni sat, odvojeno bodovanje, 12 dodatnih slučajeva, čuvanje prvog rezultata, kopije i obnovu napretka te offline paket. Pregled u računalnom pregledniku ne zamjenjuje probu na stvarnom iPhoneu i Androidu. Prije nastavne uporabe provjerite višestruki dodir, okretanje zaslona, zaključavanje/otključavanje, povratak nakon zatvaranja, zvuk, offline pokretanje i ažuriranje.
 
 Postavke, Junior obrasci, Expert analiza i mrežna konzola provjereni su u Chromeu na 956 × 440, 956 × 378 uz simulirane sigurne rubove, 568 × 320 i 390 × 844. Dulji sadržaj pomiče se unutar prozora; zatvaranje i glavna tipka ostaju dostupni. Provjereni su ispravak Expert odgovora, nastavak nakon isteka vremena i povratak u započetu misiju nakon promjene sadržaja.
 
 Nove konzole iz 0.4.0 dodatno su provjerene u Chromeu unutar prikaza 956 × 440, 568 × 320 i 390 × 844, s odvojenim izmišljenim testnim napretkom. Provjereni su ispravak odgovora, ponovno učitavanje nedovršenih odabira, Junior pojednostavljenja i Expert završni slučajevi. Na 568 × 320 zapisi se nižu jedan ispod drugoga, a glavna tipka i zatvaranje ostaju dostupni. To je provjera rasporeda u računalnom pregledniku, ne test višestrukog dodira na fizičkom telefonu.
 
-Za **0.6.0** prošli su TypeScript, produkcijska izgradnja, offline provjera paketa i automatizirani testovi (**61/61**). Dodatnih **285 lokalnih DOM provjera** obuhvaća konzole misija 11–12 i kontrole svih 12 dodatnih slučajeva u svakoj razini sadržaja: prilagodbe pitanja, praznu predaju, objašnjenja, ispravak, ponovljeni pritisak, obnovu odabira, povratak iz pouke, prijelaz iz završene misije, preporuku ponavljanja i očuvanje bodova. Pokreću se pomoću `npm run test:ui`; učitavaju stvarni kod sučelja uz zamijenjeni Phaser i memorijski DOM, bez mreže.
+Za **0.7.0** prošli su TypeScript, produkcijska izgradnja, offline provjera paketa i automatizirani testovi (**75/75**). Dodatne **324 lokalne DOM provjere** obuhvaćaju konzole misija 11–12, kontrole svih 12 dodatnih slučajeva u svakoj razini sadržaja te Moj rad: sadržaj datoteka, usporedbu prije obnove, odustajanje, prethodni zapis, nastavak učitane misije, nevaljanu datoteku, nedostupnu pohranu, zakašnjelo čitanje datoteke i promjenu podataka iz drugog prozora. Pokreću se pomoću `npm run test:ui`; učitavaju stvarni kod sučelja uz zamijenjeni Phaser, preuzimanje i memorijski DOM, bez mreže.
 
-**Vizualni pregled prikaza dodanih u 0.5.0 i 0.6.0 nije proveden.** Pristup lokalnoj testnoj adresi ranije je blokiran automatskom provjerom alata. DOM provjere ne potvrđuju izgled, raspored, dodirne kontrole ni prikaz igraćeg platna. Ranije navedene provjere zaslona odnose se na 0.4.0 i starije prikaze. Prije nastavne uporabe 0.6.0 treba vizualno pregledati na uspravnom i vodoravnom zaslonu te isprobati na stvarnim uređajima.
+**Vizualni pregled prikaza dodanih u 0.5.0–0.7.0 nije proveden.** Pristup lokalnoj testnoj adresi ranije je blokiran automatskom provjerom alata. DOM provjere ne potvrđuju izgled, raspored, dodirne kontrole, prikaz igraćeg platna ni stvarni dijalog odabira i spremanja datoteke. Ranije navedene provjere zaslona odnose se na 0.4.0 i starije prikaze. Prije nastavne uporabe 0.7.0 treba vizualno pregledati na uspravnom i vodoravnom zaslonu te isprobati preuzimanje, prijenos kopije i obnovu na stvarnim uređajima.
 
 Nastavni okvir obuhvaća sedam cjelina i 26 tema. Ova inačica ima dvanaest misija koje objedinjuju dio tema; ne pokriva svih 26 nastavnih tema. Procjena imovine i rizika te plan odgovora sada imaju samostalne misije. Dodani slučajevi vježbaju primjenu na novim činjenicama. Za daljnji razvoj ostaju dodatne varijante, provjera prijenosa u stvarni praktičan rad i pilotiranje u razredu. Detaljna veza s gradivom nalazi se u [CONTENT.md](CONTENT.md).
 
