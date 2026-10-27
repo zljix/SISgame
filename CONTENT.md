@@ -1,6 +1,12 @@
-# SISgame — sadržaj kampanje 0.9.0
+# SISgame — sadržaj kampanje 0.10.0
 
 Igra ima četrnaest misija i 56 sigurnosnih zadaća po razini sadržaja. Od 0.6.0 svaku misiju prati novi slučaj primjene s odvojenom evidencijom vježbanja. Inačica 0.8.0 proširuje kampanju misijama o kriptografskim sažetcima i digitalnim potpisima te njihovim slučajevima primjene. Pregled Moj rad, sažetak i kopije obuhvaćaju proširenu kampanju. Misija traje koliko učeniku treba za istraživanje i odluke; nema vremenske kazne za čitanje. Nakon pouke učenik postavlja mjere, ispravlja pogreške i provjerava rezultat. Izlaz se otvara tek nakon četiri dovršene zadaće. U 0.9.0 svaka misija dobiva opažljiv ishod, kraći Junior ishod, razrađeni primjer, plan zadaća i pitanje za obrazlaganje s primjerom odgovora koji se otvara nakon učenikova pokušaja. Primjer i plan nisu dodatni bodovani zadatci. Cjelovita analiza i veza ishoda s aktivnostima nalazi se u [PEDAGOGY.md](PEDAGOGY.md).
+
+## Slobodan izbor teme (0.10.0)
+
+Uz kampanju dostupan je zaseban način **Vježbe po temama**. Omogućuje izbor bilo koje od postojećih 14 misija bez otključavanja prethodnih, s izborom sadržajne razine i tempa. Ne dodaje nove ishode ni sigurnosne teme. Za naprednije teme ponavlja relevantna objašnjenja iz postojećih ranijih pouka, prilagođena Junioru, Standardu ili Expertu. Uvod odabrane misije i dalje dolazi prije praktične odluke.
+
+Svaka tema ima zaseban nedovršeni pokušaj u svakoj razini. Rezultati, dodatni slučajevi i oznake ispravaka pripadaju tom načinu rada; ne prenose se u kampanju. Završetak teme otvara pripadajući novi slučaj, bez dodavanja bodova kampanji. Moj rad, prijenos kopije i čitljivi sažetak razlikuju oba načina. To nastavniku omogućuje odabir teme aktualnog sata, a učeniku ciljano ponavljanje. Primjerenost redoslijeda i predznanja i dalje se procjenjuje u nastavi.
 
 ## Dob, predznanje i pristupačnost
 
@@ -8,7 +14,7 @@ Primarna razvojna publika je 13–18 godina, s naglaskom na srednju školu. Juni
 
 | Prilagodba | Junior | Standard | Expert |
 | --- | --- | --- | --- |
-| Pouka | Kratke rečenice i tri slikovna koraka | Pouka i rječnik pojmova | Pouka, pojmovi i dodatni slučaj |
+| Pouka | Kratke rečenice i ishod, plan četiriju zadaća | Pouka i rječnik pojmova | Pouka, pojmovi i dodatni slučaj |
 | Jednostavni izbori | Najviše dvije mogućnosti | Puni ponuđeni postupci | Puni postupci i analiza posljedica |
 | Prava mapa | Učenik i nastavnik; gost je pripremljen | Tri uloge | Tri uloge + čuvanje ključa i ovlasti |
 | Zlonamjerni programi | Dva izvještaja: trojanski konj i crv | Tri izvještaja, uključujući virus; rootkit u oporavku | Tri izvještaja + posljedice krađe vjerodajnica |

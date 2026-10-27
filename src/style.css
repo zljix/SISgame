@@ -587,3 +587,25 @@ dialog {
   .keyboard-controls .action-controls button { font-size: 10px; padding: 8px; }
   .keyboard-controls .action-controls kbd { display: none; }
 }
+
+/* Topic practice is a separate, searchable route through the existing curriculum. */
+.topic-banner { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px; margin: 20px 0 12px; border: 1px solid #58658d; border-radius: 15px; background: #212b43; }
+.topic-banner strong { display: block; font-size: 18px; color: #dfdcff; }
+.topic-banner p { color: #b5c8d6; font-size: 13px; line-height: 1.6; margin-top: 6px; max-width: 650px; }
+.topic-banner button { flex-shrink: 0; min-height: 46px; }
+.topic-filters { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 14px; margin: 18px 0; }
+.topic-filters label { display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #d3e2ed; }
+.topic-filters input, .topic-filters select { width: 100%; min-width: 0; min-height: 46px; padding: 10px 12px; border: 1px solid #577188; border-radius: 8px; background: #0e1f32; color: #edf5f5; font: inherit; }
+.topic-filters input:focus-visible { outline: 3px solid #ffd087; outline-offset: 3px; }
+.topic-catalogue { display: grid; gap: 14px; margin: 14px 0; }
+.topic-card { display: flex; flex-direction: column; align-items: stretch; gap: 9px; padding: 18px; border: 1px solid #3b566d; border-radius: 12px; background: #102438; }
+.topic-card .eyebrow { font-size: 9px; line-height: 1.5; }
+.topic-card h3 { font-size: 19px; line-height: 1.4; color: #e2f6f1; }
+.topic-card p { font-size: 13px; line-height: 1.65; color: #bed0de; }
+.topic-card > small { font-size: 12px; line-height: 1.5; color: #a4dfcf; }
+.topic-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: auto; padding-top: 8px; }
+.topic-actions button { min-height: 44px; }
+.topic-drafts { list-style: none; padding: 0; margin: 8px 0 0; }
+.topic-drafts button { text-align: left; min-height: 44px; padding: 8px 0; line-height: 1.5; }
+@media (min-width: 1100px) and (min-height: 600px) { .keyboard-controls .topic-catalogue { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 540px) { .topic-banner { align-items: stretch; flex-direction: column; padding: 18px; gap: 14px; } .topic-filters { grid-template-columns: 1fr; } }

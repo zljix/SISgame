@@ -25,7 +25,7 @@ export interface Run {
   completed: boolean;
 }
 export interface Result { ok: boolean; title: string; message: string; complete?: boolean; review?: boolean }
-export const VERSION = '0.9.0';
+export const VERSION = '0.10.0';
 export const FILES = [
   { id: 'rad', name: 'Završni rad', text: 'Završni rad · posljednja spremljena inačica' },
   { id: 'mjerenja', name: 'Mjerenja', text: 'Temperatura: 23 °C · 12 mjerenja' },

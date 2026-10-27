@@ -15,6 +15,7 @@ import * as progress from '../src/progress.ts';
 import * as integrity from '../src/integrity.ts';
 import * as controls from '../src/controls.ts';
 import * as learning from '../src/learning.ts';
+import * as study from '../src/study.ts';
 
 // Local DOM unit harness. No network, user browser, rendering or real game canvas.
 const source=stripTypeScriptTypes(await readFile('src/main.ts','utf8'))
@@ -45,8 +46,8 @@ async function setup(tier, saved=null, device={}){
   requestAnimationFrame:()=>0,cancelAnimationFrame:()=>{},clearInterval:()=>{},performance,
   ResizeObserver:class{observe(){}disconnect(){}},
   Phaser:{AUTO:0,Scale:{RESIZE:0},Game:class{constructor(config){calls.config=config;} scale={getParentBounds(){},refresh(){}}}},Sector,
-  ...core,...data,...curriculum,...missions,...network,...operations,...storage,...practice,...progress,...integrity,...controls,...learning};
- runInNewContext(source+'\nwindow.__checks={start,openStation,finish,updateHUD,getRun:()=>run,getSave:()=>save,getBridge:()=>bridge};',context);
+  ...core,...data,...curriculum,...missions,...network,...operations,...storage,...practice,...progress,...integrity,...controls,...learning,...study};
+ runInNewContext(source+'\nwindow.__checks={start,openStation,finish,updateHUD,getRun:()=>run,getSave:()=>save,getBridge:()=>bridge,getMode:()=>playMode};',context);
  const h=w.__checks;
  const click=id=>{const e=w.document.querySelector(id);assert.ok(e,id);e.click();};
  const select=(id,value)=>{const e=w.document.querySelector(id);assert.ok(e,id);e.value=value;e.dispatchEvent(new w.Event('change',{bubbles:true}));};
@@ -267,7 +268,7 @@ for(const tier of curriculum.TIERS){
  const file=()=>new ui.w.File([json],'backup.json');
  const before=ui.w.localStorage.getItem(storage.SAVE_KEY);
  await ui.chooseFile(file());
- check(ui.w.document.querySelectorAll('.restore-comparison tbody tr').length===3,'preview compares all tiers');
+ check(ui.w.document.querySelectorAll('.restore-comparison tbody tr').length===6,'preview compares both modes in all tiers');
  check(ui.w.localStorage.getItem(storage.SAVE_KEY)===before&&JSON.stringify(ui.h.getSave())===original,'preview does not apply data');
  ui.click('#cancel-import');check(ui.w.document.querySelector('#dialog-title').textContent==='Moj rad','cancel returns to progress');
  check(ui.w.localStorage.getItem(progress.RESTORE_POINT_KEY)===null,'cancel creates no restore point');
@@ -413,5 +414,90 @@ for(const tier of curriculum.TIERS){
  await ui.close();
  const reload=await setup('standard',null,{coarse:true,preference:'keyboard'});
  check(reload.w.document.body.classList.contains('keyboard-controls'),'saved manual choice applies after reload');await reload.close();
+}
+
+// Topic mode: use real UI decisions, isolated campaign data, interruption and reload.
+for(const tier of curriculum.TIERS){
+ const initial=storage.emptySave();initial.settings.content='standard';initial.settings.difficulty='hard';
+ initial.profiles.standard.active=core.newRun(2,'easy','standard');initial.profiles.standard.active.networkRules={web:true};
+ const completed=core.newRun(1,'relaxed',tier);for(const c of Object.values(completed.checks))c.done=true;completed.completed=true;storage.checkpoint(initial,completed,'topics');
+ const campaignJSON=save=>JSON.stringify(Object.fromEntries(curriculum.TIERS.map(t=>{const {topics,...campaign}=save.profiles[t];return[t,campaign];})));
+ const campaignBefore=campaignJSON(initial),settingsBefore=JSON.stringify(initial.settings);
+ let ui=await setup('standard',JSON.stringify(initial));
+ check(ui.w.document.querySelector('[data-level="14"]').disabled,`${tier}: signature campaign locked before topic practice`);
+ ui.click('#topics-open');ui.select('#topic-tier',tier);
+ check(ui.w.document.querySelectorAll('[data-topic-start]').length===14,`${tier}: all topics available without campaign unlocks`);
+ const search=ui.w.document.querySelector('#topic-search');search.value='SHA-256';search.dispatchEvent(new ui.w.Event('input',{bubbles:true}));
+ check(!ui.w.document.querySelector('[data-topic="13"]').hidden,`${tier}: search finds taught concept`);
+ search.value='xyznonexistent';search.dispatchEvent(new ui.w.Event('input',{bubbles:true}));check(!ui.w.document.querySelector('#topic-empty').hidden,`${tier}: empty search explained`);
+ search.value='potpis';search.dispatchEvent(new ui.w.Event('input',{bubbles:true}));
+ ui.click('[data-topic-start="14"]');ui.click('#topic-back');check(ui.w.document.querySelector('#topic-search').value==='potpis',`${tier}: back retains search`);
+ ui.click('[data-topic-start="14"]');check(ui.w.document.querySelector('#topic-pace').value==='relaxed',`${tier}: new topic starts with calm option`);
+ check(ui.w.document.querySelector('.topic-preparation').textContent.includes(study.topicPreparation(14,tier)[0].text),`${tier}: related concept explained before free-choice task`);
+ ui.select('#topic-pace','easy');ui.click('#topic-begin');
+ check(ui.h.getMode()==='topics'&&ui.h.getRun().content===tier,`${tier}: chosen topic tier independent from campaign selection`);
+ check(!ui.w.document.querySelector('#dialog-title').textContent.startsWith('Nastavljamo'),`${tier}: fresh attempt not labelled resumed`);
+ check(ui.w.document.querySelector('.lesson-grid').textContent.includes('javni'),`${tier}: lesson precedes free-choice signature task`);
+ ui.click('#begin');check(ui.w.document.querySelector('#level-number').textContent.startsWith('TEMA'),`${tier}: play visibly labels topic mode`);
+ ui.station('sign-keys');ui.click('[data-choice="private"]');ui.click('[data-choice="public"]');ui.station('sign-lab');ui.select('#signature-key','enclosed');ui.select('#signature-approved','hold');
+ ui.click('#dialog-close');ui.click('#pause');ui.click('#to-home');
+ check(ui.w.document.querySelector('#topic-tier').value===tier,`${tier}: pause returns to matching topic list`);
+ ui.click('[data-topic-start="13"]');ui.click('#topic-begin');ui.click('#begin');ui.station('hash-source');ui.click('[data-choice="known"]');ui.station('hash-lab');ui.select('#hash-original','same');
+ ui.w.dispatchEvent(new ui.w.Event('pagehide'));
+ const saved=ui.w.localStorage.getItem(storage.SAVE_KEY);
+ check(Object.keys(storage.readTopics(ui.h.getSave(),tier).drafts).length===2,`${tier}: two interrupted topics stored`);
+ check(campaignJSON(ui.h.getSave())===campaignBefore&&JSON.stringify(ui.h.getSave().settings)===settingsBefore,`${tier}: topic decisions do not alter campaign or its preferences`);
+ await ui.close();ui=await setup('standard',saved);
+ ui.click('#topics-open');ui.select('#topic-tier',tier);ui.click('[data-topic-start="14"]');
+ check(ui.w.document.querySelector('#topic-pace').value==='easy',`${tier}: topic pace restored after reload`);
+ ui.click('#topic-begin');check(ui.w.document.querySelector('#dialog-title').textContent.startsWith('Nastavljamo'),`${tier}: existing attempt is labelled resumed`);ui.click('#begin');
+ check(ui.h.getRun().checks['sign-keys'].errors===1,`${tier}: correction count restored`);
+ ui.station('sign-lab');check(ui.w.document.querySelector('#signature-key').value==='enclosed'&&ui.w.document.querySelector('#signature-approved').value==='hold',`${tier}: topic console drafts restored`);
+ ui.select('#signature-key','school');ui.select('#signature-approved','accept');ui.select('#signature-edited','hold');if(tier!=='junior')ui.select('#signature-unknown','hold');ui.click('#check-signatures');
+ ui.station('sign-share');ui.click('[data-choice="protect"]');ui.station('sign-test');ui.click('[data-choice="test"]');
+ if(tier==='expert'){for(const q of curriculum.EXPERT_REVIEWS[14].questions)ui.click(`input[name="review-${q.id}"][value="${q.answer}"]`);ui.click('#submit-review');}
+ ui.click('#verification-done');ui.station('exit');
+ check(ui.w.document.querySelector('#next').textContent.includes('Odaberi drugu temu'),`${tier}: topic completion offers topic choice`);
+ check(storage.readTopics(ui.h.getSave(),tier).drafts[14]===undefined&&!!storage.readTopics(ui.h.getSave(),tier).drafts[13],`${tier}: completion removes only current draft`);
+ check(storage.readTopics(ui.h.getSave(),tier).best[14].completed,`${tier}: result belongs to topic book`);
+ ui.click('#results-practice');check(ui.w.document.querySelector('.dialog-heading').textContent.includes('Vježbe po temama'),`${tier}: matching transfer case stays in topic mode`);
+ ui.click('#practice-lesson');ui.click('#practice-back');
+ const scenario=practice.practiceCase(14,tier);for(const q of scenario.questions)ui.click(`input[name="practice-${q.id}"][value="${q.answer}"]`);ui.click('#practice-submit');
+ check(storage.readTopics(ui.h.getSave(),tier).practice[14].solved,`${tier}: transfer result stored in topic book`);
+ ui.click('#practice-continue');
+ check(ui.w.document.querySelector('#dialog-title').textContent===practice.practiceCase(1,tier).title&&ui.w.document.querySelector('.dialog-heading').textContent.includes('Vježbe po temama'),`${tier}: next transfer case retains mode and tier`);
+ check(campaignJSON(ui.h.getSave())===campaignBefore,`${tier}: full topic loop leaves campaign unchanged`);
+ ui.click('#practice-overview');ui.click('#practice-home');ui.click('#topic-work');
+ check(ui.w.document.querySelector('#progress-mode').value==='topics'&&ui.w.document.querySelector('#progress-tier').value===tier,`${tier}: topic work opens correct scope`);
+ check(ui.w.document.querySelector('[data-resume-topic="13"]'),`${tier}: work overview links pending topic`);
+ ui.click('#export-progress');const exported=JSON.parse(await ui.downloads.at(-1).blob.text());
+ check(exported.save.profiles[tier].topics.drafts[13].hashAnswers.original==='same',`${tier}: download includes separate topic draft`);
+ ui.click('#export-report');check((await ui.downloads.at(-1).blob.text()).includes('VJEŽBE PO TEMAMA'),`${tier}: report identifies topic section`);
+ ui.select('#progress-mode','campaign');check(ui.w.document.querySelector('.pause-summary').textContent.includes('0/14'),`${tier}: campaign view is separate`);
+ ui.select('#progress-mode','topics');ui.click('[data-resume-topic="13"]');ui.click('#topic-begin');ui.click('#begin');ui.station('hash-lab');
+ check(ui.w.document.querySelector('#hash-original').value==='same',`${tier}: resume from work overview retains saved choice`);
+ ui.click('#dialog-close');ui.click('#pause');ui.click('#to-home');ui.click('#topic-close');
+ check(ui.w.document.querySelector('#total-xp').textContent==='0'&&ui.w.document.querySelector('[data-level="14"]').disabled,`${tier}: home campaign remains unchanged`);
+ ui.click('#play-primary');ui.click('#begin');check(ui.h.getMode()==='campaign'&&ui.h.getRun().level===2,`${tier}: original campaign draft still resumes`);
+ await ui.close();
+}
+{
+ const initial=storage.emptySave();const draft=core.newRun(14,'relaxed','expert');core.act(draft,'sign-keys','public');draft.signatureKey='school';storage.checkpoint(initial,draft,'topics');
+ const ui=await setup('standard',JSON.stringify(initial));ui.click('#progress-open');ui.select('#progress-mode','topics');ui.select('#progress-tier','expert');
+ const before=JSON.stringify(ui.h.getSave()),backup=progress.createProgressBackup(ui.h.getSave());
+ await ui.chooseFile(new ui.w.File([backup],'topics.json'));ui.click('#confirm-import');
+ check(storage.readTopics(ui.h.getSave(),'expert').drafts[14].signatureKey==='school','topic backup restores console drafts');
+ check(ui.w.document.querySelector('#progress-mode').value==='topics','import keeps selected overview scope');
+ const old=await readFile('tests/fixtures/progress-v0.9.0.json','utf8');await ui.chooseFile(new ui.w.File([old],'old-v090.json'));
+ check(ui.w.document.querySelector('.dialog-lead').textContent.includes('Starija kopija'),'restoring older backup explains removal of topic records');
+ check(ui.w.document.querySelectorAll('.restore-comparison tbody tr').length===6,'restore preview compares both modes across all tiers');
+ ui.click('#cancel-import');check(JSON.stringify(ui.h.getSave())===before,'cancel old restore preserves topic work');
+ await ui.chooseFile(new ui.w.File([old],'old-v090.json'));ui.click('#confirm-import');
+ check(ui.h.getSave().profiles.expert.topics===undefined,'confirmed old restore consistently replaces topic records');
+ ui.click('#restore-previous');ui.click('#confirm-import');
+ check(storage.readTopics(ui.h.getSave(),'expert').drafts[14].signatureKey==='school','restore point recovers replaced topic work');
+ ui.click('#progress-close');ui.click('#topic-close');ui.click('#home-settings');ui.click('#reset-progress');ui.click('#confirm-reset');
+ check(ui.h.getSave().profiles.expert.topics===undefined,'confirmed reset clears topic workspace too');
+ await ui.close();
 }
 console.log(`${assertions} local DOM assertions passed. Rendering, physical input and visual layout were not tested.`);

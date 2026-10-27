@@ -5,12 +5,24 @@ import { cleanMeasures, cleanResponse, prioritiesFor, risksFor } from './operati
 import { parsePractice, type PracticeBook } from './practice.ts';
 import { cleanHashAnswers, cleanSignatureAnswers, cleanSignatureKey } from './integrity.ts';
 export type Best = { learning: number; arcade: number; independent: number; completed: boolean };
-export type Profile = { best: Record<string, Best>; active: Run | null; practice:PracticeBook };
+export type PlayMode='campaign'|'topics';
+export type ResultBook={best:Record<string,Best>;practice:PracticeBook};
+export type TopicProgress=ResultBook&{drafts:Record<string,Run>};
+export type Profile = ResultBook & { active: Run | null; topics?:TopicProgress };
 export type Save = { schema: 2; settings: { content: ContentTier; difficulty: Difficulty; timed: boolean; sound: boolean; reducedMotion: boolean }; profiles: Record<ContentTier,Profile> };
 // Keep the storage key so v0.1/v0.2 saves are migrated on the first load.
 export const SAVE_KEY = 'sisgame.save.v1';
 export function emptySave(): Save { return { schema: 2, settings: { content:'standard', difficulty:'easy', timed:false, sound:false, reducedMotion:false }, profiles:{junior:{best:{},active:null,practice:{}},standard:{best:{},active:null,practice:{}},expert:{best:{},active:null,practice:{}}}}; }
 export function profile(save:Save,tier:ContentTier=save.settings.content):Profile{return save.profiles[tier];}
+const emptyTopics=():TopicProgress=>({best:{},drafts:{},practice:{}});
+export function readTopics(save:Save,tier:ContentTier=save.settings.content):TopicProgress{return profile(save,tier).topics||emptyTopics();}
+export function resultBook(save:Save,mode:PlayMode,tier:ContentTier):ResultBook{
+  return mode==='topics'?(profile(save,tier).topics??=emptyTopics()):profile(save,tier);
+}
+export function savedRun(save:Save,level:number,mode:PlayMode,tier:ContentTier):Run|null{
+  const current=mode==='topics'?readTopics(save,tier).drafts[level]:profile(save,tier).active;
+  return current?.level===level?current:null;
+}
 const clamp=(v:unknown,min:number,max:number)=> typeof v==='number'&&Number.isFinite(v)?Math.max(min,Math.min(max,v)):min;
 const difficulties: Difficulty[] = ['relaxed','easy','medium','hard'];
 const knownFlags = new Set(['card','paper','secret','failure','expert-review',...Object.values(CHECKS).flat()]);
@@ -41,6 +53,11 @@ function parseRun(a:any,tier:ContentTier):Run|null {
   if(r.level===14){r.signatureKey=cleanSignatureKey(a.signatureKey);r.signatureAnswers=cleanSignatureAnswers(a.signatureAnswers,tier);}
   return r;
 }
+function parseBest(input:any):Record<string,Best>{
+  const best:Record<string,Best>={};
+  for(const n of Object.keys(CHECKS)){const b=input?.[n];if(b&&typeof b==='object')best[n]={learning:clamp(b.learning,0,100),arcade:clamp(b.arcade,0,60),independent:clamp(b.independent,0,4),completed:b.completed===true};}
+  return best;
+}
 export function parseSave(raw:string|null): Save {
   const out=emptySave();if(!raw)return out;
   try {
@@ -52,16 +69,35 @@ export function parseSave(raw:string|null): Save {
     for(const tier of TIERS){
       const source=input.schema===1?(tier==='standard'?input:null):input.profiles?.[tier];if(!source)continue;
       const target=profile(out,tier);
-      for(const n of Object.keys(CHECKS)){const b=source.best?.[n];if(b&&typeof b==='object')target.best[n]={learning:clamp(b.learning,0,100),arcade:clamp(b.arcade,0,60),independent:clamp(b.independent,0,4),completed:b.completed===true};}
+      target.best=parseBest(source.best);
       target.active=parseRun(source.active,tier);
       target.practice=parsePractice(source.practice,tier,target.best);
+      // Optional extension: old exported schema-2 saves retain their exact shape.
+      // Topic drafts are bounded by the known mission IDs and cannot replace campaign work.
+      if(input.schema===2&&source.topics!==undefined){
+        const topics=emptyTopics(),raw=source.topics;
+        topics.best=parseBest(raw?.best);
+        for(const n of Object.keys(CHECKS)){
+          const draft=parseRun(raw?.drafts?.[n],tier);
+          if(draft?.level===Number(n))topics.drafts[n]=draft;
+        }
+        topics.practice=parsePractice(raw?.practice,tier,topics.best);
+        target.topics=topics;
+      }
     }
   }catch{/* A damaged save must not stop the game. */}
   return out;
 }
-export function recordBest(save:Save,run:Run){
-  const target=profile(save,run.content),prior=target.best[run.level];
+export function recordBest(save:Save,run:Run,mode:PlayMode='campaign'){
+  const target=resultBook(save,mode,run.content),prior=target.best[run.level];
   target.best[run.level]={learning:Math.max(prior?.learning||0,score(run)),arcade:Math.max(prior?.arcade||0,arcadeScore(run)),independent:Math.max(prior?.independent||0,Object.values(run.checks).filter(c=>c.done&&c.errors===0).length),completed:!!prior?.completed||run.completed};
+}
+export function checkpoint(save:Save,run:Run,mode:PlayMode){
+  recordBest(save,run,mode);
+  if(mode==='topics'){
+    const topics=profile(save,run.content).topics!;
+    if(run.completed)delete topics.drafts[run.level];else topics.drafts[run.level]=run;
+  }else profile(save,run.content).active=run.completed?null:run;
 }
 export function totalXP(save:Save,tier:ContentTier=save.settings.content){return Object.values(profile(save,tier).best).reduce((sum,b)=>sum+b.learning+b.arcade,0);}
 export function totalLearning(save:Save,tier:ContentTier=save.settings.content){return Object.values(profile(save,tier).best).reduce((sum,b)=>sum+b.learning,0);}
