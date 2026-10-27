@@ -61,7 +61,7 @@ export const MISSION_GUIDES:Record<number,MissionGuide>={
   },
   9:{
     outcome:'Usporedi alarm s drugim dokazima, razlikuj incident od dopuštenog rada i odaberi ciljani odgovor.',
-    juniorOutcome:'Provjeri alarm uz zapise. Razlikuj odobren rad, odbijen pokušaj i stvarnu promjenu.',
+    juniorOutcome:'Provjeri alarm uz zapise. Razlikuj odobren rad i potvrđen neovlašten pristup.',
     example:{title:'Noćno održavanje',situation:'Alarm bilježi mnogo veza u 20 sati. Potvrđeni plan i dnevnik pokazuju odobreno održavanje u to vrijeme.',reason:'Alarm je povod za provjeru. U ovom slučaju dodatni podatci objašnjavaju događaj.',decision:'Zabilježi nalaz i nastavi nadzor. Ne proglašavaj svaki sličan budući alarm bezopasnim.'},
     reflection:{question:'Dokazuje li izostanak alarma da nema prijetnje?',answer:'Ne. Senzor može nešto propustiti. Zaključak povezujemo s više izvora, opaženim promjenama i provjerom rada.'},
   },
@@ -86,7 +86,7 @@ export const MISSION_GUIDES:Record<number,MissionGuide>={
   13:{
     outcome:'Usporedi SHA-256 s pouzdanom referencom i razlikuj cjelovitost od naziva, tajnosti i bezopasnosti.',
     juniorOutcome:'Usporedi sažetke sadržaja s pouzdanim popisom. Objasni zašto isti naziv ne jamči isti sadržaj.',
-    example:{title:'Preimenovani tekst',situation:'Datoteka je preimenovana iz biljeska.txt u plan.txt. Njezini točni bajtovi sadržaja ostali su isti.',reason:'Sažetak u ovoj provjeri računa se iz sadržaja, pa samo novi naziv ne mijenja SHA-256.',decision:'Usporedi sažetak sadržaja s pouzdanom referencom iste inačice. Naziv nije dokaz jednakosti.'},
+    example:{title:'Preimenovani tekst',situation:'Datoteka je preimenovana iz biljeska.txt u plan.txt. Njezin sadržaj ostao je potpuno isti.',reason:'Sažetak u ovoj provjeri računa se iz sadržaja, pa samo novi naziv ne mijenja SHA-256.',decision:'Usporedi sažetak sadržaja s pouzdanom referencom iste inačice. Naziv nije dokaz jednakosti.'},
     reflection:{question:'Što ako datoteka i očekivani sažetak dolaze iz iste sumnjive poruke?',answer:'Mogu se podudarati, a izvor i dalje nije potvrđen. Očekivani sažetak treba provjeriti pouzdanim putem. Podudaranje ne jamči bezopasnost.'},
   },
   14:{

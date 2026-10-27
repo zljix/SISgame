@@ -67,7 +67,7 @@ export function restoreProgress(store:Store,current:Save,backup:ProgressBackup,e
 export function progressSnapshot(save:Save,tier:ContentTier,mode:PlayMode='campaign'){
   const target=mode==='topics'?readTopics(save,tier):profile(save,tier),practice=practiceSummary(target.practice,target.best);
   const active=mode==='campaign'?profile(save,tier).active:null;
-  const drafts=mode==='topics'?Object.values(readTopics(save,tier).drafts).sort((a,b)=>a.level-b.level):[];
+  const drafts=Object.values(mode==='topics'?readTopics(save,tier).drafts:profile(save,tier).drafts||{}).sort((a,b)=>a.level-b.level);
   return {
     tier,mode,name:TIER_INFO[tier].name,completed:LEVELS.filter(l=>target.best[l.id]?.completed).length,
     learning:Object.values(target.best).reduce((sum,b)=>sum+b.learning,0),arcade:Object.values(target.best).reduce((sum,b)=>sum+b.arcade,0),practice,
@@ -93,7 +93,7 @@ export function progressReport(save:Save,now=new Date()):string {
         `Primjena: ${state.practice.solved}/${PRACTICE_CASES.length} riješeno | ${state.practice.firstTry} iz prve`,
         state.active?`Aktivni pokušaj: ${missionNumber(state.active.level)}. ${state.active.title} (${state.active.learning}/100 učenje)`:mode==='topics'?`Započete teme: ${state.drafts.length}.`:'Nema aktivne misije.',
         `Teme za ponavljanje: ${state.practice.review.length?state.practice.review.map(n=>levelContent(LEVELS[n-1],tier).title).join('; '):'nema zabilježenih ispravaka u dodatnim slučajevima'}.`,'');
-      for(const draft of state.drafts)lines.push(`Započeta tema: ${missionNumber(draft.level)}. ${draft.title} (${draft.learning}/100 učenje).`);
+      for(const draft of state.drafts)lines.push(`${mode==='topics'?'Započeta tema':'Sačuvani pokušaj kampanje'}: ${missionNumber(draft.level)}. ${draft.title} (${draft.learning}/100 učenje).`);
       for(const row of state.rows)lines.push(`${missionNumber(row.level)}. ${row.title} — ${row.completed?'dovršeno':'nije dovršeno'}; učenje ${row.learning}/100; bonus ${row.arcade}; najviše ${row.independent}/4 zadaće bez ispravka; primjena: ${row.application}.`);
     }
   }

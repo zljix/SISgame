@@ -1,6 +1,12 @@
-# SISgame — sadržaj kampanje 0.10.0
+# SISgame — sadržaj kampanje 0.11.0
 
 Igra ima četrnaest misija i 56 sigurnosnih zadaća po razini sadržaja. Od 0.6.0 svaku misiju prati novi slučaj primjene s odvojenom evidencijom vježbanja. Inačica 0.8.0 proširuje kampanju misijama o kriptografskim sažetcima i digitalnim potpisima te njihovim slučajevima primjene. Pregled Moj rad, sažetak i kopije obuhvaćaju proširenu kampanju. Misija traje koliko učeniku treba za istraživanje i odluke; nema vremenske kazne za čitanje. Nakon pouke učenik postavlja mjere, ispravlja pogreške i provjerava rezultat. Izlaz se otvara tek nakon četiri dovršene zadaće. U 0.9.0 svaka misija dobiva opažljiv ishod, kraći Junior ishod, razrađeni primjer, plan zadaća i pitanje za obrazlaganje s primjerom odgovora koji se otvara nakon učenikova pokušaja. Primjer i plan nisu dodatni bodovani zadatci. Cjelovita analiza i veza ishoda s aktivnostima nalazi se u [PEDAGOGY.md](PEDAGOGY.md).
+
+## Usklađivanje sadržaja i pokušaja (0.11.0)
+
+Junior u temama 9 i 10 dobiva podsjetnik o vatrozidu iz vlastite pouke. Njegov ishod devete misije razlikuje odobren rad i potvrđen neovlašten pristup, u skladu s dvama izvještajima. Zajednički primjer sažetka u misiji 13 koristi izraz „sadržaj” umjesto neobjašnjenog pojma bajtova. Dodatni slučajevi imaju kraće, usporedivije formulacije svih 126 mogućnosti; rješenja i identifikatori ostaju jednaki pa se raniji rezultati mogu obnoviti. Analiza duljine odgovora i ograničenja navedena je u [PEDAGOGY.md](PEDAGOGY.md).
+
+Nedovršeni odabiri u konzolama pristupa, programa, prijava, usluga i vatrozida sada se spremaju prije predaje. Kampanja uz aktivni pokušaj čuva ostale započete misije; promjena misije ne briše odabire ni prethodne ispravke. Ti podatci pripadaju odabranom načinu rada i razini te su uključeni u kopiju. Broj pogrešnih predaja ne raste zbog ponovnog otvaranja konzole. Novo upozorenje jasno pokazuje kada spremanje nije uspjelo i omogućuje preuzimanje trenutačnog rada.
 
 ## Slobodan izbor teme (0.10.0)
 

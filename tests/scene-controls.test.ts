@@ -64,3 +64,13 @@ test('map accepts primary clicks and touch, ignores context clicks and all click
   pointer(0);pointer(-1,true);assert.equal(walks,2);
   bridge.paused=true;pointer(0);pointer(-1,true);assert.equal(walks,2);
 });
+
+test('activating the shield preserves a route and held movement in the real sector',()=>{
+  const {scene,bridge}=fixture();scene.run.difficulty='easy';scene.guide();
+  const route=JSON.stringify(scene.path);scene.shield();
+  assert.ok(scene.shieldFor>0);assert.equal(JSON.stringify(scene.path),route);
+  scene.cooldown=0;bridge.keyboardAxes={x:1,y:0};bridge.axes={x:0,y:-1};scene.shield();
+  assert.equal(bridge.keyboardAxes.x,1);assert.equal(bridge.axes.y,-1);
+  const before={x:scene.player.x,y:scene.player.y};scene.update(0,16);
+  assert.ok(scene.player.x>before.x||scene.player.y<before.y);
+});

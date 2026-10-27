@@ -609,3 +609,13 @@ dialog {
 .topic-drafts button { text-align: left; min-height: 44px; padding: 8px 0; line-height: 1.5; }
 @media (min-width: 1100px) and (min-height: 600px) { .keyboard-controls .topic-catalogue { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 540px) { .topic-banner { align-items: stretch; flex-direction: column; padding: 18px; gap: 14px; } .topic-filters { grid-template-columns: 1fr; } }
+
+/* Keep storage failures visible in the current surface, including modal dialogs. */
+.save-warning { flex-shrink: 0; margin: 12px 0; padding: 12px 16px; border: 1px solid #d9ac70; border-radius: 10px; background: #3b3030; color: #ffe1b1; font-size: 13px; line-height: 1.5; }
+.save-warning > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 8px; }
+.save-warning button { min-height: 44px; }
+.save-warning [data-save-download]:empty { display: none; }
+.save-warning [data-save-download] { margin-top: 8px; }
+.play > .save-warning { margin: 0; border-radius: 0; max-height: 38%; overflow: auto; }
+.dialog-content > .save-warning { margin-top: 0; }
+@media (max-height: 440px) { .play > .save-warning { padding: 6px 12px; font-size: 12px; } .play > .save-warning > div { margin-top: 2px; } }
