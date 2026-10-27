@@ -1,6 +1,6 @@
-# SISgame — sadržaj kampanje 0.6.0
+# SISgame — sadržaj kampanje 0.7.0
 
-Igra ima dvanaest misija i 48 sigurnosnih zadaća po razini sadržaja. Inačica 0.6.0 dodaje po jedan novi slučaj primjene nakon svake misije, s odvojenom evidencijom vježbanja. Misija traje koliko učeniku treba za istraživanje i odluke; nema vremenske kazne za čitanje. Nakon pouke učenik postavlja mjere, ispravlja pogreške i provjerava rezultat. Izlaz se otvara tek nakon četiri dovršene zadaće.
+Igra ima dvanaest misija i 48 sigurnosnih zadaća po razini sadržaja. Od 0.6.0 svaku misiju prati novi slučaj primjene s odvojenom evidencijom vježbanja. Inačica 0.7.0 dodaje pregled Moj rad, čitljiv sažetak i prijenos napretka putem kopije; nastavni ishodi ostaju isti. Misija traje koliko učeniku treba za istraživanje i odluke; nema vremenske kazne za čitanje. Nakon pouke učenik postavlja mjere, ispravlja pogreške i provjerava rezultat. Izlaz se otvara tek nakon četiri dovršene zadaće.
 
 ## Dob, predznanje i pristupačnost
 
@@ -225,6 +225,12 @@ Kretanje, bitovi, crvene prepreke i štit ostaju arkadni dio. Ne predstavljaju d
 - Završna provjera prikazuje konkretne rezultate mjera, a pitanje za primjenu služi razgovoru ili kratkom pisanom obrazloženju u razredu.
 - Dodatna primjena odvojeno bilježi točnost prve potpune predaje i ispravke, uz dostupnu pouku. Taj rezultat ne povećava bodove kampanje.
 - Lokalni rezultat nije dokaz identiteta ni formalna ocjena. Za vrednovanje tražite i objašnjenje odabira.
+
+## Čuvanje rada između vježbi (0.7.0)
+
+Učenik kroz **Moj rad** može pregledati završene misije, aktivni pokušaj i teme za ponavljanje u svakoj razini. TXT sažetak svih triju razina može poslužiti kao polazište za razgovor: koju je odluku trebalo ispraviti i kako bi se pravilo primijenilo u laboratorijskoj vježbi. Sažetak prikazuje najbolje zapise kampanje i razlikuje primjenu riješenu iz prve od one uz ispravak; ne sadrži punu povijest pokušaja ni potvrdu samostalnosti.
+
+Za nastavak na drugom uređaju učenik preuzima JSON kopiju, prenosi datoteku i u igri pregledava sadržaj prije potvrde obnove. Kopija obuhvaća sve tri razine, postavke i nedovršeni rad. Obnova zamjenjuje postojeći napredak, uz lokalno sačuvan prethodni zapis za povratak. Preuzimanje, čuvanje i probu obnove moguće je povezati s poukom treće misije; prijenos datoteke treba provesti prema dogovorenom školskom postupku. Igra ne šalje rezultate nastavniku. Kopija i sažetak su evidencija vježbanja koju korisnik može mijenjati, a ne formalna ocjena.
 
 ## Prije nastavne uporabe
 

@@ -11,6 +11,7 @@ import * as network from '../src/network.ts';
 import * as operations from '../src/operations.ts';
 import * as storage from '../src/storage.ts';
 import * as practice from '../src/practice.ts';
+import * as progress from '../src/progress.ts';
 
 // Local DOM unit harness. No network, user browser, rendering or real game canvas.
 const source=stripTypeScriptTypes(await readFile('src/main.ts','utf8'))
@@ -23,19 +24,28 @@ async function setup(tier, saved=null){
  const initial=storage.emptySave();initial.settings.content=tier;initial.settings.difficulty='relaxed';
  for(let n=1;n<=10;n++)storage.profile(initial).best[n]={learning:100,arcade:0,independent:4,completed:true};
  w.localStorage.setItem(storage.SAVE_KEY,saved||JSON.stringify(initial));
+ const storageControl={blockedKey:''};
+ const testStore={getItem:key=>w.localStorage.getItem(key),removeItem:key=>w.localStorage.removeItem(key),setItem:(key,value)=>{if(key===storageControl.blockedKey)throw new Error('Simulated quota');w.localStorage.setItem(key,value);}};
+ const downloads=[],objects=new Map();let objectNumber=0;
+ class LocalURL extends URL {
+  static createObjectURL(blob){const url=`blob:https://sisgame.invalid/${++objectNumber}`;objects.set(url,blob);return url;}
+  static revokeObjectURL(url){objects.delete(url);}
+ }
+ w.HTMLAnchorElement.prototype.click=function(){if(this.download)downloads.push({filename:this.download,blob:objects.get(this.href)});};
  class Sector {startRun(){} resetInput(){} sync(){} guide(){} use(){} shield(){}}
- const context={window:w,document:w.document,navigator:w.navigator,localStorage:w.localStorage,location:w.location,console,
+ const context={window:w,document:w.document,navigator:w.navigator,localStorage:testStore,location:w.location,console,Blob,URL:LocalURL,
   requestAnimationFrame:()=>0,cancelAnimationFrame:()=>{},clearInterval:()=>{},performance,
   ResizeObserver:class{observe(){}disconnect(){}},
   Phaser:{AUTO:0,Scale:{RESIZE:0},Game:class{scale={getParentBounds(){},refresh(){}}}},Sector,
-  ...core,...data,...curriculum,...missions,...network,...operations,...storage,...practice};
+  ...core,...data,...curriculum,...missions,...network,...operations,...storage,...practice,...progress};
  runInNewContext(source+'\nwindow.__checks={start,openStation,getRun:()=>run,getSave:()=>save};',context);
  const h=w.__checks;
  const click=id=>{const e=w.document.querySelector(id);assert.ok(e,id);e.click();};
  const select=(id,value)=>{const e=w.document.querySelector(id);assert.ok(e,id);e.value=value;e.dispatchEvent(new w.Event('change',{bubbles:true}));};
  const tick=(id,value=true)=>{const e=w.document.querySelector(id);assert.ok(e,id);e.checked=value;e.dispatchEvent(new w.Event('change',{bubbles:true}));};
  const station=id=>h.openStation(data.LEVELS[h.getRun().level-1].stations.find(s=>s.id===id));
- return{w,h,click,select,tick,station,close:()=>w.happyDOM.close()};
+ const chooseFile=async(file)=>{const input=w.document.querySelector('#import-progress'),transfer=new w.DataTransfer();transfer.items.add(file);input.files=transfer.files;await input.onchange(new w.Event('change'));};
+ return{w,h,click,select,tick,station,chooseFile,downloads,storageControl,close:()=>w.happyDOM.close()};
 }
 for(const tier of curriculum.TIERS){
  const {w,h,click,select,tick,station,close}=await setup(tier);
@@ -134,6 +144,92 @@ for(const tier of curriculum.TIERS){
  check(storage.profile(ui.h.getSave()).active.level===6,`${tier}: campaign draft survives practice`);
  ui.select('#content-level',tier==='junior'?'standard':'junior');ui.click('#practice-open');
  check([...ui.w.document.querySelectorAll('[data-practice]')].every(b=>b.disabled),`${tier}: other profile stays locked`);
+ await ui.close();
+}
+{
+ const initial=storage.emptySave();
+ initial.profiles.standard.best[1]={learning:100,arcade:10,independent:3,completed:true};
+ initial.profiles.standard.active=core.newRun(2,'relaxed');
+ initial.profiles.junior.best[1]={learning:100,arcade:0,independent:4,completed:true};
+ const junior=initial.profiles.junior;practice.setPracticeAnswer(junior.practice,junior.best,1,'junior','action','verify');
+ const ui=await setup('standard',JSON.stringify(initial));
+ const original=JSON.stringify(ui.h.getSave());
+ ui.click('#progress-open');
+ check(ui.w.document.querySelector('#dialog-title').textContent==='Moj rad','progress view opens');
+ check(ui.w.document.querySelectorAll('.progress-table tbody tr').length===12,'progress has twelve mission rows');
+ check(ui.w.document.querySelector('#progress-tier').value==='standard','progress starts in current tier');
+ ui.click('#export-progress');
+ const exported=ui.downloads[0];check(exported.filename.endsWith('.json'),'backup filename');
+ check(JSON.stringify(progress.readProgressBackup(await exported.blob.text()).save)===original,'download contains the full save');
+ ui.click('#export-report');const report=ui.downloads[1];
+ check(report.filename.endsWith('.txt'),'report filename');
+ const reportText=await report.blob.text();check(['JUNIOR','STANDARD','EXPERT'].every(name=>reportText.includes(name)),'report contains all tiers');
+ ui.select('#progress-tier','junior');check(ui.w.document.querySelector('.progress-table').textContent.includes('Započeto'),'draft application shown');
+ ui.select('#progress-tier','expert');check(ui.w.document.querySelector('.pause-summary').textContent.includes('0/12'),'empty tier shown separately');
+ check(JSON.stringify(ui.h.getSave())===original,'viewing and exporting do not mutate preferences or work');
+ await ui.chooseFile(new ui.w.File(['not json'],'wrong.json'));
+ check(ui.w.document.querySelector('#feedback').textContent.includes('Kopija nije učitana'),'invalid file feedback');
+ check(JSON.stringify(ui.h.getSave())===original,'invalid file preserves work');
+ await ui.chooseFile(new ui.w.File(['x'.repeat(progress.MAX_BACKUP_BYTES+1)],'large.json'));
+ check(ui.w.document.querySelector('#feedback').textContent.includes('1 MB'),'oversize file rejected before reading');
+ const malicious=JSON.parse(progress.createProgressBackup(initial));malicious.gameVersion='<img src=x onerror=alert(1)>';
+ await ui.chooseFile(new ui.w.File([JSON.stringify(malicious)],'<img>.json'));
+ check(!ui.w.document.querySelector('#dialog img'),'import metadata is never rendered as markup');
+ const incoming=storage.emptySave();incoming.settings.content='expert';incoming.settings.reducedMotion=true;
+ incoming.profiles.expert.active=core.newRun(8,'relaxed','expert');core.act(incoming.profiles.expert.active,'channel','https');
+ incoming.profiles.expert.best[1]={learning:100,arcade:25,independent:2,completed:true};
+ const json=progress.createProgressBackup(incoming),normalized=progress.readProgressBackup(json).save;
+ const file=()=>new ui.w.File([json],'backup.json');
+ const before=ui.w.localStorage.getItem(storage.SAVE_KEY);
+ await ui.chooseFile(file());
+ check(ui.w.document.querySelectorAll('.restore-comparison tbody tr').length===3,'preview compares all tiers');
+ check(ui.w.localStorage.getItem(storage.SAVE_KEY)===before&&JSON.stringify(ui.h.getSave())===original,'preview does not apply data');
+ ui.click('#cancel-import');check(ui.w.document.querySelector('#dialog-title').textContent==='Moj rad','cancel returns to progress');
+ check(ui.w.localStorage.getItem(progress.RESTORE_POINT_KEY)===null,'cancel creates no restore point');
+ await ui.chooseFile(file());ui.click('#dialog-close');
+ check(ui.w.document.querySelector('#dialog-title').textContent==='Moj rad','closing preview cancels import');
+ await ui.chooseFile(file());ui.click('#confirm-import');
+ check(JSON.stringify(ui.h.getSave())===JSON.stringify(normalized),'confirmed import replaces all profiles and settings');
+ check(JSON.stringify(progress.readProgressBackup(ui.w.localStorage.getItem(progress.RESTORE_POINT_KEY)).save)===original,'previous snapshot retained');
+ check(ui.w.document.querySelector('#content-level').value==='expert','home updates to restored content setting');
+ check(!!ui.w.document.querySelector('#restore-previous'),'restore point is accessible');
+ ui.click('#restore-previous');ui.click('#confirm-import');
+ check(JSON.stringify(ui.h.getSave())===original,'previous snapshot restores original work');
+ check(JSON.stringify(progress.readProgressBackup(ui.w.localStorage.getItem(progress.RESTORE_POINT_KEY)).save)===JSON.stringify(normalized),'undo also preserves replaced work');
+ await ui.chooseFile(file());ui.storageControl.blockedKey=progress.RESTORE_POINT_KEY;ui.click('#confirm-import');
+ check(ui.w.document.querySelector('#feedback').textContent.includes('Obnova nije spremljena'),'blocked checkpoint reports failure');
+ check(JSON.stringify(ui.h.getSave())===original,'failed import leaves memory unchanged');
+ ui.storageControl.blockedKey='';ui.click('#cancel-import');
+ let finishRead;const slow=new ui.w.File(['ignored'],'slow.json');slow.text=()=>new Promise(resolve=>finishRead=resolve);
+ const pending=ui.chooseFile(slow);ui.click('#progress-close');finishRead(json);await pending;
+ check(!ui.w.document.querySelector('#dialog').open,'late file read cannot reopen closed dialog');
+ check(JSON.stringify(ui.h.getSave())===original,'late file read cannot change work');
+ ui.click('#progress-open');let finishOlder;const older=new ui.w.File(['ignored'],'older.json');older.text=()=>new Promise(resolve=>finishOlder=resolve);
+ const olderRead=ui.chooseFile(older);await ui.chooseFile(file());finishOlder(progress.createProgressBackup(initial));await olderRead;
+ ui.click('#confirm-import');
+ check(JSON.stringify(ui.h.getSave())===JSON.stringify(normalized),'latest file selection wins');
+ ui.click('#progress-close');ui.click('#play-primary');ui.click('#begin');
+ check(ui.h.getRun().level===8&&ui.h.getRun().content==='expert'&&core.score(ui.h.getRun())===25,'imported mission resumes at saved checkpoint');
+ ui.click('#back-map');ui.click('#to-home');ui.click('#progress-open');
+ await ui.chooseFile(new ui.w.File([progress.createProgressBackup(initial)],'initial.json'));
+ const external=storage.emptySave();external.settings.sound=true;const externalRaw=JSON.stringify(external);
+ ui.w.localStorage.setItem(storage.SAVE_KEY,externalRaw);const oldPoint=ui.w.localStorage.getItem(progress.RESTORE_POINT_KEY);
+ ui.click('#confirm-import');
+ check(ui.w.document.querySelector('#feedback').textContent.includes('promijenio'),'stale preview is rejected');
+ check(ui.w.localStorage.getItem(storage.SAVE_KEY)===externalRaw&&ui.w.localStorage.getItem(progress.RESTORE_POINT_KEY)===oldPoint,'external update and restore point remain intact');
+ ui.w.dispatchEvent(new ui.w.Event('pagehide'));
+ check(ui.w.localStorage.getItem(storage.SAVE_KEY)===externalRaw,'pagehide cannot overwrite a detected external update');
+ check(ui.w.document.querySelector('#save-status').textContent.includes('drugom prozoru'),'external update warning shown');
+ ui.click('#cancel-import');ui.click('#progress-close');ui.click('#play-primary');ui.click('#begin');ui.click('#back-map');
+ check(ui.w.document.querySelector('.dialog-lead').textContent.includes('Spremanje nije dostupno'),'pause does not claim stale work was saved');
+ await ui.close();
+}
+{
+ const ui=await setup('standard');ui.w.localStorage.setItem(progress.RESTORE_POINT_KEY,progress.createProgressBackup(storage.emptySave()));
+ ui.click('#home-settings');ui.click('#settings-progress');check(ui.w.document.querySelector('#dialog-title').textContent==='Moj rad','settings reaches progress');
+ ui.click('#progress-close');ui.click('#home-settings');ui.click('#reset-progress');ui.click('#confirm-reset');
+ check(ui.w.localStorage.getItem(progress.RESTORE_POINT_KEY)===null,'confirmed reset clears restore point');
+ check(JSON.stringify(ui.h.getSave())===JSON.stringify(storage.emptySave()),'confirmed reset clears all profiles');
  await ui.close();
 }
 console.log(`${assertions} local DOM assertions passed. Rendering, physical input and visual layout were not tested.`);
