@@ -1,6 +1,6 @@
-# SISgame — sadržaj kampanje 0.5.0
+# SISgame — sadržaj kampanje 0.6.0
 
-Igra ima dvanaest misija i 48 sigurnosnih zadaća po razini sadržaja. Misija traje koliko učeniku treba za istraživanje i odluke; nema vremenske kazne za čitanje. Nakon pouke učenik postavlja mjere, ispravlja pogreške i provjerava rezultat. Izlaz se otvara tek nakon četiri dovršene zadaće.
+Igra ima dvanaest misija i 48 sigurnosnih zadaća po razini sadržaja. Inačica 0.6.0 dodaje po jedan novi slučaj primjene nakon svake misije, s odvojenom evidencijom vježbanja. Misija traje koliko učeniku treba za istraživanje i odluke; nema vremenske kazne za čitanje. Nakon pouke učenik postavlja mjere, ispravlja pogreške i provjerava rezultat. Izlaz se otvara tek nakon četiri dovršene zadaće.
 
 ## Dob, predznanje i pristupačnost
 
@@ -43,7 +43,7 @@ Sadržaj nastavlja SIS priručnik i okvir od sedam cjelina / 26 tema. Jedna misi
 | 11. Što prvo zaštititi? | Imovina, rizik i mjere | Povezati imovinu s nastavom, odrediti prioritete iz zadanih procjena i odabrati provedive mjere. |
 | 12. Smireno kroz incident | Operativni odgovor i oporavak | Prijaviti činjenice, složiti plan, odabrati pouzdan izvor i provjeriti povratak uz nadzor. |
 
-Procjena imovine i rizika te plan odgovora na incident sada imaju samostalne misije. Za daljnje proširenje ostaju dodatni slučajevi i provjera prijenosa naučenog u praktičan rad. Mrežne veze, TLS i phishing također imaju zasebne misije. Opisi misija 4–6 u nastavku odgovaraju Standardu; Junior pojednostavljenja i Expert dodatci navedeni su zasebno.
+Procjena imovine i rizika te plan odgovora na incident sada imaju samostalne misije. Dodatni slučajevi sada omogućuju vođenu primjenu na novim činjenicama; prijenos u praktičan rad i dalje treba provjeriti u nastavi. Mrežne veze, TLS i phishing također imaju zasebne misije. Opisi misija 4–6 u nastavku odgovaraju Standardu; Junior pojednostavljenja i Expert dodatci navedeni su zasebno.
 
 ## 4. Sumnjivi program
 
@@ -185,9 +185,34 @@ Nedovršeni odabiri na konzolama upozorenja i Wi-Fi postavki automatski se sprem
 
 Dodatni slučajevi su provjera primjene na novim činjenicama. Tri ispravne odluke otključavaju zadnju sigurnosnu zadaću; same ne daju dodatne bodove. Netočan potpun plan bilježi ispravak završne zadaće, nepotpun obrazac traži dopunu bez kazne.
 
+## Dodatna primjena nakon završene misije (0.6.0)
+
+Ovi slučajevi dostupni su svim razinama sadržaja. Ne zamjenjuju obveznu Expert analizu unutar misije i ne uvode nove ishode. Otvaraju se tek nakon odgovarajuće misije, pa učenik već ima pouku, primjer i vođeni zadatak. Na raspolaganju su kratki podsjetnik i cijela prethodna pouka; kod QR koda pojam je objašnjen i u samom opisu novog slučaja.
+
+| Nakon misije | Nova situacija | Očekivana odluka i razlog | Dodatni zaključak za Expert |
+| --- | --- | --- | --- |
+| 1 | Nenajavljeni serviser | Provjera ovlasti poznatim školskim kontaktom; kamera ne odobrava ulazak. | Potvrđeni nalog ograničen je na odobren prostor i posao. |
+| 2 | Uredništvo školskog lista | Čitanje završne verzije i uređivanje nacrta prema ulogama; prijava nije opća ovlast. | Ključ se dostavlja ovlaštenom uredniku odvojeno i zaštićeno. |
+| 3 | Snimke školske izložbe | Odvojena kopija i provjera vraćenog sadržaja; nazivi sami nisu dovoljni. | Uspješan primjerak ne potvrđuje potpunost cijele kopije. |
+| 4 | Dodatak za robotsku ekipu | Prijava i odvajanje uz nastavnika prema postupku; koristan izgled ne dokazuje sigurno ponašanje. | Prijaviti činjenice i ne tvrditi nepotvrđenu vrstu prijetnje. |
+| 5 | Račun na posuđenom tabletu | Prekinuti sumnjive sesije, zaštititi lozinku i provjeriti učinak; lozinka i osobni ključ različiti su faktori. | Provjeriti aplikacijske sesije i zasebne ovlasti. |
+| 6 | Računalo školskog radija | Službeni popravak, zatvaranje nepotrebnog pristupa i standardni račun za rad. | Provjeriti i ograničenje i potrebne funkcije radija. |
+| 7 | QR kod za izlet | Ne predavati lozinku; provjeriti poznatim kontaktom. Hitnost i znak škole nisu dokaz. | HTTPS štiti vezu prema domeni, ali ne potvrđuje školsko podrijetlo poruke. |
+| 8 | Web-predaja rada | Zaustaviti prijavu kod pogrešnog certifikata; vatrozid ne popravlja TLS. | Isprobati dopuštenu predaju i obje granice pristupa upravljanju. |
+| 9 | Alarm tijekom školske provjere | Usporediti izvor, vrijeme i opseg s odobrenjem; alarm je trag za tumačenje. | Zasebno obraditi potvrđenu neovlaštenu prijavu drugog uređaja. |
+| 10 | Dan otvorenih vrata | Stvarno odvojiti goste i isprobati granicu; naziv i lozinka ne postavljaju ovlasti. | WPA3 i HTTPS imaju različit opseg zaštite. |
+| 11 | Stari disk i ukrasni pano | Zaštititi jedine snimke zbog čestih grešaka i posljedica prekida rada. | Kopija ne popravlja disk niti uključuje kasnije promjene. |
+| 12 | Sustav za posudbu | Koristiti čistu kopiju, prijaviti nedostajuće posudbe i provjeriti povratak. | Nepravilne ovlasti gosta treba popraviti i isprobati prije odobrenja rada. |
+
+Junior ima kraći opis i **2 pitanja s po 2 odgovora**. Standard ima **2 pitanja s po 3 odgovora**. Expert dobiva dodatni dokaz i **3 pitanja s po 3 odgovora**. U cijelom skupu to je 24 odluke za Junior/Standard odnosno 36 za Expert. U svim razinama učenik odabire i postupak i obrazloženje. Odabir ponuđenog obrazloženja treba dopuniti usmenim ili praktičnim objašnjenjem u nastavi.
+
+Svaka potpuna predaja daje objašnjenje uz pojedino pitanje. Netočne odluke mogu se ispraviti; prazna predaja i uzastopna ponovljena predaja istih odabira ne povećavaju broj pokušaja. Nakon točnog rješenja slučaj se prikazuje kao zapis koji se više ne prepisuje. Oznaka „iz prve” znači točan prvi potpuni odgovor uz dostupnu pomoć. Ne čuva se puna povijest svih odgovora, nego odabiri, posljednja potpuna predaja, broj pokušaja i točnost prve predaje.
+
+Pregled prikazuje riješene slučajeve i teme u kojima je trebalo ispravljati odluku. Te preporuke ostaju vidljive i nakon uspješnog ispravka. Junior, Standard i Expert imaju odvojene zapise; promjena sadržaja ne prenosi rezultat. Aktivna arkadna misija ostaje sačuvana, a dodatni slučajevi ne donose bodove kampanje niti uvjetuju sljedeću misiju. Nema mjerenja vremena. Nakon rješenja slijedi prijedlog male, sigurne primjene uz nastavnika; ona nije automatski provjerena samim rješenjem u igri.
+
 ## Veza mehanike i sigurnosnog problema
 
-Postavljanje prava određuje tko smije čitati i mijenjati sadržaj. Odvojena kopija preživljava simulirani kvar, a obnova vraća datoteke koje igrač otvara i uspoređuje. Mrežni prekidači pokazuju učinak pravila na potreban i neovlašten pristup. Plan mjera pokazuje potrošene jedinice i preostali rizik; plan incidenta prikazuje posljedice redoslijeda prije potvrde. Ti su prikazi pomoć u učenju, pa oznaka „samostalno” znači bez pogrešne predaje, a ne rad bez takve pomoći. Izvještaji i dnevnici traže zaključivanje iz opisanog ponašanja, a završne provjere traže prethodno provedene mjere.
+Postavljanje prava određuje tko smije čitati i mijenjati sadržaj. Odvojena kopija preživljava simulirani kvar, a obnova vraća datoteke koje igrač otvara i uspoređuje. Mrežni prekidači pokazuju učinak pravila na potreban i neovlašten pristup. Plan mjera pokazuje potrošene jedinice i preostali rizik; plan incidenta prikazuje posljedice redoslijeda prije potvrde. Ti su prikazi pomoć u učenju, pa oznaka „samostalno” znači bez pogrešne predaje, a ne rad bez takve pomoći. Izvještaji i dnevnici traže zaključivanje iz opisanog ponašanja, a završne provjere traže prethodno provedene mjere. Dodatni slučajevi odvajaju izbor postupka od obrazloženja, a Expert traži i zaključak o granici provedenog postupka.
 
 Kretanje, bitovi, crvene prepreke i štit ostaju arkadni dio. Ne predstavljaju djelovanje antivirusnog programa i nisu dokaz znanja. Konzole su didaktički modeli; igra ne izvodi stvarno šifriranje, mrežne napade ili promjene školskih računa. Za razvoj prema dubljoj simulaciji treba testiranjem utvrditi gdje učenici razumiju posljedicu, a gdje samo pamte položaj točne tipke.
 
@@ -198,6 +223,7 @@ Kretanje, bitovi, crvene prepreke i štit ostaju arkadni dio. Ne predstavljaju d
 - Pogrešan potpuni odgovor daje objašnjenje i dopušta ispravak. U rezultatu se zadaća označava kao riješena uz ispravak.
 - Ponovljena radnja ne daje dodatne bodove. Ponovljena misija čuva najbolje rezultate.
 - Završna provjera prikazuje konkretne rezultate mjera, a pitanje za primjenu služi razgovoru ili kratkom pisanom obrazloženju u razredu.
+- Dodatna primjena odvojeno bilježi točnost prve potpune predaje i ispravke, uz dostupnu pouku. Taj rezultat ne povećava bodove kampanje.
 - Lokalni rezultat nije dokaz identiteta ni formalna ocjena. Za vrednovanje tražite i objašnjenje odabira.
 
 ## Prije nastavne uporabe
