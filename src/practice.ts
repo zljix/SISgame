@@ -26,18 +26,18 @@ export const PRACTICE_CASES:Scenario[] = [
     transfer:'U svojoj školi objasni komu bi se javio radi provjere nenajavljenog posjeta. Ne isprobavaj ulazak bez ovlasti.',
     questions:[
       question('action','Što učiniti prije ulaska?','verify','allow',[
-        ['allow','Pustiti osobu jer je kamera snima.','Snimka ne potvrđuje ovlast i ne sprječava neovlašten ulazak.'],
-        ['verify','Zadržati kontrolu ulaza i provjeriti posjet s odgovornom osobom poznatim kontaktom.','Ovlast provjeravaš prije ulaska, preko školskog kontakta koji već poznaješ.'],
-        ['ban','Trajno zabraniti sve servisne posjete.','Ovlašten servis školi je potreban; treba provjeriti ovlast, a ne zabraniti svaki rad.']]),
+        ['allow','Pustiti posjetitelja pa naknadno pregledati snimku kamere.','Naknadna snimka ne provjerava ovlast prije ulaska. Najprije potvrdi posjet poznatim školskim kontaktom.'],
+        ['verify','Provjeriti ovlast poznatim kontaktom prije ulaska.','Ovlast provjeravaš prije ulaska, preko školskog kontakta koji već poznaješ.'],
+        ['ban','Odbiti sadašnji i buduće servisne posjete toj prostoriji.','Ovlašten servis školi je potreban; treba provjeriti ovlast, a ne zabraniti svaki rad.']]),
       question('reason','Zašto je taj postupak primjeren?','authority','camera',[
-        ['authority','Ulazak treba odobriti prema potvrđenoj ovlasti.','Pravilo pristupa povezuje provjerenog posjetitelja s dopuštenim poslom i prostorom.'],
-        ['uniform','Radna odjeća uvijek dokazuje identitet.','Radna odjeća može izgledati uvjerljivo, ali nije provjera identiteta ili ovlasti.'],
-        ['camera','Kamera sama zaključava pristup neovlaštenima.','Kamera snima; u ovom slučaju ne provjerava ovlast niti upravlja bravom.']])
+        ['authority','Potvrđena ovlast povezuje posjetitelja s dopuštenim poslom i prostorom.','Pravilo pristupa povezuje provjerenog posjetitelja s dopuštenim poslom i prostorom.'],
+        ['uniform','Radna odjeća potvrđuje da osoba pripada ovlaštenom servisu.','Radna odjeća može izgledati uvjerljivo, ali ne potvrđuje pripadnost servisu ni ovlast ulaska.'],
+        ['camera','Snimanje kamerom samo sprječava ulazak neovlaštene osobe.','Kamera bilježi ulazak. U ovom slučaju ne provjerava ovlast niti zaključava pristup.']])
     ],
     expert:question('limit','Što vrijedi nakon potvrde naloga?','scope','all',[
-      ['all','Nalog za knjižnicu dopušta ulazak u sve prostorije.','Ovlast za jedan posao nije opće dopuštenje pristupa.'],
-      ['scope','Dopušten je samo odobreni prostor i posao uz školski postupak posjeta.','Pristup ostaje ograničen na opseg potvrđenog naloga.'],
-      ['paper','Nalog daje pravo pregledati sve ispise.','Servis mrežne opreme ne traži čitanje osjetljivih ispisa.']])
+      ['all','Serviser može ući i u ostale prostorije iste škole.','Ovlast za jedan posao nije opće dopuštenje pristupa.'],
+      ['scope','Serviser može obaviti odobren posao samo u knjižnici.','Pristup ostaje ograničen na opseg potvrđenog naloga.'],
+      ['paper','Serviser može pregledati ispise uz mrežnu opremu.','Servis mrežne opreme ne traži čitanje osjetljivih ispisa.']])
   },
   {
     level:2,title:'Uredništvo školskog lista',
@@ -48,18 +48,18 @@ export const PRACTICE_CASES:Scenario[] = [
     transfer:'Za jednu mapu u laboratorijskoj vježbi obrazloži tko treba čitanje, tko uređivanje, a tko nema potrebu za pristupom.',
     questions:[
       question('action','Koji plan prava odgovara pravilu?','roles','everyone',[
-        ['everyone','Svima dopustiti uređivanje obiju mapa.','Čitatelji bi mogli mijenjati list i otvoriti nacrt iako za to nemaju ovlast.'],
-        ['none','Svima zabraniti obje mape.','Time se sprječavaju i dopušteno čitanje i rad uredništva.'],
-        ['roles','Čitateljima dati čitanje završne verzije, a uredništvu uređivanje nacrta. Ostalima zatvoriti nacrt.','Prava prate potrebe uloga i izričito zadano pravilo.']]),
+        ['everyone','Svima dati uređivanje završnog lista i nacrta radi lakše suradnje.','Čitatelji bi mogli mijenjati list i otvoriti nacrt iako za to nemaju ovlast.'],
+        ['none','Zatvoriti obje mape čitateljima i uredništvu radi zaštite nacrta.','Time se sprječavaju i dopušteno čitanje i rad uredništva.'],
+        ['roles','Svima dati čitanje lista; samo uredništvu pristup i uređivanje nacrta.','Prava prate potrebe uloga i izričito zadano pravilo.']]),
       question('reason','Zašto prava treba razlikovati?','need','login',[
-        ['need','Uspješna prijava ne daje automatski pravo na svaku datoteku.','Prijava provjerava račun, a ovlasti određuju što taj račun smije raditi.'],
-        ['login','Svaki prijavljeni učenik smije mijenjati sve datoteke.','Prijava i dopuštenje za izmjenu nisu ista stvar.'],
-        ['secret','Javan naslov datoteke znači da svi smiju uređivati njezin sadržaj.','Naziv datoteke ne zamjenjuje pravila pristupa.']])
+        ['need','Prijava potvrđuje račun, a prava ovise o njegovoj ulozi.','Prijava provjerava račun, a ovlasti određuju što taj račun smije raditi.'],
+        ['login','Prijava školskim računom dovoljna je za izmjenu zajedničkih datoteka.','Prijava i dopuštenje za izmjenu nisu ista stvar.'],
+        ['secret','Javan naslov dokumenta dovoljan je za njegovo uređivanje.','Naziv datoteke ne zamjenjuje pravila pristupa.']])
     ],
     expert:question('limit','Kako postupiti s ključem?','separate','public',[
-      ['separate','Dostaviti ga samo ovlaštenom uredniku odvojenim, zaštićenim putem.','Zaštita šifriranog sadržaja ovisi i o ograničenom pristupu ključu.'],
-      ['public','Objaviti ga javno jer je sam nacrt šifriran.','Tko dobije šifrirani nacrt i njegov ključ može čitati sadržaj.'],
-      ['delete','Izbrisati jedini ključ prije nego urednik otvori nacrt.','Ovlašteni urednik tada ne može pročitati poslani sadržaj.']])
+      ['separate','Ključ predati uredniku odvojenim, zaštićenim putem.','Zaštita šifriranog sadržaja ovisi i o ograničenom pristupu ključu.'],
+      ['public','Ključ staviti uz šifrirani nacrt u javno dostupnu mapu.','Tko dobije šifrirani nacrt i njegov ključ može čitati sadržaj.'],
+      ['delete','Jedini ključ ukloniti prije nego što urednik primi nacrt.','Ovlašteni urednik tada ne može pročitati poslani sadržaj.']])
   },
   {
     level:3,title:'Snimke za školsku izložbu',
@@ -70,18 +70,18 @@ export const PRACTICE_CASES:Scenario[] = [
     transfer:'Na izmišljenim datotekama pokaži razliku između stvaranja kopije i provjere obnove. Izvornike ne briši radi pokusa.',
     questions:[
       question('action','Koji plan štiti snimke od kvara diska prijenosnika?','separate','rename',[
-        ['rename','Preimenovati mapu Kopija u Sigurno.','Naziv ne mijenja činjenicu da su izvornik i kopija na istom disku.'],
-        ['separate','Kopirati sve potrebne snimke na vanjski disk, probno ih obnoviti i sigurno odspojiti disk.','Odvojena kopija može preživjeti kvar izvornog diska, a proba provjerava obnovu.'],
-        ['shortcut','Na radnoj površini napraviti prečac do snimki.','Prečac pokazuje na izvornik; ne sadrži dodatnu kopiju snimke.']]),
+        ['rename','Preimenovati mapu Kopija u Sigurno i ostaviti je na prijenosniku.','Naziv ne mijenja činjenicu da su izvornik i kopija na istom disku.'],
+        ['separate','Snimke kopirati na vanjski disk, probno obnoviti pa sigurno odspojiti disk.','Odvojena kopija može preživjeti kvar izvornog diska, a proba provjerava obnovu.'],
+        ['shortcut','Napraviti prečace do svih snimki i čuvati ih u drugoj mapi.','Prečac pokazuje na izvornik; ne sadrži dodatnu kopiju snimke.']]),
       question('reason','Što provjeriti nakon probne obnove?','content','names',[
-        ['names','Samo postoje li nazivi datoteka.','Nazivi mogu postojati i kada je sadržaj nečitljiv ili nepotpun.'],
-        ['icon','Samo izgleda li ikona diska uredno.','Ikona diska ne potvrđuje sadržaj vraćenih snimki.'],
-        ['content','Jesu li potrebne datoteke vraćene i može li se otvoriti njihov ispravan sadržaj.','Potrebni su i potpunost i upotrebljiv sadržaj.']])
+        ['names','Podudaraju li se nazivi, bez otvaranja sadržaja snimki.','Nazivi mogu postojati i kada je sadržaj nečitljiv ili nepotpun.'],
+        ['icon','Prikazuje li se disk uredno, bez upozorenja uz ikonu.','Ikona diska ne potvrđuje sadržaj vraćenih snimki.'],
+        ['content','Jesu li sve potrebne snimke vraćene i ispravno se otvaraju.','Potrebni su i potpunost i upotrebljiv sadržaj.']])
     ],
     expert:question('limit','Što dokazuje jedna ispravna snimka?','limited','all',[
-      ['all','Da su sve snimke sigurno uključene u kopiju.','Jedan uspješan uzorak ne dokazuje potpunost cijelog skupa.'],
-      ['limited','Da je taj primjerak čitljiv; još treba usporediti popis i provjeriti ostali potreban sadržaj.','Opseg zaključka mora odgovarati opsegu provedene provjere.'],
-      ['forever','Da buduće provjere kopija više nisu potrebne.','Nove izmjene i kasnija oštećenja traže održavanje i ponovne provjere.']])
+      ['all','Da je time potvrđena potpunost cijele kopije snimki.','Jedan uspješan uzorak ne dokazuje potpunost cijelog skupa.'],
+      ['limited','Da taj primjerak radi; ostale snimke još treba provjeriti.','Opseg zaključka mora odgovarati opsegu provedene provjere.'],
+      ['forever','Da buduće kopije više ne trebaju provjeru obnove.','Nove izmjene i kasnija oštećenja traže održavanje i ponovne provjere.']])
   },
   {
     level:4,title:'Dodatak za robotsku ekipu',
@@ -92,18 +92,18 @@ export const PRACTICE_CASES:Scenario[] = [
     transfer:'Navedi činjenice koje bi prijavio nastavniku: uređaj, vrijeme, pokrenuti program i vidljivo upozorenje. Ne izvodi stvaran pokus sa sumnjivim programom.',
     questions:[
       question('action','Koji je sljedeći korak?','contain','share',[
-        ['contain','Prijaviti nastavniku i uz njega odvojiti uređaj od mreže prema školskom postupku.','Ograničavaš mogući problem i uključuješ osobu odgovornu za oporavak.'],
-        ['share','Poslati dodatak drugoj ekipi da ga isproba.','Time možeš proširiti problem na drugi uređaj.'],
-        ['ignore','Isključiti upozorenja i nastaviti rad.','Skrivanje upozorenja ne uklanja njegov uzrok.']]),
+        ['contain','Prijaviti nastavniku i uz njega odvojiti uređaj od mreže.','Ograničavaš mogući problem i uključuješ osobu odgovornu za oporavak.'],
+        ['share','Poslati dodatak drugoj ekipi radi usporedbe ponašanja na njihovu uređaju.','Time možeš proširiti problem na drugi uređaj.'],
+        ['ignore','Isključiti upozorenja i nastaviti započeto crtanje robota.','Skrivanje upozorenja ne uklanja njegov uzrok.']]),
       question('reason','Zašto izgled korisnog dodatka nije dovoljan?','behavior','looks',[
-        ['looks','Lijepo sučelje dokazuje da je program siguran.','Izgled ne govori što program radi u pozadini.'],
-        ['behavior','Program može obećavati koristan posao, a raditi i štetne radnje.','Opis i izgled treba razlikovati od stvarnog ponašanja i pouzdanosti izvora.'],
-        ['brand','Naziv Robotski alat isključuje mogućnost štetnog ponašanja.','Naziv programa nije dokaz sigurnosti.']])
+        ['looks','Uredno sučelje potvrđuje sigurnost programa koji koristimo.','Izgled ne govori što program radi u pozadini.'],
+        ['behavior','Koristan izgled može prikrivati štetno ponašanje programa u pozadini.','Opis i izgled treba razlikovati od stvarnog ponašanja i pouzdanosti izvora.'],
+        ['brand','Naziv školskog alata potvrđuje njegovu namjenu i sigurnost.','Naziv programa opisuje ponuđenu namjenu, ali ne dokazuje sigurno ponašanje.']])
     ],
     expert:question('limit','Što treba napisati u prijavi?','facts','certainty',[
-      ['certainty','Da je rootkit sigurno potvrđen, iako to nitko nije provjerio.','Upozorenje bez dodatne analize ne potvrđuje određenu vrstu prijetnje.'],
-      ['erase','Da su svi zapisi obrisani radi urednosti.','Brisanjem zapisa gube se informacije potrebne za istraživanje.'],
-      ['facts','Činjenice i sačuvane zapise, uz napomenu da uzrok još nije potvrđen.','Prijava jasno odvaja opažene činjenice od pretpostavke.']])
+      ['certainty','Navesti rootkit kao potvrđen uzrok na temelju upozorenja.','Upozorenje bez dodatne analize ne potvrđuje određenu vrstu prijetnje.'],
+      ['erase','Navesti da su zapisi obrisani kako bi prijava bila uredna.','Brisanjem zapisa gube se informacije potrebne za istraživanje.'],
+      ['facts','Navesti opažanja i zapise; uzrok označiti nepotvrđenim.','Prijava jasno odvaja opažene činjenice od pretpostavke.']])
   },
   {
     level:5,title:'Račun na posuđenom tabletu',
@@ -114,18 +114,18 @@ export const PRACTICE_CASES:Scenario[] = [
     transfer:'U demonstracijskom računu pronađi odjavu i pregled sesija uz nastavnika. Objasni razliku između odjave i promjene lozinke.',
     questions:[
       question('action','Koji plan obuhvaća i otvoreni pristup?','revoke','password',[
-        ['password','Promijeniti samo lozinku i pretpostaviti da su sve sesije prekinute.','Postojeće sesije u nekim aplikacijama mogu ostati aktivne.'],
-        ['revoke','Prekinuti sumnjive sesije, promijeniti lozinku, provjeriti učinak i prijaviti aktivnost.','Plan obuhvaća i vjerodajnicu i već otvorene pristupe.'],
-        ['share','Poslati novu lozinku grupi da svi provjere račun.','Dijeljenjem nove lozinke ponovno gubiš kontrolu nad računom.']]),
+        ['password','Promijeniti lozinku i zaključiti da su time prekinute sve sesije.','Postojeće sesije u nekim aplikacijama mogu ostati aktivne.'],
+        ['revoke','Prijaviti aktivnost, opozvati sesije, promijeniti lozinku i provjeriti pristup.','Plan obuhvaća i vjerodajnicu i već otvorene pristupe.'],
+        ['share','Novu lozinku podijeliti članovima grupe da zajedno provjere račun.','Dijeljenjem nove lozinke ponovno gubiš kontrolu nad računom.']]),
       question('reason','Što dodaje dva različita faktora prijavi?','key','two',[
-        ['two','Dvije različite lozinke.','Obje su nešto što znaš; to nisu dvije različite vrste faktora.'],
-        ['name','Ime i prezime uz lozinku.','Ime i prezime nisu dodatna tajna niti dokaz posjedovanja.'],
-        ['key','Lozinka i osobni sigurnosni ključ.','Lozinka je ono što znaš, a osobni ključ ono što posjeduješ.']])
+        ['two','Prva lozinka za račun i druga lozinka za dodatnu provjeru.','Obje su nešto što znaš; to nisu dvije različite vrste faktora.'],
+        ['name','Ime i prezime učenika uz njegovu novu lozinku.','Ime i prezime ne dokazuju posjedovanje drugog faktora. Lozinka i sigurnosni ključ različite su vrste dokaza.'],
+        ['key','Lozinka računa uz osobni sigurnosni ključ učenika.','Lozinka je ono što znaš, a osobni ključ ono što posjeduješ.']])
     ],
-    expert:question('limit','Što još treba provjeriti?','app','mfa',[
-      ['app','Jesu li prekinute i sesije klupske aplikacije te ostaju li uloge pravilno ograničene.','Opoziv treba provjeriti u aplikaciji; dokaz prijave ne dodjeljuje novu ovlast.'],
-      ['mfa','Daje li uključeni MFA svim članovima pravo uređivanja.','MFA štiti prijavu, a prava uređivanja određuje zasebno pravilo ovlasti.'],
-      ['none','Ništa, sama promjena lozinke potvrđuje svaki opoziv.','Učinak opoziva ovisi i o aplikacijskom upravljanju sesijama.']])
+    expert:question('limit','Koji zaključak vrijedi i nakon opoziva?','app','mfa',[
+      ['app','Prekid sesija aplikacije i očuvanje uloga treba provjeriti.','Opoziv treba provjeriti u aplikaciji; dokaz prijave ne dodjeljuje novu ovlast.'],
+      ['mfa','Dodatni MFA svim članovima dodjeljuje pravo uređivanja.','MFA štiti prijavu, a prava uređivanja određuje zasebno pravilo ovlasti.'],
+      ['none','Promjena lozinke sama potvrđuje svaki opoziv u aplikacijama.','Promjena lozinke ne potvrđuje prekid sesija u svakoj aplikaciji. Učinak opoziva treba isprobati.']])
   },
   {
     level:6,title:'Računalo za školski radio',
@@ -137,17 +137,17 @@ export const PRACTICE_CASES:Scenario[] = [
     questions:[
       question('action','Koji plan predložiti administratoru?','needed','alloff',[
         ['alloff','Isključiti snimanje, predaju i nadogradnje.','Isključio bi potreban rad i preuzimanje sigurnosnih popravaka.'],
-        ['random','Instalirati prvi popravak iz reklame.','Izvor nije provjeren i može donijeti dodatni problem.'],
-        ['needed','Primijeniti službeni popravak, zatvoriti nepotreban pristup i ostaviti potrebne funkcije.','Smanjuješ nepotrebnu izloženost uz očuvanje rada radija.']]),
+        ['random','Instalirati ponuđeni popravak iz reklame kako bi se ubrzao nastavak rada.','Izvor nije provjeren i može donijeti dodatni problem.'],
+        ['needed','Primijeniti službeni popravak i ostaviti samo potrebne usluge.','Smanjuješ nepotrebnu izloženost uz očuvanje rada radija.']]),
       question('reason','Koji račun treba za svakodnevno uređivanje zvuka?','standard','admin',[
-        ['standard','Standardni račun s pravima potrebnima za taj posao.','Za uobičajen rad ne treba trajna ovlast mijenjanja cijelog sustava.'],
-        ['admin','Trajno administratorski račun, i kada posebne ovlasti nisu potrebne.','Suvišne ovlasti povećavaju moguće posljedice pogreške ili zlouporabe.'],
-        ['shared','Javno objavljen administratorski račun.','Zajednički javni administratorski pristup ruši ograničenje ovlasti.']])
+        ['standard','Standardni račun s potrebnim pravima za uređivanje zvuka.','Za uobičajen rad ne treba trajna ovlast mijenjanja cijelog sustava.'],
+        ['admin','Administratorski račun za sav rad, uključujući uređivanje zvuka.','Suvišne ovlasti povećavaju moguće posljedice pogreške ili zlouporabe.'],
+        ['shared','Administratorski račun čiji su podatci javno dostupni ekipi.','Zajednički javni administratorski pristup ruši ograničenje ovlasti.']])
     ],
     expert:question('limit','Kako provjeriti promjenu?','both','shutdown',[
-      ['shutdown','Potvrditi da se više nitko ne može koristiti računalom.','Potpuni prekid korištenja ne dokazuje dobro postavljenu zaštitu.'],
-      ['both','Provjeriti da nepotreban pristup ne radi, a snimanje, predaja i nadogradnje rade.','Provjera obuhvaća i ograničenje pristupa i dopuštene funkcije.'],
-      ['desktop','Pogledati samo je li se otvorila radna površina.','Radna površina ne potvrđuje ispravnost potrebnih usluga ni ograničenja.']])
+      ['shutdown','Provjeriti da računalo odbija svaki pokušaj korištenja.','Potpuni prekid korištenja ne dokazuje dobro postavljenu zaštitu.'],
+      ['both','Isprobati potrebne usluge i odbijanje nepotrebnog pristupa.','Provjera obuhvaća i ograničenje pristupa i dopuštene funkcije.'],
+      ['desktop','Provjeriti otvara li se radna površina nakon prijave.','Radna površina ne potvrđuje ispravnost potrebnih usluga ni ograničenja.']])
   },
   {
     level:7,title:'QR kod za prijavu na izlet',
@@ -158,18 +158,18 @@ export const PRACTICE_CASES:Scenario[] = [
     transfer:'Opiši kojim bi već poznatim kontaktom provjerio obavijest. Ne otvaraj stvarnu sumnjivu poveznicu radi vježbe.',
     questions:[
       question('action','Što učiniti s ovim zahtjevom?','known','secret',[
-        ['known','Ne upisivati lozinku; provjeriti s nastavnikom poznatim kontaktom i prijaviti poruku.','Provjera ne ovisi o poveznici ili kontaktu koji je poslala sumnjiva osoba.'],
-        ['secret','Upisati lozinku jer poruka ima školski znak.','Znak se može kopirati i ne potvrđuje pošiljatelja.'],
-        ['reply','Pitati isti nepoznati račun je li poruka prava.','Odgovor iste osobe nije neovisna provjera.']]),
+        ['known','Zadržati lozinku; poznatim kontaktom provjeriti i prijaviti zahtjev.','Provjera ne ovisi o poveznici ili kontaktu koji je poslala sumnjiva osoba.'],
+        ['secret','Upisati lozinku jer školski znak na poruci potvrđuje njezin izvor.','Znak se može kopirati i ne potvrđuje pošiljatelja.'],
+        ['reply','Odgovoriti istom računu i tražiti da potvrdi svoju poruku.','Odgovor iste osobe nije neovisna provjera.']]),
       question('reason','Što je ključan razlog za zastajanje?','request','design',[
-        ['design','Uredna slika automatski dokazuje pouzdanost.','Izgled poruke nije provjera njezina izvora.'],
-        ['request','Nepotvrđena poruka traži tajnu i požuruje odluku.','Traženje lozinke uz pritisak razlog je za neovisnu provjeru, bez predaje tajne.'],
-        ['qr','Svaki QR kod uvijek je napad.','Sam format QR koda ne određuje je li sadržaj siguran; važni su izvor i zahtjev.']])
+        ['design','Uredan izgled potvrđuje školski izvor poruke.','Izgled poruke nije provjera njezina izvora.'],
+        ['request','Nepotvrđen izvor traži lozinku i požuruje odluku.','Traženje lozinke uz pritisak razlog je za neovisnu provjeru, bez predaje tajne.'],
+        ['qr','Sam QR format potvrđuje da je riječ o napadu na račun.','QR kod je način zapisa poveznice ili podatka. Izvor i zahtjev treba provjeriti; sam format nije dokaz napada.']])
     ],
     expert:question('limit','Što ovdje potvrđuje HTTPS?','connection','school',[
-      ['school','Da poruku sigurno šalje škola.','Valjan certifikat za tuđu domenu ne potvrđuje školsko podrijetlo.'],
-      ['safe','Da je zahtjev za lozinkom opravdan.','Zaštićena veza ne čini zahtjev vjerodostojnim.'],
-      ['connection','Zaštićenu vezu prema navedenoj domeni; podrijetlo poruke još treba provjeriti.','Zaštita prijenosa i provjera opravdanosti zahtjeva različite su provjere.']])
+      ['school','Potvrđuje da je školu moguće prepoznati kao pošiljatelja poruke.','Valjan certifikat za tuđu domenu ne potvrđuje školsko podrijetlo.'],
+      ['safe','Potvrđuje da je zahtjev za lozinkom dopušten i opravdan.','Zaštićena veza ne čini zahtjev vjerodostojnim.'],
+      ['connection','Štiti vezu prema domeni; izvor poruke ostaje nepotvrđen.','Zaštita prijenosa i provjera opravdanosti zahtjeva različite su provjere.']])
   },
   {
     level:8,title:'Predaja rada na webu',
@@ -180,18 +180,18 @@ export const PRACTICE_CASES:Scenario[] = [
     transfer:'Objasni nastavniku razliku između zaštite veze i pravila koja određuju tko smije pristupiti upravljanju poslužiteljem.',
     questions:[
       question('action','Kako postupiti prije predaje?','stop','ignore',[
-        ['ignore','Zaobići upozorenje da se stigne rok.','Rok ne uklanja problem provjere poslužitelja.'],
-        ['stop','Zaustaviti prijavu, javiti administratoru poznatim putem i pričekati provjeren ispravak.','Lozinku ne šalješ dok se problem identiteta poslužitelja ne provjeri.'],
-        ['http','Prijeći na HTTP i ondje poslati lozinku.','Time uklanjaš zaštitu prijenosa umjesto da riješiš problem.']]),
+        ['ignore','Zaobići upozorenje i poslati rad kako ne bi prošao rok predaje.','Rok ne uklanja problem provjere poslužitelja.'],
+        ['stop','Zaustaviti prijavu i poznatim putem zatražiti provjeren ispravak.','Lozinku ne šalješ dok se problem identiteta poslužitelja ne provjeri.'],
+        ['http','Prijeći na HTTP i ondje se prijaviti kako bi nestalo upozorenje.','Time uklanjaš zaštitu prijenosa umjesto da riješiš problem.']]),
       question('reason','Zašto samo pravilo vatrozida nije dovoljno?','different','firewall',[
-        ['different','Dopuštena veza i valjana provjera poslužitelja rješavaju različite probleme.','Vatrozid određuje dopušten promet; TLS provjerava poslužitelj i štiti prijenos.'],
-        ['firewall','Vatrozid automatski popravlja svaki certifikat.','Pravilo dopuštenog prometa ne ispravlja ime ili valjanost certifikata.'],
-        ['address','Poznata adresa znači da se svako upozorenje može zanemariti.','Upozorenje i na poznatoj adresi treba istražiti prije prijave.']])
+        ['different','Dopuštanje veze ne potvrđuje identitet poslužitelja.','Vatrozid određuje dopušten promet; TLS provjerava poslužitelj i štiti prijenos.'],
+        ['firewall','Dopuštanje veze vatrozidom ujedno popravlja certifikat poslužitelja.','Pravilo dopuštenog prometa ne ispravlja ime ili valjanost certifikata.'],
+        ['address','Poznata adresa opravdava zanemarivanje upozorenja preglednika.','Upozorenje i na poznatoj adresi treba istražiti prije prijave.']])
     ],
     expert:question('limit','Koji pokus potvrđuje potrebne mrežne granice?','test','open',[
-      ['open','Omogućiti upravljanje poslužiteljem sa svih uređaja.','Time se gubi zadano ograničenje administracije.'],
-      ['block','Zabraniti i web-predaju i administraciju.','Školska predaja mora ostati dostupna.'],
-      ['test','Provjeriti predaju te dopušten i nedopušten pristup upravljanju iz odgovarajućih uloga.','Potrebno je provjeriti i ono što pravila dopuštaju i ono što trebaju odbiti.']])
+      ['open','Otvoriti upravljanje sa svih uređaja i provjeriti uspješnu prijavu.','Time se gubi zadano ograničenje administracije.'],
+      ['block','Blokirati predaju i upravljanje pa provjeriti da obje veze ne prolaze.','Školska predaja mora ostati dostupna.'],
+      ['test','Isprobati predaju te prihvat ovlaštene i odbijanje ostale administracije.','Potrebno je provjeriti i ono što pravila dopuštaju i ono što trebaju odbiti.']])
   },
   {
     level:9,title:'Alarm tijekom školske provjere',
@@ -202,18 +202,18 @@ export const PRACTICE_CASES:Scenario[] = [
     transfer:'Na dva izmišljena zapisa pokaži koje činjenice treba usporediti. Ne isključuj stvarne školske senzore.',
     questions:[
       question('action','Što prvo provjeriti?','evidence','ignore',[
-        ['ignore','Zanemariti svaki alarm jer je provjera najavljena.','Najava ne dokazuje da svaki događaj potječe od dopuštene provjere.'],
-        ['ban','Trajno isključiti mrežu cijeloj školi.','Bez provjere opsega time nepotrebno prekidaš i dopušteni rad.'],
-        ['evidence','S nastavnikom usporediti uređaj, vrijeme i opseg zapisa s odobrenom provjerom.','Dodatni dokazi omogućuju razlikovanje dopuštenog događaja od incidenta.']]),
+        ['ignore','Zanemariti alarme tog dana jer je nastavnik najavio provjeru.','Najava ne dokazuje da svaki događaj potječe od dopuštene provjere.'],
+        ['ban','Trajno isključiti školsku mrežu kako se alarm ne bi ponavljao.','Bez provjere opsega time nepotrebno prekidaš i dopušteni rad.'],
+        ['evidence','Usporediti izvor, vrijeme i opseg s odobrenjem nastavnika.','Dodatni dokazi omogućuju razlikovanje dopuštenog događaja od incidenta.']]),
       question('reason','Zašto se ne odlučuje samo prema alarmu?','signal','proof',[
-        ['proof','Svaki alarm dokazuje napad.','Alarm može nastati i zbog dopuštenog događaja koji nalikuje sumnjivom ponašanju.'],
-        ['signal','Alarm upozorava na događaj koji treba protumačiti u kontekstu.','Zaključak treba potkrijepiti podudarnim dokazima.'],
-        ['silence','Bez alarma sigurno nema problema.','Senzor može propustiti incident ili nemati uvid u sve događaje.']])
+        ['proof','Alarm sam potvrđuje da je otkriven stvarni napad.','Alarm može nastati i zbog dopuštenog događaja koji nalikuje sumnjivom ponašanju.'],
+        ['signal','Alarm traži tumačenje uz dodatne dokaze o događaju.','Zaključak treba potkrijepiti podudarnim dokazima.'],
+        ['silence','Izostanak alarma potvrđuje da sustav nema sigurnosni problem.','Senzor može propustiti incident ili nemati uvid u sve događaje.']])
     ],
     expert:question('limit','Kako postupiti s drugim zapisom?','separate','dismiss',[
-      ['separate','Obraditi potvrđenu neovlaštenu prijavu odvojeno i ograničiti odgovor na pogođeni pristup.','Dopuštenost jednog događaja ne opravdava drugi, nepovezani pristup.'],
-      ['dismiss','Proglasiti sve zapise dopuštenima zbog školskog pokusa.','Drugi zapis ima drugi izvor i potvrđenu neovlaštenu prijavu.'],
-      ['disable','Isključiti nadzor dok ne nestanu sva upozorenja.','Nestanak upozorenja zbog ugašenog nadzora ne potvrđuje sigurnost.']])
+      ['separate','Zasebno obraditi incident i ograničiti pogođeni pristup.','Dopuštenost jednog događaja ne opravdava drugi, nepovezani pristup.'],
+      ['dismiss','Sve zapise proglasiti dopuštenima jer je školski pokus potvrđen.','Drugi zapis ima drugi izvor i potvrđenu neovlaštenu prijavu.'],
+      ['disable','Isključiti nadzor dok upozorenja ne prestanu ometati provjeru.','Nestanak upozorenja zbog ugašenog nadzora ne potvrđuje sigurnost.']])
   },
   {
     level:10,title:'Mreža na dan otvorenih vrata',
@@ -224,18 +224,18 @@ export const PRACTICE_CASES:Scenario[] = [
     transfer:'Opiši dva očekivana rezultata testa iz uloge gosta: internet radi, a interna školska mapa nije dostupna.',
     questions:[
       question('action','Koju promjenu zatražiti?','isolate','rename',[
-        ['isolate','Od administratora tražiti odvajanje pristupa gostiju te provjeriti internet i zabranu interne mape.','Pravilo mora dopustiti internet i spriječiti neovlašten interni pristup.'],
-        ['rename','Preimenovati mrežu u Sigurni gosti.','Naziv ne mijenja pravila pristupa.'],
-        ['password','Promijeniti samo Wi-Fi lozinku i smatrati problem riješenim.','Nova lozinka ne uklanja prava koja dobiva već povezani gost.']]),
+        ['isolate','Zatražiti odvajanje gostiju; isprobati internet i zabranu interne mape.','Pravilo mora dopustiti internet i spriječiti neovlašten interni pristup.'],
+        ['rename','Promijeniti naziv u Sigurni gosti i zadržati postojeća pravila pristupa.','Naziv ne mijenja pravila pristupa.'],
+        ['password','Promijeniti Wi-Fi lozinku i time smatrati interni pristup zaštićenim.','Nova lozinka ne uklanja prava koja dobiva već povezani gost.']]),
       question('reason','Zašto postojeća lozinka nije riješila problem?','boundary','name',[
-        ['name','Riječ Gosti automatski štiti sve interne mape.','Naziv mreže nije pravilo odvajanja pristupa.'],
-        ['hidden','Dovoljno je sakriti ikonu interne mape.','Skrivanje ikone ne oduzima pristup mapi.'],
-        ['boundary','Pravo povezivanja na Wi-Fi i pravo pristupa internim podatcima različite su granice.','Treba zasebno urediti kamo gost smije pristupiti nakon povezivanja.']]),
+        ['name','Odabir naziva Gosti automatski određuje zaštitu internih mapa.','Naziv mreže nije pravilo odvajanja pristupa.'],
+        ['hidden','Skrivanje ikone interne mape dovoljno je da joj gost ne pristupi.','Skrivanje ikone ne oduzima pristup mapi.'],
+        ['boundary','Povezivanje na Wi-Fi i pristup internoj mapi odvojena su prava.','Treba zasebno urediti kamo gost smije pristupiti nakon povezivanja.']]),
     ],
     expert:question('limit','Zašto i dalje koristiti HTTPS?','tls','wpa',[
-      ['wpa','WPA3 zamjenjuje zaštitu web-veze sve do svakog web-poslužitelja.','WPA3 štiti bežični dio veze, ne cijeli put do udaljene web-usluge.'],
-      ['tls','HTTPS štiti web-vezu prema poslužitelju; WPA3 ima drugi opseg zaštite.','Mjere se dopunjuju jer ne štite isti dio komunikacije.'],
-      ['none','Odvojena mreža čini svaku web-stranicu pouzdanom.','Odvajanje gostiju ne provjerava opravdanost zahtjeva pojedine web-stranice.']])
+      ['wpa','WPA3 štiti cijeli put od uređaja do udaljene web-stranice.','WPA3 štiti bežični dio veze, ne cijeli put do udaljene web-usluge.'],
+      ['tls','HTTPS štiti web-vezu; WPA3 štiti njezin bežični dio.','Mjere se dopunjuju jer ne štite isti dio komunikacije.'],
+      ['none','Odvajanje gostiju potvrđuje pouzdanost stranica koje posjećuju.','Odvajanje gostiju ne provjerava opravdanost zahtjeva pojedine web-stranice.']])
   },
   {
     level:11,title:'Stari disk i novi pano',
@@ -246,18 +246,18 @@ export const PRACTICE_CASES:Scenario[] = [
     transfer:'Za drugi izmišljeni školski primjer poveži imovinu, mogući događaj, posljedicu i jednu provedivu zaštitu.',
     questions:[
       question('action','Koju mjeru prvo odabrati?','backup','poster',[
-        ['poster','Uljepšati pano jer je noviji od diska.','Starost i izgled ne određuju važnost podataka i moguću štetu.'],
-        ['backup','Napraviti odvojenu kopiju snimki i provjeriti obnovu.','Mjera štiti jedini sadržaj važan za nastavak emisije.'],
-        ['nothing','Ne učiniti ništa dok disk potpuno ne prestane raditi.','Poznate greške i jedini primjerci daju razlog za pravodobnu zaštitu.']]),
+        ['poster','Urediti pano jer je noviji predmet.','Starost i izgled ne određuju važnost podataka i moguću štetu.'],
+        ['backup','Kopirati snimke na drugi disk i isprobati obnovu.','Mjera štiti jedini sadržaj važan za nastavak emisije.'],
+        ['nothing','Pričekati konačan kvar diska prije odluke o zaštiti snimki.','Poznate greške i jedini primjerci daju razlog za pravodobnu zaštitu.']]),
       question('reason','Zašto snimke imaju prednost?','impact','price',[
-        ['impact','Greške su već česte, a gubitak jedinih snimki prekida važan posao.','Procjena povezuje mogućnost događaja s njegovom posljedicom.'],
-        ['price','Uvijek treba zaštititi samo noviji i skuplji predmet.','Važnost uključuje podatke i posljedice prekida rada, a ne samo cijenu predmeta.'],
-        ['zero','Svaka kopija zauvijek uklanja sve rizike.','Kopija ne sprječava svaki kvar niti automatski uključuje buduće promjene.']])
+        ['impact','Disk često griješi, a gubitak snimki prekida emisiju.','Procjena povezuje mogućnost događaja s njegovom posljedicom.'],
+        ['price','Noviji i skuplji predmet ima prednost pred starijom opremom.','Prioritet ovisi o mogućnosti štete i njezinim posljedicama, a ne samo o starosti ili cijeni predmeta.'],
+        ['zero','Izrada jedne kopije trajno uklanja potrebu za daljnjom zaštitom.','Kopija ne sprječava kvar ni gubitak kasnijih izmjena. Treba je održavati i provjeravati.']])
     ],
     expert:question('limit','Koji preostali rizik treba pratiti?','remaining','fixed',[
-      ['fixed','Kopija je popravila disk pa više nema potrebe za praćenjem.','Kopiranje podataka ne popravlja fizički disk.'],
-      ['all','Nova snimka sigurno je u ranijoj kopiji.','Kopija ne sadrži izmjene nastale nakon njezina stvaranja.'],
-      ['remaining','Kvar diska i gubitak nove snimke; dodijeliti odgovornu osobu i rok zaštite.','Treba održavati kopiju i riješiti preostali problem izvornog diska.']])
+      ['fixed','Disk nakon uspješne kopije smatrati popravljenim i zatvoriti praćenje.','Kopiranje podataka ne popravlja fizički disk.'],
+      ['all','Novu snimku smatrati uključenom u već izrađenu kopiju.','Kopija ne sadrži izmjene nastale nakon njezina stvaranja.'],
+      ['remaining','Pratiti kvar i nekopiranu snimku uz odgovornu osobu i rok.','Treba održavati kopiju i riješiti preostali problem izvornog diska.']])
   },
   {
     level:12,title:'Povratak sustava za posudbu',
@@ -268,18 +268,18 @@ export const PRACTICE_CASES:Scenario[] = [
     transfer:'Sastavi kratku prijavu: što je vraćeno, što nedostaje, što još treba provjeriti i tko odobrava povratak.',
     questions:[
       question('action','Koji plan obnove odgovara dokazima?','clean','newest',[
-        ['newest','Koristiti kopiju od 14:00 samo zato što je najnovija.','Potvrđeno oštećena kopija nije pouzdan izvor obnove.'],
-        ['hide','Vratiti kopiju od 13:00 i prešutjeti dvije posudbe.','Prikaz bi bio nepotpun, a korisnici ne bi znali što nedostaje.'],
-        ['clean','Vratiti provjerenu kopiju od 13:00 i prijaviti dvije nedostajuće posudbe radi provjere.','Obnova koristi pouzdan izvor i jasno navodi granicu obnovljenih podataka.']]),
+        ['newest','Vratiti kopiju od 14:00 jer njezino vrijeme znači da je prikladnija.','Potvrđeno oštećena kopija nije pouzdan izvor obnove.'],
+        ['hide','Vratiti kopiju od 13:00 bez prijave dviju posudbi koje nedostaju.','Prikaz bi bio nepotpun, a korisnici ne bi znali što nedostaje.'],
+        ['clean','Vratiti čistu kopiju od 13:00 i prijaviti dvije nedostajuće posudbe.','Obnova koristi pouzdan izvor i jasno navodi granicu obnovljenih podataka.']]),
       question('reason','Kada odobriti nastavak rada?','verify','boots',[
-        ['boots','Čim se pojavi početni zaslon.','Pokretanje ne dokazuje točnost podataka, prava pristupa ni uklonjen uzrok.'],
-        ['verify','Nakon provjere podataka, ovlasti i potrebnog rada, uz odobrenje odgovorne osobe i nadzor.','Povratak se temelji na provjerama, a ne samo na tome da se program otvara.'],
-        ['erase','Nakon brisanja svih zapisa o incidentu.','Zapise treba sačuvati prema postupku radi istraživanja i poboljšanja.']])
+        ['boots','Kad se prikaže početni zaslon, prije provjere podataka i pristupa.','Pokretanje ne dokazuje točnost podataka, prava pristupa ni uklonjen uzrok.'],
+        ['verify','Kad se provjere podatci, ovlasti i rad te odobri povratak uz nadzor.','Povratak se temelji na provjerama, a ne samo na tome da se program otvara.'],
+        ['erase','Kad se obrišu zapisi incidenta i aplikacija ponovno pokrene.','Zapise treba sačuvati prema postupku radi istraživanja i poboljšanja.']])
     ],
     expert:question('limit','Što učiniti s pravom gosta?','repair','accept',[
-      ['repair','Ispraviti i isprobati ovlasti prije odobrenog povratka aplikacije u rad.','Oporavljena usluga mora imati i ispravno ograničen pristup.'],
-      ['accept','Prihvatiti ga jer su podatci obnovljeni.','Ispravni podatci ne opravdavaju neovlaštene izmjene.'],
-      ['later','Dopustiti gostima rad pa provjeriti ovlasti tek kad stigne prijava štete.','Poznata pogrešna ovlast treba biti ispravljena i provjerena prije povratka.']])
+      ['repair','Ispraviti ovlasti i isprobati ih prije odobrenog povratka.','Oporavljena usluga mora imati i ispravno ograničen pristup.'],
+      ['accept','Zadržati ovlasti gosta jer se obnovljeni podatci ispravno otvaraju.','Ispravni podatci ne opravdavaju neovlaštene izmjene.'],
+      ['later','Provjeriti ovlasti tek nakon prijave promjene koju napravi gost.','Poznata pogrešna ovlast treba biti ispravljena i provjerena prije povratka.']])
   }
 ];
 
@@ -294,18 +294,18 @@ PRACTICE_CASES.push(
     transfer:'Uz nastavnika usporedi SHA-256 dvaju primjeraka bezazlene probne datoteke. Preimenuj jedan pa ponovi; zatim izmijeni sadržaj pa ponovno usporedi.',
     questions:[
       question('action','Koji primjerak odgovara potvrđenom sažetku?','copy','name',[
-        ['name','Onaj s izvornim nazivom, bez obzira na sažetak.','Naziv ne dokazuje isti sadržaj; različit sažetak pokazuje razliku podataka.'],
-        ['copy','Kopija s drugim nazivom i istim sažetkom; nepodudaranje drugog primjerka treba provjeriti.','Naziv može biti drukčiji dok podatci ostaju isti. Usporedba se oslanja na potvrđenu referencu.'],
-        ['both','Oba primjerka jer su stigla istog dana.','Vrijeme primitka ne govori odgovaraju li podatci izvorniku.']]),
+        ['name','Primjerak s izvornim nazivom i drukčijim sažetkom sadržaja.','Naziv ne dokazuje isti sadržaj; različit sažetak pokazuje razliku podataka.'],
+        ['copy','Preimenovana kopija čiji je sažetak jednak potvrđenom.','Naziv može biti drukčiji dok podatci ostaju isti. Usporedba se oslanja na potvrđenu referencu.'],
+        ['both','Oba primjerka jer ih povezuje isti dan primitka datoteka.','Vrijeme primitka ne govori odgovaraju li podatci izvorniku.']]),
       question('reason','Zašto naziv nije dovoljan?','bytes','secret',[
-        ['bytes','Sažetak uspoređuje podatke, a naziv se može promijeniti odvojeno.','Promjena naziva sama ne mijenja bajtove sadržaja koje ovdje sažimamo.'],
-        ['secret','Sažetak pretvara fotografiju u tajni, nečitljivi sadržaj.','Hash nije šifriranje i ne skriva fotografiju.'],
-        ['restore','Sažetak je potpuna kopija iz koje se fotografija vraća.','Za obnovu treba sačuvana datoteka, ne samo njezin sažetak.']])
+        ['bytes','Sažetak ovisi o sadržaju, a promjena naziva ne mijenja taj sadržaj.','Promjena naziva sama ne mijenja bajtove sadržaja koje ovdje sažimamo.'],
+        ['secret','Sažetak šifrira fotografiju pa njezin naziv više nije važan.','Hash nije šifriranje i ne skriva fotografiju.'],
+        ['restore','Sažetak čuva cijelu fotografiju za obnovu pod drugim nazivom.','Za obnovu treba sačuvana datoteka, ne samo njezin sažetak.']])
     ],
     expert:question('limit','Što očekuješ nakon promjene metapodataka unutar datoteke?','different','same',[
-      ['same','Isti sažetak jer fotografija izgleda isto.','Izgled nije isto što i točni podatci cijele datoteke.'],
-      ['attacker','Razlika bi sama dokazala napad.','Poznata izmjena metapodataka može objasniti razliku bez napada.'],
-      ['different','Tipično drukčiji sažetak jer su promijenjeni podatci datoteke.','SHA-256 se računa iz bajtova, uključujući metapodatke koji su dio tih bajtova.']])
+      ['same','Isti sažetak jer vidljivi izgled fotografije nije promijenjen.','Izgled nije isto što i točni podatci cijele datoteke.'],
+      ['attacker','Razlika sažetka sama bi potvrdila napad na tu fotografiju.','Poznata izmjena metapodataka može objasniti razliku bez napada.'],
+      ['different','Tipično drugi sažetak jer su izmijenjeni podatci datoteke.','SHA-256 se računa iz bajtova, uključujući metapodatke koji su dio tih bajtova.']])
   },
   {
     level:14,title:'Potpisana potvrda za putovanje',
@@ -316,18 +316,18 @@ PRACTICE_CASES.push(
     transfer:'Uz nastavnika objasni što bi provjerio u izvještaju o potpisu probnog dokumenta: podudaranje, potpisnika i izvor povjerenja. Koristi samo probne podatke.',
     questions:[
       question('action','Kako predati potvrdu?','restricted','public',[
-        ['public','Objaviti cijelu potvrdu jer valjan potpis skriva podatke.','Potpis ne skriva tekst. Javna objava otkrila bi osobne podatke.'],
-        ['private-key','Poslati potvrdu i školski privatni potpisni ključ.','Privatni ključ mora ostati kod potpisnika; primatelju nije potreban za provjeru.'],
-        ['restricted','Koristiti odobren zaštićen prijenos i pristup samo za ovlaštenog organizatora.','Zaštita čitljivosti i ovlasti potrebne su uz provjeru potpisa.']]),
-      question('reason','Što valjan potpis sam ne osigurava?','privacy','identity',[
-        ['identity','Potpis je samo slika bez veze sa sadržajem.','Digitalni potpis računalo provjerava uz sadržaj i javni ključ; nije samo slika.'],
-        ['privacy','Ne skriva sadržaj od neovlaštenog čitanja.','Potpis i povjerljivost imaju različite uloge.'],
-        ['everyone','Automatski daje svima ovlast da pročitaju dokument.','Ovlast ne proizlazi iz toga što je dokument potpisan.']])
+        ['public','Objaviti je na javnoj ploči jer potpis skriva osobne podatke.','Potpis ne skriva tekst. Javna objava otkrila bi osobne podatke.'],
+        ['private-key','Predati je organizatoru zajedno sa školskim privatnim ključem.','Privatni ključ mora ostati kod potpisnika; primatelju nije potreban za provjeru.'],
+        ['restricted','Predati je zaštićenim putem samo ovlaštenom organizatoru.','Zaštita čitljivosti i ovlasti potrebne su uz provjeru potpisa.']]),
+      question('reason','Koja tvrdnja vrijedi za povjerljivi potpisani dokument?','privacy','identity',[
+        ['identity','Potpis je slika koja nije povezana sa sadržajem dokumenta.','Digitalni potpis računalo provjerava uz sadržaj i javni ključ; nije samo slika.'],
+        ['privacy','Potpisani sadržaj i dalje treba zaštititi od čitanja.','Digitalni potpis ne skriva sadržaj. Povjerljiv dokument treba zasebno šifriranje i ograničenje pristupa.'],
+        ['everyone','Potpisom svi primatelji dobivaju ovlast čitanja dokumenta.','Ovlast ne proizlazi iz toga što je dokument potpisan.']])
     ],
     expert:question('limit','Možeš li zasebnu poruku odmah smatrati školskom?','verify','trust',[
-      ['trust','Da, dovoljno je da potpis prolazi uz priloženi ključ.','Netko može poslati vlastiti ključ i vlastiti valjan potpis. Vezu sa školom treba potvrditi.'],
-      ['verify','Najprije potvrditi vezu javnog ključa sa školom poznatim putem.','Matematičko podudaranje i povjerenje u identitet potpisnika odvojene su provjere.'],
-      ['rename','Da, nakon promjene naziva datoteke u skola.pdf.','Naziv ne potvrđuje potpisnika ni vlasnika ključa.']])
+      ['trust','Prihvatiti poruku jer potpis prolazi uz ključ koji joj je priložen.','Netko može poslati vlastiti ključ i vlastiti valjan potpis. Vezu sa školom treba potvrditi.'],
+      ['verify','Poznatim putem prvo potvrditi da javni ključ pripada školi.','Matematičko podudaranje i povjerenje u identitet potpisnika odvojene su provjere.'],
+      ['rename','Prihvatiti poruku nakon preimenovanja datoteke u skola.pdf.','Naziv ne potvrđuje potpisnika ni vlasnika ključa.']])
   }
 );
 

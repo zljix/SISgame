@@ -1,6 +1,6 @@
 # Metodička i didaktička analiza SISgamea
 
-Analizirana osnova: **0.8.0**, commit `030de51`. Prilagodbe: **0.9.0**, dopunjene slobodnim izborom tema u **0.10.0**. Datum: 27. listopada 2026. Ovo je stručna analiza sadržaja i ponašanja koda, bez istraživanja s učenicima i bez tvrdnje o izmjerenoj učinkovitosti.
+Analizirana osnova: **0.8.0**, commit `030de51`. Prilagodbe: **0.9.0**, dopunjene slobodnim izborom tema u **0.10.0** i popravcima recenzije u **0.11.0**. Datum: 27. listopada 2026. Ovo je stručna analiza sadržaja i ponašanja koda, bez istraživanja s učenicima i bez tvrdnje o izmjerenoj učinkovitosti.
 
 ## Polazište i nalaz
 
@@ -51,6 +51,24 @@ Učenik ili nastavnik može odabrati bilo koju postojeću misiju kroz **Vježbe 
 Kampanja zadržava svoj postupni slijed. Tematski način vodi zasebne najbolje rezultate i dodatnu primjenu, a svaka tema čuva vlastiti započeti pokušaj. Promjena teme time ne kažnjava učenika gubitkom odabira. Pregled rada i kopije jasno razlikuju dva načina; isti postupak proveden dvaput ne postaje jedinstven veći rezultat znanja. Obnova starijeg zapisa izričito pokazuje da nema tematskog rada te čuva prethodno stanje za povratak.
 
 Slobodan izbor nije tvrdnja da su sve teme jednako lagane niti da podsjetnik zamjenjuje cjelovito predznanje. Nastavnik prema cilju sata bira temu i razinu te provjerava učenikovo razumijevanje. U ovoj doradi nisu dodani novi sigurnosni ishodi niti formalno vrednovanje.
+
+## Dopuna 0.11.0: kontinuitet rada i kvaliteta pitanja
+
+Recenzija je pronašla gubitak nepredanih odabira u pet vrsta konzola i zamjenu prethodnog pokušaja pri promjeni kampanjske misije. Sada se odabir sprema pri svakoj promjeni, a svaka misija čuva svoj pokušaj. Broj pogrešnih predaja ostaje sačuvan; ponovno otvaranje ili spremanje samo po sebi ne dodaje pogrešku. Time se prekid rada odvaja od učenikove sigurnosne odluke. Ako lokalno spremanje ne uspije, upozorenje i preuzimanje kopije dostupni su na aktivnoj površini, uključujući konzolu.
+
+U dodatnim slučajevima točan odgovor bio je često znatno dulji od netočnih. Prerađeno je svih 126 mogućnosti uz iste identifikatore i rješenja. Formulacije su kraće i usporedivije; povratna informacija i dalje objašnjava sigurnosno načelo. Kontrolirana provjera bira isključivo najkraći ili najdulji tekst mogućnosti, a kod jednake duljine prvu ponuđenu mogućnost. Mjeri broj znakova JavaScript svojstvom `length`, bez čitanja značenja.
+
+| Razina | Točni odabiri najkraćeg odgovora | Cijeli slučajevi | Točni odabiri najduljeg odgovora | Cijeli slučajevi |
+| --- | --- | --- | --- | --- |
+| Junior | 12/28 | 1/14 | 15/28 | 2/14 |
+| Standard | 10/28 | 1/14 | 10/28 | 1/14 |
+| Expert | 16/42 | 1/14 | 14/42 | 1/14 |
+
+To je provjera površinskog obrasca, **nije mjerenje znanja učenika ni dokaz valjanosti pitanja**. Sljedeći korak u pilotiranju jest tražiti obrazloženje i zabilježiti koje netočne mogućnosti učenici biraju i zašto. Rezultati prije promjene formulacija ostaju sačuvani; to nisu jednake ispitne forme za uspoređivanje formalnih ocjena.
+
+Junior podsjetnici za teme 9 i 10 sada dohvaćaju pojam vatrozida prema rasporedu Junior pouke, umjesto odlomka o HTTPS-u na Standardovu indeksu. Ishod devete misije obuhvaća odobren rad i potvrđen neovlašten pristup, što odgovara dvama ponuđenim zapisima; odbijeni pokušaj ostaje u Standardu i Expertu. Zajednički primjer 13 govori o nepromijenjenom sadržaju bez uvođenja neobjašnjene riječi „bajtovi”. Opis Juniora navodi kratke upute i plan zadaća.
+
+Aktivacija štita pokazivačem zadržava fokus karte i istodobno kretanje. Tab i otvaranje prozora i dalje zaustavljaju kretanje. Automatski testovi provjeravaju prijelaze stanja, a stvarni dodir i izgled upozorenja ostaju za provjeru na uređaju.
 
 ## Osnova odluka i granice
 

@@ -500,4 +500,93 @@ for(const tier of curriculum.TIERS){
  check(ui.h.getSave().profiles.expert.topics===undefined,'confirmed reset clears topic workspace too');
  await ui.close();
 }
+// Review regressions: unsubmitted console values must survive closing, changing
+// missions, storage reload and portable copies, including an earlier wrong answer.
+const draftConsoles=[
+ {level:2,station:'schedule',submit:'#apply-permissions',prepare(ui){ui.select('#permission-student','write');ui.select('#permission-teacher','read');},read(ui){return [...ui.w.document.querySelectorAll('.permission-table select')].map(e=>e.value);}},
+ {level:2,station:'grades',submit:'#apply-permissions',prepare(ui){ui.select('#permission-student','read');ui.select('#permission-teacher','write');},read(ui){return [...ui.w.document.querySelectorAll('.permission-table select')].map(e=>e.value);}},
+ {level:4,station:'samples',submit:'#classify-samples',prepare(ui){ui.h.getRun().checks.containment.done=true;for(const s of missions.samplesFor(ui.h.getRun().content))ui.select(`#sample-${s.id}`,'worm');},read(ui){return [...ui.w.document.querySelectorAll('.evidence-card select')].map(e=>e.value);}},
+ {level:5,station:'sessions',submit:'#secure-session',prepare(ui){ui.click('input[name="login-event"][value="school"]');ui.select('#session-response','password');},read(ui){return [ui.w.document.querySelector('input[name="login-event"]:checked')?.value,ui.w.document.querySelector('#session-response').value];}},
+ {level:6,station:'services',submit:'#apply-services',prepare(ui){ui.h.getRun().checks.patches.done=true;ui.h.getRun().checks.accounts.done=true;ui.tick('#service-remote',false);ui.tick('#service-coursework',false);},read(ui){return [...ui.w.document.querySelectorAll('.service-toggle input')].map(e=>e.checked);}},
+ {level:8,station:'firewall',submit:'#apply-firewall',prepare(ui){ui.h.getRun().checks.channel.done=true;ui.tick('#flow-web',true);ui.tick('#flow-outside',true);},read(ui){return [...ui.w.document.querySelectorAll('.flow-row input')].map(e=>e.checked);}}
+];
+for(const tier of curriculum.TIERS)for(const mode of ['campaign','topics'])for(const c of draftConsoles){
+ const ui=await setup(tier);ui.h.start(c.level,false,mode,tier);ui.click('#begin');ui.station(c.station);c.prepare(ui);
+ const choices=JSON.stringify(c.read(ui)),prefix=`${tier}/${mode}/${c.station}`;
+ ui.click('#dialog-close');ui.station(c.station);
+ check(JSON.stringify(c.read(ui))===choices,`${prefix}: unsubmitted values survive closing`);
+ ui.click(c.submit);check(ui.h.getRun().checks[c.station].errors===1,`${prefix}: wrong submission recorded once`);
+ ui.click('#dialog-close');ui.h.start(1,false,mode,tier);ui.click('#begin');
+ ui.h.start(c.level,true,mode,tier);ui.click('#begin');ui.station(c.station);
+ check(JSON.stringify(c.read(ui))===choices&&ui.h.getRun().checks[c.station].errors===1,`${prefix}: changing mission preserves choices and corrections`);
+ const raw=ui.w.localStorage.getItem(storage.SAVE_KEY);await ui.close();
+ const reloaded=await setup(tier,raw);reloaded.h.start(c.level,true,mode,tier);reloaded.click('#begin');reloaded.station(c.station);
+ check(JSON.stringify(c.read(reloaded))===choices,`${prefix}: choices survive storage reload`);
+ check(reloaded.h.getRun().checks[c.station].errors===1,`${prefix}: reopening does not add an error`);
+ const imported=progress.readProgressBackup(progress.createProgressBackup(reloaded.h.getSave())).save;
+ check(JSON.stringify(storage.savedRun(imported,c.level,mode,tier))===JSON.stringify(reloaded.h.getRun()),`${prefix}: backup retains exact console attempt`);
+ await reloaded.close();
+}
+{
+ const initial=storage.emptySave();initial.profiles.expert.best[1]={learning:100,arcade:0,independent:4,completed:true};
+ const draft=core.newRun(2,'hard','expert');draft.checks.schedule={done:true,errors:1};storage.checkpoint(initial,draft,'campaign');
+ const ui=await setup('standard',JSON.stringify(initial));ui.click('#progress-open');ui.select('#progress-tier','expert');ui.click('[data-resume-campaign="2"]');ui.click('#begin');
+ check(ui.h.getRun().content==='expert'&&core.score(ui.h.getRun())===25,'work overview resumes actual campaign tier and progress');
+ ui.h.start(1,false,'campaign','expert');ui.click('#begin');ui.click('#pause');ui.click('#to-home');
+ ui.select('#content-level','expert');
+ check(ui.w.document.querySelector('[data-level="2"]').textContent.includes('ZAPOČETO'),'home card marks a paused campaign attempt');
+ ui.click('[data-level="2"]');ui.click('#begin');check(core.score(ui.h.getRun())===25,'home card resumes instead of discarding previous work');
+ ui.click('#pause');ui.click('#to-home');ui.select('#content-level','standard');ui.click('#progress-open');ui.select('#progress-tier','expert');
+ check(ui.w.document.querySelector('[data-resume-campaign="1"]'),'work overview offers other saved campaign attempts');
+ ui.click('#export-progress');const backup=await ui.downloads.at(-1).blob.text();
+ check(progress.readProgressBackup(backup).save.profiles.expert.drafts[1].level===1,'real download includes paused campaign attempts');
+ ui.click('[data-resume-campaign="2"]');ui.click('#begin');ui.h.getRun().completed=true;ui.h.finish();ui.click('#next');
+ check(ui.h.getRun().level===3&&ui.h.getRun().content==='expert','next mission retains tier chosen in work overview');
+ ui.click('#begin');ui.click('#pause');ui.click('#to-home');ui.click('#progress-open');
+ await ui.chooseFile(new ui.w.File([backup],'campaign-drafts.json'));ui.click('#confirm-import');
+ check(ui.h.getSave().profiles.expert.active.level===2&&!!ui.h.getSave().profiles.expert.drafts[1],'restore recovers active and paused campaign work together');
+ ui.click('#restore-previous');ui.click('#confirm-import');
+ check(ui.h.getSave().profiles.expert.active.level===3&&!!ui.h.getSave().profiles.expert.drafts[1],'restore point keeps paused work when recovering previous state');
+ ui.click('#progress-close');ui.click('#home-settings');ui.click('#reset-progress');ui.click('#confirm-reset');
+ check(ui.h.getSave().profiles.expert.drafts===undefined,'explicit reset clears paused campaign attempts');await ui.close();
+}
+for(const conflict of [false,true]){
+ const ui=await setup('standard');ui.h.start(2);ui.click('#begin');
+ const original=ui.w.localStorage.getItem(storage.SAVE_KEY);
+ if(conflict)ui.w.localStorage.setItem(storage.SAVE_KEY,JSON.stringify(storage.emptySave()));else ui.storageControl.blockedKey=storage.SAVE_KEY;
+ const external=ui.w.localStorage.getItem(storage.SAVE_KEY);ui.station('schedule');ui.select('#permission-student','write');
+ const warning=ui.w.document.querySelector('#dialog .save-warning');
+ check(!warning.hidden&&warning.querySelector('[data-save-message]').getAttribute('role')==='alert','save failure is visible and announced in the active console');
+ if(conflict)check(warning.textContent.includes('drugom prozoru'),'conflict explains concurrent change');
+ ui.click('#dialog [data-save-export]');const exported=progress.readProgressBackup(await ui.downloads.at(-1).blob.text());
+ check(exported.save.profiles.standard.active.permissions.schedule.student==='write','warning export preserves the latest unsaved choice');
+ check(ui.w.document.querySelector('#dialog [data-save-download]').textContent.length>0,'download result is reported inside the dialog');
+ ui.click('#dialog-close');check(!ui.w.document.querySelector('#play > .save-warning').hidden,'failure remains visible while the map is active');
+ ui.click('#play [data-save-export]');check(ui.downloads.length===2,'in-game export works without a feedback element');
+ check(ui.w.localStorage.getItem(storage.SAVE_KEY)===external,'failed or stale writes preserve storage');
+ if(conflict){ui.click('#play [data-save-retry]');check(ui.w.localStorage.getItem(storage.SAVE_KEY)===external,'retry cannot overwrite another window');}
+ else{ui.storageControl.blockedKey='';ui.click('#play [data-save-retry]');check(ui.w.document.querySelector('#play > .save-warning').hidden,'successful retry clears warning');check(ui.w.localStorage.getItem(storage.SAVE_KEY)!==original,'successful retry saves pending work');}
+ await ui.close();
+}
+{
+ const initial=storage.emptySave();initial.settings.difficulty='easy';
+ const ui=await setup('standard',JSON.stringify(initial),{fine:true}),{w,h,calls}=ui;
+ ui.h.start(1);ui.click('#begin');const canvas=w.document.querySelector('#canvas-host'),shield=w.document.querySelector('#shield');
+ const key=(type,repeat=false)=>canvas.dispatchEvent(new w.KeyboardEvent(type,{key:'w',repeat,bubbles:true,cancelable:true}));
+ key('keydown');const before=calls.reset;
+ const pointer=new w.PointerEvent('pointerdown',{pointerId:5,button:0,bubbles:true,cancelable:true});shield.dispatchEvent(pointer);
+ // Model normal pointer focus only if its default was not prevented.
+ if(!pointer.defaultPrevented)shield.focus();shield.click();
+ check(pointer.defaultPrevented&&w.document.activeElement===canvas,'pointer shield activation retains map focus');
+ check(h.getBridge().keyboardAxes.y===-1&&calls.reset===before&&calls.shield===1,'shield click retains held keyboard movement without resetting the route');
+ key('keydown',true);check(h.getBridge().keyboardAxes.y===-1,'held repeat continues after shield');key('keyup');
+ check(h.getBridge().keyboardAxes.y===0,'key release still stops movement');
+ const stick=w.document.querySelector('#joystick');let captured=null;
+ stick.getBoundingClientRect=()=>({left:0,top:0,width:120,height:120});stick.setPointerCapture=id=>captured=id;stick.hasPointerCapture=id=>captured===id;stick.releasePointerCapture=()=>captured=null;
+ stick.dispatchEvent(new w.PointerEvent('pointerdown',{pointerId:1,button:0,clientX:96,clientY:60,bubbles:true,cancelable:true}));
+ const second=new w.PointerEvent('pointerdown',{pointerId:2,button:0,pointerType:'touch',bubbles:true,cancelable:true});shield.dispatchEvent(second);if(!second.defaultPrevented)shield.focus();shield.click();
+ check(captured===1&&h.getBridge().axes.x===1&&calls.shield===2,'second pointer shield activation retains the joystick finger');
+ shield.focus();check(h.getBridge().axes.x===0&&captured===null,'keyboard focus navigation to shield still releases movement');
+ await ui.close();
+}
 console.log(`${assertions} local DOM assertions passed. Rendering, physical input and visual layout were not tested.`);

@@ -12,6 +12,10 @@ export interface Run {
   level: number; difficulty: Difficulty; content: ContentTier; x: number; y: number;
   review: { enabled: boolean; started: boolean; remaining: number; expired: boolean; answers: Record<string,string> };
   networkRules: Record<string, boolean>;
+  permissions?: Partial<Record<'schedule'|'grades',Permissions>>;
+  sampleAnswers?: Record<string,MalwareKind>;
+  sessionChoice?: {event:string;response:string};
+  serviceSettings?: ServiceSettings;
   alertAnswers: Record<string, AlertVerdict>;
   wifiSettings: WifiSettings;
   riskAnswers: Record<string, RiskPriority>;
@@ -25,7 +29,7 @@ export interface Run {
   completed: boolean;
 }
 export interface Result { ok: boolean; title: string; message: string; complete?: boolean; review?: boolean }
-export const VERSION = '0.10.0';
+export const VERSION = '0.11.0';
 export const FILES = [
   { id: 'rad', name: 'Završni rad', text: 'Završni rad · posljednja spremljena inačica' },
   { id: 'mjerenja', name: 'Mjerenja', text: 'Temperatura: 23 °C · 12 mjerenja' },

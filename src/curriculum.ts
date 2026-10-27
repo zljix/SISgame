@@ -1,7 +1,7 @@
 export type ContentTier = 'junior' | 'standard' | 'expert';
 export const TIERS: ContentTier[] = ['junior', 'standard', 'expert'];
 export const TIER_INFO = {
-  junior: { name: 'Junior', age: '11–13', detail: 'Kratke upute, slikovni koraci i jednostavniji izbori.' },
+  junior: { name: 'Junior', age: '11–13', detail: 'Kratke upute, plan zadaća i jednostavniji izbori.' },
   standard: { name: 'Standard', age: '14–16', detail: 'Sigurnosne odluke uz postupno objašnjene stručne pojmove.' },
   expert: { name: 'Expert', age: '16+', detail: 'Analiza dokaza, ograničenja i povezanih sigurnosnih mjera.' },
 };

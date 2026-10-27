@@ -4,11 +4,13 @@ import { alertsFor, verdictsFor, WIFI_GUESTS, WIFI_SECURITY } from './network.ts
 import { cleanMeasures, cleanResponse, prioritiesFor, risksFor } from './operations.ts';
 import { parsePractice, type PracticeBook } from './practice.ts';
 import { cleanHashAnswers, cleanSignatureAnswers, cleanSignatureKey } from './integrity.ts';
+import { eventsFor, samplesFor } from './missions.ts';
+import type { Permissions } from './core.ts';
 export type Best = { learning: number; arcade: number; independent: number; completed: boolean };
 export type PlayMode='campaign'|'topics';
 export type ResultBook={best:Record<string,Best>;practice:PracticeBook};
 export type TopicProgress=ResultBook&{drafts:Record<string,Run>};
-export type Profile = ResultBook & { active: Run | null; topics?:TopicProgress };
+export type Profile = ResultBook & { active: Run | null; drafts?:Record<string,Run>; topics?:TopicProgress };
 export type Save = { schema: 2; settings: { content: ContentTier; difficulty: Difficulty; timed: boolean; sound: boolean; reducedMotion: boolean }; profiles: Record<ContentTier,Profile> };
 // Keep the storage key so v0.1/v0.2 saves are migrated on the first load.
 export const SAVE_KEY = 'sisgame.save.v1';
@@ -20,7 +22,8 @@ export function resultBook(save:Save,mode:PlayMode,tier:ContentTier):ResultBook{
   return mode==='topics'?(profile(save,tier).topics??=emptyTopics()):profile(save,tier);
 }
 export function savedRun(save:Save,level:number,mode:PlayMode,tier:ContentTier):Run|null{
-  const current=mode==='topics'?readTopics(save,tier).drafts[level]:profile(save,tier).active;
+  const p=profile(save,tier);
+  const current=mode==='topics'?readTopics(save,tier).drafts[level]:p.active?.level===level?p.active:p.drafts?.[level];
   return current?.level===level?current:null;
 }
 const clamp=(v:unknown,min:number,max:number)=> typeof v==='number'&&Number.isFinite(v)?Math.max(min,Math.min(max,v)):min;
@@ -39,6 +42,31 @@ function parseRun(a:any,tier:ContentTier):Run|null {
   if(tier==='expert'&&a.review){r.review.started=a.review.started===true;r.review.remaining=clamp(a.review.remaining,0,90);r.review.expired=a.review.expired===true||r.review.remaining===0;}
   if(tier==='expert')for(const question of EXPERT_REVIEWS[r.level].questions){const value=a.review?.answers?.[question.id];if(question.choices.some(([choice])=>choice===value))r.review.answers[question.id]=value;}
   for(const key of ['web','admin','outside'])if(typeof a.networkRules?.[key]==='boolean')r.networkRules[key]=a.networkRules[key];
+  // Optional fields preserve the exact shape of older portable copies.
+  if(r.level===2&&a.permissions!==undefined){
+    r.permissions={};
+    for(const kind of ['schedule','grades'] as const){
+      if(!a.permissions?.[kind])continue;
+      const saved=a.permissions[kind],permissions:Permissions={student:'none',teacher:'none',guest:'none'};
+      for(const role of ['student','teacher','guest'] as const)if(['none','read','write'].includes(saved[role]))permissions[role]=saved[role];
+      if(tier==='junior')permissions.guest=kind==='schedule'?'read':'none';
+      r.permissions[kind]=permissions;
+    }
+  }
+  if(r.level===4&&a.sampleAnswers!==undefined){
+    r.sampleAnswers={};
+    const kinds=tier==='junior'?['worm','trojan']:['virus','worm','trojan'];
+    for(const sample of samplesFor(tier))if(kinds.includes(a.sampleAnswers?.[sample.id]))r.sampleAnswers[sample.id]=a.sampleAnswers[sample.id];
+  }
+  if(r.level===5&&a.sessionChoice!==undefined){
+    const responses=tier==='junior'?['password','revoke']:['password','erase','revoke'];
+    r.sessionChoice={event:eventsFor(tier).some(e=>e.id===a.sessionChoice?.event)?a.sessionChoice.event:'',response:responses.includes(a.sessionChoice?.response)?a.sessionChoice.response:''};
+  }
+  if(r.level===6&&a.serviceSettings!==undefined){
+    r.serviceSettings={updates:true,remote:true,coursework:true};
+    for(const key of ['updates','remote','coursework'] as const)if(typeof a.serviceSettings?.[key]==='boolean')r.serviceSettings[key]=a.serviceSettings[key];
+    if(tier==='junior')r.serviceSettings.updates=true;
+  }
   if(r.level===9)for(const report of alertsFor(tier)){const value=a.alertAnswers?.[report.id];if(verdictsFor(tier).some(([id])=>id===value))r.alertAnswers[report.id]=value;}
   if(r.level===10){
     if(tier!=='junior'&&WIFI_SECURITY.some(([id])=>id===a.wifiSettings?.security))r.wifiSettings.security=a.wifiSettings.security;
@@ -71,6 +99,13 @@ export function parseSave(raw:string|null): Save {
       const target=profile(out,tier);
       target.best=parseBest(source.best);
       target.active=parseRun(source.active,tier);
+      if(input.schema===2&&source.drafts!==undefined){
+        target.drafts={};
+        for(const n of Object.keys(CHECKS)){
+          const draft=parseRun(source.drafts?.[n],tier);
+          if(draft?.level===Number(n)&&draft.level!==target.active?.level)target.drafts[n]=draft;
+        }
+      }
       target.practice=parsePractice(source.practice,tier,target.best);
       // Optional extension: old exported schema-2 saves retain their exact shape.
       // Topic drafts are bounded by the known mission IDs and cannot replace campaign work.
@@ -97,7 +132,12 @@ export function checkpoint(save:Save,run:Run,mode:PlayMode){
   if(mode==='topics'){
     const topics=profile(save,run.content).topics!;
     if(run.completed)delete topics.drafts[run.level];else topics.drafts[run.level]=run;
-  }else profile(save,run.content).active=run.completed?null:run;
+  }else{
+    const p=profile(save,run.content);
+    if(p.active&&!p.active.completed&&p.active.level!==run.level)(p.drafts??={})[p.active.level]=p.active;
+    if(p.drafts)delete p.drafts[run.level];
+    p.active=run.completed?null:run;
+  }
 }
 export function totalXP(save:Save,tier:ContentTier=save.settings.content){return Object.values(profile(save,tier).best).reduce((sum,b)=>sum+b.learning+b.arcade,0);}
 export function totalLearning(save:Save,tier:ContentTier=save.settings.content){return Object.values(profile(save,tier).best).reduce((sum,b)=>sum+b.learning,0);}
