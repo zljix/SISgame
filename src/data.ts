@@ -44,7 +44,18 @@ export const LEVELS: Level[] = [
     ['Potrebne veze', 'Vatrozid dopušta ili blokira veze prema pravilima. Dopusti školski rad i odobreno upravljanje, a blokiraj neovlašten pristup.'],
     ['Provjera certifikata', 'Certifikat treba odgovarati nazivu poslužitelja, biti važeći i dolaziti iz pouzdanog lanca. Upozorenje o pogrešnom nazivu treba istražiti i ispraviti.'],
   ], stations: [at('channel', 'Zaštićen kanal', 5, 5, 'key'), at('firewall', 'Mrežna pravila', 16, 4, 'network', 0xffcf76), at('tls', 'Provjera certifikata', 26, 5, 'lock'), at('network-test', 'Provjera mreže', 26, 17, 'check', 0x67e7ab), exit] },
+  { id: 9, title: 'Trag iza alarma', subtitle: 'OTKRIVANJE I ODGOVOR', description: 'Usporedi senzore, istraži upozorenja i ograniči potvrđeni incident.', color: '#edb579', rooms: ['SENZORI', 'DOKAZI', 'ODGOVOR'], floors: [0x3b3040, 0x273948, 0x283c39], debrief: 'Zašto ni alarm ni izostanak alarma nisu sami po sebi dovoljan dokaz o stanju sustava?', lesson: [
+    ['IDS i IPS', 'IDS prati događaje i upozorava na sumnjivo ponašanje. IPS može i zaustaviti promet prema pravilima. U ovoj misiji djeluješ uz ovlaštenog administratora.'],
+    ['Upozorenje treba istražiti', 'Usporedi alarm s dnevnikom i potvrđenim održavanjem. Odobreni rad može izazvati lažni alarm. Odbijeni pokušaj nije dokaz uspješnog upada; potvrđena neovlaštena promjena jest dokaz incidenta.'],
+    ['Ciljana zaštita', 'Sačuvaj zapise i ograniči potvrđeni incident. Isprobaj blokiranje štetnog prometa i dopušten školski rad. Senzor može propustiti prijetnju, zato provjeravamo više izvora.'],
+  ], stations: [at('sensors', 'IDS i IPS', 5, 5, 'radar', 0xedb579), at('alerts', 'Istraga upozorenja', 16, 4, 'log'), at('response', 'Ciljana zaštita', 16, 16, 'network', 0xff9bb1), at('detection-test', 'Proba nadzora', 26, 17, 'check', 0x67e7ab), exit] },
+  { id: 10, title: 'Wi-Fi za prave goste', subtitle: 'BEŽIČNA MREŽA', description: 'Provjeri mrežu, zaštiti bežičnu vezu i odvoji goste od školskih podataka.', color: '#a6d78b', rooms: ['POVEZIVANJE', 'GOSTI', 'ODRŽAVANJE'], floors: [0x243e3a, 0x24364a, 0x3b3443], debrief: 'Zašto naziv Gost i jaka Wi-Fi lozinka sami ne sprječavaju pristup internoj školskoj mreži?', lesson: [
+    ['Provjeri kome se spajaš', 'SSID je naziv Wi-Fi mreže. Može se kopirati; jači signal i poznat naziv ne dokazuju vlasnika. Koristi odobrene upute i postavke dobivene poznatim školskim kontaktom.'],
+    ['Zaštiti i odvoji', 'Svi uređaji ovog malog školskog prostora podržavaju WPA3-Personal. Koristi dugu, zasebnu Wi-Fi lozinku. Gosti trebaju internet, ali pravila odvajanja moraju blokirati njihovu vezu prema internoj školskoj mreži.'],
+    ['Održavaj pristupnu točku', 'Pristupna točka povezuje bežične uređaje s mrežom. Promijeni početnu administratorsku lozinku i primijeni provjerene nadogradnje. Administratorska lozinka nije isto što i lozinka za Wi-Fi. HTTPS je i dalje potreban za web.'],
+  ], stations: [at('wifi-identity', 'Provjera mreže', 6, 5, 'wifi', 0xa6d78b), at('wifi-config', 'Mreža za goste', 16, 4, 'network', 0x60d8ff), at('wifi-maintenance', 'Pristupna točka', 26, 6, 'update', 0xffcf76), at('wifi-test', 'Provjera odvajanja', 26, 17, 'check', 0x67e7ab), exit] },
 ];
+export const missionNumber=(id:number)=>String(id).padStart(2,'0');
 export function levelContent(level:Level,tier:ContentTier):Level {
   return tier==='junior'?{...level,...JUNIOR_LESSONS[level.id],debrief:undefined}:level;
 }
@@ -57,8 +68,11 @@ const PASSAGES: Record<number, number[][]> = {
   6: [[8,9,16,17],[5,6,18,19],[6,7,8],[13,14,15],[27,28,29]],
   7: [[4,5,17,18],[5,6,16,17],[6,7,8],[15,16,17],[25,26,27]],
   8: [[6,7,15,16],[4,5,17,18],[4,5,6],[14,15,16],[27,28,29]],
+  9: [[4,5,15,16],[6,7,18,19],[7,8,9],[16,17,18],[24,25,26]],
+  10: [[7,8,17,18],[4,5,16,17],[4,5,6],[13,14,15],[26,27,28]],
 };
 Object.assign(TARGET_TEXT,{message:'Pregledaj sumnjivu poruku','verify-sender':'Provjeri pošiljatelja neovisnim putem',report:'Prijavi pokušaj prijevare','phish-test':'Provjeri postupak zaštite',channel:'Odaberi zaštićen prijenos',firewall:'Postavi potrebne mrežne veze',tls:'Provjeri identitet poslužitelja','network-test':'Isprobaj mrežnu zaštitu'});
+Object.assign(TARGET_TEXT,{sensors:'Usporedi IDS i IPS',alerts:'Istraži upozorenja i druge zapise',response:'Ograniči potvrđeni incident','detection-test':'Isprobaj nadzor i dopušten rad','wifi-identity':'Provjeri mrežu poznatim putem','wifi-config':'Zaštiti vezu i odvoji goste','wifi-maintenance':'Zaštiti pristupnu točku','wifi-test':'Isprobaj internet i odvajanje gostiju'});
 export function walls(level = 1): Set<string> {
   const w = new Set<string>();
   const [left, right, west, center, east] = PASSAGES[level] || [[5,6,16,17],[9,10,17,18],[4,5,6],[15,16,17],[25,26,27]];

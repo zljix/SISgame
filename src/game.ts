@@ -125,7 +125,7 @@ export class Sector extends Phaser.Scene {
     rect(10,2,12,3,0x66e3b3);rect(5,5,22,18,0x79d9e8);rect(7,7,18,10,0x172d42);rect(10,10,4,4,0xd7ffff);rect(20,10,4,4,0xd7ffff);rect(9,23,14,6,0x6590be);rect(7,29,7,3,0x0a1726);rect(19,29,7,3,0x0a1726);rect(3,20,5,8,0x66e3b3);rect(24,20,5,8,0x66e3b3);rect(12,19,8,3,0x2f6584);g.generateTexture('hero',32,32);g.clear();
     rect(8,3,16,3,0xff9da8);rect(4,6,24,20,0xc65575);rect(1,11,4,9,0xf78b98);rect(27,11,4,9,0xf78b98);rect(7,9,18,11,0x4c243e);rect(9,12,4,4,0xffe3d1);rect(19,12,4,4,0xffe3d1);rect(10,25,4,4,0xf78b98);rect(20,25,4,4,0xf78b98);g.generateTexture('threat',32,32);g.clear();
     rect(5,0,6,16,0xffcf76);rect(0,5,16,6,0xffcf76);rect(6,3,4,10,0xfff4c4);g.generateTexture('bit',16,16);g.clear();
-    for(const icon of ['card','door','power','file','shred','check','exit','access','lock','key','archive','backup','bug','log','update','network']){
+    for(const icon of ['card','door','power','file','shred','check','exit','access','lock','key','archive','backup','bug','log','update','network','radar','wifi']){
       rect(4,4,24,24,0x0b1b2c);rect(5,5,22,22,0x377088);
       const c=icon==='power'||icon==='backup'?0xffcf76:icon==='exit'?0x66e3b3:0xb4eaff;
       if(icon==='file'||icon==='card'){rect(9,7,14,18,c);rect(12,11,8,2,0x377088);rect(12,16,8,2,0x377088);if(icon==='card')rect(8,20,16,3,0x66e3b3);}
@@ -139,6 +139,8 @@ export class Sector extends Phaser.Scene {
       else if(icon==='bug'){rect(11,9,11,16,0xff9bb1);rect(14,6,5,5,0xff9bb1);for(let i=0;i<3;i++){rect(7,11+i*5,4,2,c);rect(22,11+i*5,4,2,c);}rect(16,12,2,10,0x0b1b2c);}
       else if(icon==='log'){rect(8,7,17,19,c);for(let i=0;i<3;i++){rect(10,10+i*5,2,2,0x377088);rect(15,10+i*5,7,2,0x377088);}}
       else if(icon==='update'){g.lineStyle(3,c);g.strokeCircle(16,16,8);g.fillStyle(0xffcf76);g.fillTriangle(21,5,28,9,21,13);rect(15,11,3,10,0x66e3b3);rect(11,15,11,3,0x66e3b3);}
+      else if(icon==='radar'){g.lineStyle(2,c);g.strokeCircle(16,16,10);g.strokeCircle(16,16,5);g.lineBetween(16,16,25,7);rect(9,19,3,3,0xffcf76);}
+      else if(icon==='wifi'){g.lineStyle(2,c);g.beginPath();g.arc(16,21,13,Math.PI*1.2,Math.PI*1.8);g.strokePath();g.beginPath();g.arc(16,21,8,Math.PI*1.2,Math.PI*1.8);g.strokePath();rect(14,20,4,4,0x66e3b3);}
       else if(icon==='network'){rect(12,7,9,7,c);rect(15,14,3,8,c);rect(7,19,19,3,c);rect(6,21,7,5,0xffcf76);rect(21,21,7,5,0xffcf76);}
       else {rect(8,8,17,17,c);rect(10,10,13,3,0x377088);rect(11,18,4,4,0x377088);rect(18,18,4,4,0x66e3b3);}
       g.generateTexture('icon-'+icon,32,32);g.clear();

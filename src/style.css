@@ -400,3 +400,15 @@ dialog {
   .flow-row > span { min-width:160px; }
   .flow-row output { margin-left:auto; }
 }
+
+/* Evidence and live consequences in the IDS/IPS and Wi-Fi missions. */
+.alert-cards label,.wifi-controls label { color:#d4e2ea; font-size:13px; line-height:1.5; }
+.alert-cards select,.wifi-controls select { max-width:100%; }
+.wifi-preview { margin:16px 0; padding:14px; border:1px solid #476371; border-radius:12px; background:#122735; }
+.wifi-preview h3 { font-size:14px; margin:0 0 12px; color:#d4e8ef; }
+.wifi-path { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:10px 0; border-top:1px solid #304b5a; font-size:13px; line-height:1.5; }
+.wifi-path output { color:#ffd087; text-align:right; font:600 12px/1.5 ui-monospace,monospace; }
+.wifi-path output.safe { color:#86ecc0; }
+@media(max-width:600px){ .wifi-path { flex-wrap:wrap; gap:5px; } .wifi-path output { text-align:left; } }
+
+@media(max-width:700px){ .alert-cards { grid-template-columns:1fr; } }

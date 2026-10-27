@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { act, advanceReviewClock, applyPermissions, arcadeScore, CHECKS, classifyMalware, collect, configureFirewall, configureServices, has, newRun, ready, score, secureSession, submitExpertReview, type Run } from '../src/core.ts';
+import { act, advanceReviewClock, applyPermissions, arcadeScore, CHECKS, classifyAlerts, classifyMalware, collect, configureFirewall, configureServices, configureWifi, has, newRun, ready, score, secureSession, submitExpertReview, type Run } from '../src/core.ts';
+import { LEVELS } from '../src/data.ts';
 import { EXPERT_REVIEWS, TIERS } from '../src/curriculum.ts';
 import { eventsFor, flowsFor, samplesFor, servicesFor } from '../src/missions.ts';
 import { emptySave, parseSave, profile, recordBest, totalLearning } from '../src/storage.ts';
@@ -15,13 +16,15 @@ function prepare(run:Run){
     case 6: act(run,'patches','official');act(run,'accounts','standard');configureServices(run,{updates:true,coursework:true,remote:false});break;
     case 7: act(run,'message','inspect');act(run,'verify-sender','known');act(run,'report','report');break;
     case 8: act(run,'channel','https');configureFirewall(run,{web:true,admin:true,outside:false});act(run,'tls','stop');break;
+    case 9: act(run,'sensors','compare');classifyAlerts(run,{maintenance:'expected',compromised:'incident',probe:'investigate'});act(run,'response','targeted');break;
+    case 10: act(run,'wifi-identity','known');configureWifi(run,{security:'wpa3',guests:'isolated'});act(run,'wifi-maintenance','maintain');break;
   }
 }
 const finalChoice=(level:number)=>level===2||level===3?'verify':'test';
 const answers=(level:number)=>Object.fromEntries(EXPERT_REVIEWS[level].questions.map(q=>[q.id,q.answer]));
 
-test('All eight missions can be completed in all three content tiers, with required Expert analysis',()=>{
-  for(const tier of TIERS)for(let level=1;level<=8;level++){
+test('All campaign missions can be completed in all three content tiers, with required Expert analysis',()=>{
+  for(const tier of TIERS)for(let level=1;level<=LEVELS.length;level++){
     const run=newRun(level,'relaxed',tier);prepare(run);
     const station=CHECKS[level][3];assert.equal(score(run),75,`${tier}/${level} preparation`);
     if(tier==='expert'){
