@@ -232,3 +232,36 @@ Object.assign(VERIFICATION_REPORTS, {
   'risk-test':[['Obnova radova','Otvaranje i usporedba vraćenog sadržaja uspješni.'],['Račun rasporeda','Osobni računi i potrebne ovlasti provjereni.'],['Resursi','Prioritetne mjere stanu u pet jedinica rada.'],['Preostali rizik','Kvar je još moguć. Administrator prati disk i planira zamjenu.']],
   'incident-test':[['Obnovljeni sadržaj','Kopija A provjerena; izmjena iz 08:20 označena kao nedostajuća.'],['Rad i ovlasti','Školska usluga radi; neodobrene radnje su odbijene.'],['Odobren povratak','Administrator odobrava povezivanje uz nastavak nadzora.'],['Pouke','Izvještaj, odgovorna osoba i rok za provjeru poboljšanja su zabilježeni.']],
 });
+
+Object.assign(DECISIONS, {
+  'hash-source':decision(13,'Za usporedbu trebaš očekivani SHA-256 sažetak odobrene školske obavijesti. Datoteka i popis sažetaka stigli su i u nepoznatoj poruci. Odaberi izvor kojem možeš opravdano vjerovati.',[],'known',[
+    ['message','Uzmi sažetak iz iste nepoznate poruke','Netko je mogao zamijeniti i datoteku i priloženi sažetak.'],
+    ['known','Potvrdi školsku objavu poznatim putem','Preuzmi očekivani sažetak za istu odobrenu inačicu.'],
+    ['name','Usporedi samo naziv i veličinu','Različit sadržaj može imati isti naziv i veličinu.'],
+  ],'Poznatim školskim putem potvrđena je referenca za obavijest o sastanku u 10:00. Na konzoli usporedi sažetke sadržaja s tom referencom.'),
+  'hash-response':decision(13,'Primjerak B ima isti naziv kao odobrena datoteka, ali drugi SHA-256 i promijenjeno vrijeme sastanka. Uzrok promjene još nije utvrđen.',['hash-source','hash-lab'],'retry',[
+    ['retry','Zaustavi uporabu i pribavi odobreni primjerak','Prijavi razliku, provjeri izvor i ponovno usporedi preuzeti sadržaj.'],
+    ['rename','Preimenuj B u izvorni naziv','Preimenovanje ne vraća izvorne bajtove.'],
+    ['replace','Zamijeni očekivani sažetak onim iz B','Uklonio bi trag razlike umjesto da provjeriš sadržaj.'],
+  ],'Razlika je prijavljena. Škola je poznatim putem dostavila odobreni primjerak. Potrebna je nova usporedba, bez nagađanja je li razlika bila kvar ili namjerna izmjena.'),
+  'hash-test':decision(13,'Ponovno preuzeti primjerak treba odgovarati potvrđenoj školskoj referenci. Provjera se odnosi na sadržaj i odabranu inačicu, a ne na bezopasnost svakog mogućeg programa.',['hash-source','hash-lab','hash-response'],'test',[
+    ['test','Ponovi usporedbu i zabilježi granice','Potvrdi podudaranje sažetka; uporaba i dalje slijedi školsku politiku.'],
+  ],'Novi primjerak podudara se s pouzdanom referencom. Razlika u B je dokumentirana. Naziv, sažetak, šifriranje i sigurnost uporabe imaju različite uloge.'),
+  'sign-keys':decision(14,'Škola potpisuje raspored privatnim ključem. Za provjeru potpisa trebaš odgovarajući javni ključ i potvrdu da pripada školi. U vježbi je poznati školski kanal dostupan.',[],'public',[
+    ['private','Traži privatni potpisni ključ škole','Njime bi se moglo potpisivati u ime škole; ne dijeli se primateljima.'],
+    ['enclosed','Vjeruj bilo kojem ključu priloženom poruci','Priloženi ključ sam ne dokazuje kome pripada.'],
+    ['public','Preuzmi potvrđeni školski javni ključ','Privatni ključ ostaje kod potpisnika, javni koristiš za provjeru.'],
+  ],'Poznatim školskim putem potvrđen je javni ključ škole. Privatni potpisni ključ ostaje zaštićen kod potpisnika. Na konzoli odvojeno provjeri prolazi li potpis i možeš li vjerovati vezi ključa sa školom.'),
+  'sign-share':decision(14,'Uz provjereni raspored treba poslati zaseban potpisani prilog s povjerljivim podatcima samo ovlaštenom nastavniku. Potpisani prilog trenutačno nije šifriran.',['sign-keys','sign-lab'],'protect',[
+    ['public','Objavi prilog jer je potpisan','Potpis ne sprečava druge da čitaju sadržaj.'],
+    ['protect','Šifriraj za primatelja i ograniči pristup','Zadrži potpis za provjeru, a ovlast i šifriranje za povjerljivost.'],
+    ['send-key','Pošalji i privatni potpisni ključ','Primatelju za provjeru treba javni ključ, ne tajna potpisnika.'],
+  ],'U simulaciji je prilog zasebno šifriran za ovlaštenog primatelja, a pristup ograničen. Potpis ostaje za provjeru podrijetla i cjelovitosti. Potpisni i pristupni podatci ne dijele se gostima.'),
+  'sign-test':decision(14,'Isprobaj prihvaćanje izvornog rasporeda i odbijanje nevaljanog ili nepotvrđenog zapisa. Provjeri i čitljivost povjerljivog priloga za ovlaštenu osobu te zabranu gostu.',['sign-keys','sign-lab','sign-share'],'test',[
+    ['test','Provjeri izvor, promjene i pristup','Potpis i povjerljivost provjeravaju se zasebno.'],
+  ],'Izvorni školski zapis je prihvaćen. Izmijenjeni i nepotvrđeni zapisi nisu prihvaćeni. Ovlašteni primatelj otvara prilog, gost nema pristup. To je rezultat zadanog nastavnog modela.'),
+});
+Object.assign(VERIFICATION_REPORTS, {
+  'hash-test':[['Pouzdana referenca','SHA-256 dobiven je iz potvrđenog izvora za istu inačicu.'],['Ponovni primjerak','Sadržaj odgovara očekivanom sažetku. Promjena naziva sama nije promjena sadržaja.'],['Nepodudaranje','Primjerak B zaustavljen je; razlika je prijavljena bez nagađanja uzroka.'],['Ograničenje','Sažetak ne daje povjerljivost, kopiju za obnovu ni jamstvo bezopasnosti programa.']],
+  'sign-test':[['Ključ i izvor','Korišten je javni ključ potvrđen poznatim školskim putem. Privatni ostaje kod potpisnika.'],['Cjelovitost','Izvorni zapis A prolazi; izmijenjeni B ne prolazi sa starim potpisom.'],['Povjerenje','C se ne prihvaća kao školski zapis, čak ni kad potpis prolazi uz nepotvrđeni ključ iz poruke.'],['Povjerljivi prilog','Zasebna zaštita omogućuje ovlaštenom primatelju čitanje i ograničava pristup gostu.']],
+});

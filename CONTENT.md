@@ -1,6 +1,6 @@
-# SISgame — sadržaj kampanje 0.7.0
+# SISgame — sadržaj kampanje 0.8.0
 
-Igra ima dvanaest misija i 48 sigurnosnih zadaća po razini sadržaja. Od 0.6.0 svaku misiju prati novi slučaj primjene s odvojenom evidencijom vježbanja. Inačica 0.7.0 dodaje pregled Moj rad, čitljiv sažetak i prijenos napretka putem kopije; nastavni ishodi ostaju isti. Misija traje koliko učeniku treba za istraživanje i odluke; nema vremenske kazne za čitanje. Nakon pouke učenik postavlja mjere, ispravlja pogreške i provjerava rezultat. Izlaz se otvara tek nakon četiri dovršene zadaće.
+Igra ima četrnaest misija i 56 sigurnosnih zadaća po razini sadržaja. Od 0.6.0 svaku misiju prati novi slučaj primjene s odvojenom evidencijom vježbanja. Inačica 0.8.0 proširuje kampanju misijama o kriptografskim sažetcima i digitalnim potpisima te njihovim slučajevima primjene. Pregled Moj rad, sažetak i kopije obuhvaćaju proširenu kampanju. Misija traje koliko učeniku treba za istraživanje i odluke; nema vremenske kazne za čitanje. Nakon pouke učenik postavlja mjere, ispravlja pogreške i provjerava rezultat. Izlaz se otvara tek nakon četiri dovršene zadaće.
 
 ## Dob, predznanje i pristupačnost
 
@@ -18,6 +18,8 @@ Primarna razvojna publika je 13–18 godina, s naglaskom na srednju školu. Juni
 | Wi-Fi | WPA3 unaprijed pripremljen; dva izbora pristupa gostiju | Izbor zaštite i tri mogućnosti gostujućeg pristupa | Puni skup + provjera stvarnog odvajanja |
 | Rizik i mjere | Dva slučaja bez računanja; tri jedinice rada | Tri slučaja, ocjene V × U; pet jedinica rada | Puni skup + preostali rizik i provjera učinka |
 | Plan incidenta | Prvi i zadnji korak; srednji pripremljen | Tri koraka i posljedice redoslijeda | Puni skup + provjera ovlasti, nastavak rada i pouke |
+| SHA-256 i sadržaj | Dva primjerka; pomoć pri usporedbi | Tri primjerka, uključujući preimenovani isti sadržaj | Puni skup + nepouzdana referenca i granice zaključka |
+| Digitalni potpisi | Izvorni i izmijenjeni zapis | Dodan zapis uz nepotvrđeni ključ; promjena ključa pokazuje učinak | Puni skup + valjan potpis uz nedopuštenu uputu |
 | Završetak | Provjera mjera | Provjera mjera i pitanje za primjenu | Obvezna analiza triju odluka prije završne provjere |
 
 Tempo (bez smetnji / lagan / srednji / brz) ne bira nastavni sadržaj. Expert može biti bez smetnji i bez sata. Junior može imati brz arkadni tempo. Brzina i refleksi ne određuju bodove učenja.
@@ -26,7 +28,7 @@ Opcionalni Expert izazov ima 90 sekundi **aktivnog rješavanja dodatnog slučaja
 
 ## Veza s nastavnim okvirom
 
-Sadržaj nastavlja SIS priručnik i okvir od sedam cjelina / 26 tema. Jedna misija može objediniti više tema; dvanaest misija **ne predstavlja svih 26 lekcija**.
+Sadržaj nastavlja SIS priručnik i okvir od sedam cjelina / 26 tema. Jedna misija može objediniti više tema; četrnaest misija **ne predstavlja svih 26 lekcija**.
 
 | Misija | Područje | Što učenik treba pokazati |
 | --- | --- | --- |
@@ -42,6 +44,8 @@ Sadržaj nastavlja SIS priručnik i okvir od sedam cjelina / 26 tema. Jedna misi
 | 10. Wi-Fi za prave goste | Bežična mreža i odvajanje pristupa | Provjeriti mrežu poznatim putem, zaštititi vezu i provjeriti granice gostujućeg pristupa. |
 | 11. Što prvo zaštititi? | Imovina, rizik i mjere | Povezati imovinu s nastavom, odrediti prioritete iz zadanih procjena i odabrati provedive mjere. |
 | 12. Smireno kroz incident | Operativni odgovor i oporavak | Prijaviti činjenice, složiti plan, odabrati pouzdan izvor i provjeriti povratak uz nadzor. |
+| 13. Je li sadržaj isti? | Podatkovni sloj, kriptografski sažetci | Potvrditi referencu, usporediti SHA-256 sadržaja i prikladno reagirati na nepodudaranje. |
+| 14. Čiji je potpis? | Podatkovni sloj, digitalni potpisi | Razlikovati uloge ključeva, provjeru potpisa, povjerenje u izvor i zasebnu zaštitu povjerljivosti. |
 
 Procjena imovine i rizika te plan odgovora na incident sada imaju samostalne misije. Dodatni slučajevi sada omogućuju vođenu primjenu na novim činjenicama; prijenos u praktičan rad i dalje treba provjeriti u nastavi. Mrežne veze, TLS i phishing također imaju zasebne misije. Opisi misija 4–6 u nastavku odgovaraju Standardu; Junior pojednostavljenja i Expert dodatci navedeni su zasebno.
 
@@ -166,6 +170,52 @@ Nedovršeni odabiri na konzolama upozorenja i Wi-Fi postavki automatski se sprem
 
 **Očekivano obrazloženje:** navesti točno što je obnovljeno i što nedostaje; ne izjednačiti pokretanje računala s punim oporavkom. Poboljšanje treba imati odgovornu osobu, rok i provjeru provedbe.
 
+## 13. Je li sadržaj isti?
+
+**Scenarij:** treba provjeriti školsku obavijest o vremenu sastanka. Pouka najprije uvodi hash funkciju, SHA-256, cjelovitost i potrebu za pouzdanim očekivanim sažetkom. Broj od 64 heksadekadska znaka objašnjen je prije usporedbe; učenik ga ne računa ručno i ne treba ga pamtiti.
+
+1. **Referenca:** potvrdi školsku objavu poznatim putem i preuzmi očekivani sažetak za istu inačicu. Datoteka i sažetak iz iste sumnjive poruke mogu oba biti zamijenjeni.
+2. **Konzola:** usporedi primjerke s referencom. Gumb **Usporedi s referencom** daje pomoć pri čitanju rezultata; učenik zatim predaje zaključak za svaki primjerak. Nepotpun odgovor ne bilježi pogrešku, a netočan navodi koji primjerak treba ponovno pogledati.
+3. **Nepodudaranje:** primjerak B ne prihvaća se kao potvrđena inačica. Prijavi razliku, zaustavi uporabu i pribavi odobreni primjerak poznatim putem. Preimenovanje ili zamjena očekivanog sažetka pogrešnim ne popravlja sadržaj.
+4. **Nova provjera:** potvrdi podudaranje novog primjerka s pouzdanom referencom. Zabilježi da hash nije šifriranje, kopija za obnovu ni jamstvo bezopasnosti datoteke. Različiti sažetci pokazuju različite podatke, a ne sami po sebi uzrok promjene.
+
+| Primjerak | Naziv | Točan sadržaj | Zaključak prema referenci |
+| --- | --- | --- | --- |
+| Referenca i A | `obavijest.txt` | `SIS: sastanak u 10:00.` | Sažetak se podudara. |
+| B | `obavijest.txt` | `SIS: sastanak u 11:00.` | Isti naziv, drugi podatci i drugi sažetak. |
+| C | `kopija.txt` | `SIS: sastanak u 10:00.` | Drugi naziv, isti podatci i isti sažetak. |
+
+Vrijednosti u igri stvarni su, unaprijed izračunani SHA-256 sažetci tih UTF-8 nizova bez završnog prijeloma retka. Test ih neovisno provjerava pomoću `node:crypto`. Ne obrađuju se korisnikove datoteke. Za opću kriptografsku hash funkciju nije matematički zajamčeno da različiti ulazi uvijek daju različite sažetke; ovdje uspoređeni stvarni primjeri imaju navedene rezultate.
+
+**Junior:** uspoređuje A i B, uz kraću pouku i dostupnu pomoć. **Expert:** dodatno objašnjava zašto nepouzdan sažetak ne potvrđuje izvor, zašto razlika ne otkriva krivca i zašto podudaranje ne odobrava pokretanje svakog programa.
+
+**Pitanje nakon igre:** Što možeš zaključiti iz različitih sažetaka, a što još moraš istražiti? Zašto je važan izvor očekivane vrijednosti?
+
+**Očekivano obrazloženje:** podatci se razlikuju; uzrok može biti druga inačica, greška prijenosa ili namjerna izmjena. Referenca mora pripadati traženoj inačici i pouzdanom izvoru. Hash sam ne potvrđuje osobu koja je poslala datoteku.
+
+## 14. Čiji je potpis?
+
+**Scenarij:** treba prihvatiti potvrđeni školski raspored, otkriti promijenjeni zapis i zaštititi zaseban povjerljivi prilog. Pouka objašnjava da privatni ključ služi potpisivanju, javni provjeri, a slika rukom pisanog potpisa nije ta kriptografska provjera.
+
+1. **Ključevi:** poznatim školskim putem preuzmi potvrđeni javni ključ. Privatni potpisni ključ ostaje kod potpisnika. Ključ iz iste nepoznate poruke ne uspostavlja sam vezu sa školom.
+2. **Konzola:** odabir između potvrđenog školskog i nepotvrđenog priloženog ključa mijenja rezultat zadanog modela. Učenik promatra izvješće i odlučuje koji se zapis može prihvatiti kao školski. Cilj je omogućiti valjani školski zapis i zaustaviti izmijenjene ili nepotvrđene zapise.
+3. **Povjerljivi prilog:** zadrži potpis za provjeru izvora i cjelovitosti, a sadržaj zasebno šifriraj za ovlaštenog primatelja i ograniči pristup unutar simulacije. Sam potpis ne skriva podatke i ne daje nove ovlasti.
+4. **Provjera predaje:** izvorni zapis A prihvaćen je; B i C nisu prihvaćeni kao školski zapisi. Ovlašteni primatelj otvara prilog, gost nema pristup.
+
+| Zapis | Potvrđeni školski ključ | Nepotvrđeni ključ iz poruke | Odluka |
+| --- | --- | --- | --- |
+| A · izvorni školski raspored | Potpis prolazi. | Potpis ne prolazi. | Prihvati nakon provjere školskim ključem. |
+| B · sadržaj promijenjen nakon potpisa | Potpis ne prolazi. | Potpis ne prolazi. | Zaustavi prihvaćanje i zatraži provjeru. |
+| C · potpis uz nepotvrđeni ključ | Potpis ne prolazi. | Potpis prolazi, ali veza ključa sa školom nije potvrđena. | Ne prihvaćaj kao potvrđeni školski zapis. |
+
+Konzola je **nastavni model** sa zadanim zapisima i izmišljenim oznakama ključeva. Ne izvodi kriptografsku provjeru stvarnih potpisa, ne sadrži privatne ključeve i ne provjerava certifikacijski lanac, opoziv ili vremenski žig. Te dodatne teme nisu predstavljene kao riješene ovom misijom. Potpisni ključ i ključ za zaštitu povjerljivog priloga imaju odvojene uloge.
+
+**Junior:** razmatra A i B. **Standard i Expert:** razmatraju i C te mogu isprobati prolazak njegova potpisa uz nepotvrđeni ključ. **Expert:** nakon toga obrađuje valjan školski potpis na dokumentu sa zastarjelom, nedopuštenom uputom; potpis ne zamjenjuje pravila pristupa ni provjeru smisla upute.
+
+**Pitanje nakon igre:** Zašto prolazak provjere uz bilo koji ključ nije dovoljan za potvrdu škole? Što treba dodati ako je dokument povjerljiv?
+
+**Očekivano obrazloženje:** treba pouzdano povezati javni ključ s očekivanim potpisnikom. Potpis koji prolazi podupire provjeru izvora i cjelovitosti uz takvu vezu, ali čitljivost sadržaja i dopušteni primatelji zahtijevaju zasebnu zaštitu.
+
 ## Expert slučajevi i očekivani zaključci
 
 | Misija | Novi dokaz ili ograničenje | Plan koji odgovara slučaju |
@@ -182,10 +232,12 @@ Nedovršeni odabiri na konzolama upozorenja i Wi-Fi postavki automatski se sprem
 | 10 | WPA3 je uključen, ali gost vidi internu mapu. | Popraviti mrežna pravila, isprobati ih iz uloge gosta i zadržati HTTPS. |
 | 11 | Kopija je provjerena, ali disk i dalje javlja greške, a novije izmjene nisu kopirane. | Razlikovati vjerojatnost kvara od gubitka rada, provjeriti obnovu i evidentirati preostali rizik s odgovornom osobom i rokom. |
 | 12 | Obnovljena mapa gostu dopušta izmjene; odvojena učionica radi, a poboljšanje kopija nema vlasnika. | Ispraviti ovlasti prije povezivanja, sačuvati opravdano dostupan rad i dodijeliti provjerljiv zadatak poboljšanja. |
+| 13 | Sažetak iz nepoznate poruke odgovara datoteci, a potvrđeni školski sažetak razlikuje se. | Koristiti potvrđenu referencu za istu inačicu, istražiti uzrok razlike i zasebno provjeriti dopuštenost uporabe. |
+| 14 | Potpis potvrđenog urednika prolazi, ali tekst traži javnu predaju povjerljivog priloga. | Razlikovati valjan potpis od dopuštene upute, razjasniti nesklad i zaštititi pristup i čitljivost. |
 
 Dodatni slučajevi su provjera primjene na novim činjenicama. Tri ispravne odluke otključavaju zadnju sigurnosnu zadaću; same ne daju dodatne bodove. Netočan potpun plan bilježi ispravak završne zadaće, nepotpun obrazac traži dopunu bez kazne.
 
-## Dodatna primjena nakon završene misije (0.6.0)
+## Dodatna primjena nakon završene misije (od 0.6.0; prošireno u 0.8.0)
 
 Ovi slučajevi dostupni su svim razinama sadržaja. Ne zamjenjuju obveznu Expert analizu unutar misije i ne uvode nove ishode. Otvaraju se tek nakon odgovarajuće misije, pa učenik već ima pouku, primjer i vođeni zadatak. Na raspolaganju su kratki podsjetnik i cijela prethodna pouka; kod QR koda pojam je objašnjen i u samom opisu novog slučaja.
 
@@ -203,8 +255,10 @@ Ovi slučajevi dostupni su svim razinama sadržaja. Ne zamjenjuju obveznu Expert
 | 10 | Dan otvorenih vrata | Stvarno odvojiti goste i isprobati granicu; naziv i lozinka ne postavljaju ovlasti. | WPA3 i HTTPS imaju različit opseg zaštite. |
 | 11 | Stari disk i ukrasni pano | Zaštititi jedine snimke zbog čestih grešaka i posljedica prekida rada. | Kopija ne popravlja disk niti uključuje kasnije promjene. |
 | 12 | Sustav za posudbu | Koristiti čistu kopiju, prijaviti nedostajuće posudbe i provjeriti povratak. | Nepravilne ovlasti gosta treba popraviti i isprobati prije odobrenja rada. |
+| 13 | Fotografija za školski arhiv | Usporediti sažetak s potvrđenom referencom; razlikovati naziv i sadržaj datoteke. | Promijenjeni metapodatci unutar datoteke mogu promijeniti sažetak i kad slika izgleda isto. |
+| 14 | Potpisana potvrda za putovanje | Potpisanu potvrdu predati zaštićeno samo ovlaštenoj osobi; potpis ne skriva podatke. | Potpis uz priloženi ključ sam ne potvrđuje da ključ pripada školi. |
 
-Junior ima kraći opis i **2 pitanja s po 2 odgovora**. Standard ima **2 pitanja s po 3 odgovora**. Expert dobiva dodatni dokaz i **3 pitanja s po 3 odgovora**. U cijelom skupu to je 24 odluke za Junior/Standard odnosno 36 za Expert. U svim razinama učenik odabire i postupak i obrazloženje. Odabir ponuđenog obrazloženja treba dopuniti usmenim ili praktičnim objašnjenjem u nastavi.
+Junior ima kraći opis i **2 pitanja s po 2 odgovora**. Standard ima **2 pitanja s po 3 odgovora**. Expert dobiva dodatni dokaz i **3 pitanja s po 3 odgovora**. U cijelom skupu to je 28 odluka za Junior/Standard odnosno 42 za Expert. U svim razinama učenik odabire i postupak i obrazloženje. Odabir ponuđenog obrazloženja treba dopuniti usmenim ili praktičnim objašnjenjem u nastavi.
 
 Svaka potpuna predaja daje objašnjenje uz pojedino pitanje. Netočne odluke mogu se ispraviti; prazna predaja i uzastopna ponovljena predaja istih odabira ne povećavaju broj pokušaja. Nakon točnog rješenja slučaj se prikazuje kao zapis koji se više ne prepisuje. Oznaka „iz prve” znači točan prvi potpuni odgovor uz dostupnu pomoć. Ne čuva se puna povijest svih odgovora, nego odabiri, posljednja potpuna predaja, broj pokušaja i točnost prve predaje.
 
@@ -212,7 +266,7 @@ Pregled prikazuje riješene slučajeve i teme u kojima je trebalo ispravljati od
 
 ## Veza mehanike i sigurnosnog problema
 
-Postavljanje prava određuje tko smije čitati i mijenjati sadržaj. Odvojena kopija preživljava simulirani kvar, a obnova vraća datoteke koje igrač otvara i uspoređuje. Mrežni prekidači pokazuju učinak pravila na potreban i neovlašten pristup. Plan mjera pokazuje potrošene jedinice i preostali rizik; plan incidenta prikazuje posljedice redoslijeda prije potvrde. Ti su prikazi pomoć u učenju, pa oznaka „samostalno” znači bez pogrešne predaje, a ne rad bez takve pomoći. Izvještaji i dnevnici traže zaključivanje iz opisanog ponašanja, a završne provjere traže prethodno provedene mjere. Dodatni slučajevi odvajaju izbor postupka od obrazloženja, a Expert traži i zaključak o granici provedenog postupka.
+Postavljanje prava određuje tko smije čitati i mijenjati sadržaj. Odvojena kopija preživljava simulirani kvar, a obnova vraća datoteke koje igrač otvara i uspoređuje. Mrežni prekidači pokazuju učinak pravila na potreban i neovlašten pristup. Plan mjera pokazuje potrošene jedinice i preostali rizik; plan incidenta prikazuje posljedice redoslijeda prije potvrde. Ti su prikazi pomoć u učenju, pa oznaka „samostalno” znači bez pogrešne predaje, a ne rad bez takve pomoći. Izvještaji i dnevnici traže zaključivanje iz opisanog ponašanja, a završne provjere traže prethodno provedene mjere. Usporedba sažetaka povezuje točne podatke s rezultatom SHA-256, a konzola potpisa odvaja podudaranje potpisa od povjerenja u ključ. Dodatni slučajevi odvajaju izbor postupka od obrazloženja, a Expert traži i zaključak o granici provedenog postupka.
 
 Kretanje, bitovi, crvene prepreke i štit ostaju arkadni dio. Ne predstavljaju djelovanje antivirusnog programa i nisu dokaz znanja. Konzole su didaktički modeli; igra ne izvodi stvarno šifriranje, mrežne napade ili promjene školskih računa. Za razvoj prema dubljoj simulaciji treba testiranjem utvrditi gdje učenici razumiju posljedicu, a gdje samo pamte položaj točne tipke.
 
@@ -253,3 +307,7 @@ Dopunjeno 27. listopada 2026. Izvori podupiru načela; dijalozi, uređaji, izvje
 - [FTC — How To Secure Your Home Wi-Fi Network](https://consumer.ftc.gov/articles/how-secure-your-home-wi-fi-network): zasebna zaštita upravljanja i Wi-Fi pristupa te odvajanje gostujuće mreže. Kućni okvir izvora ovdje podupire osnovna načela malog didaktičkog scenarija.
 - [NIST SP 800-30 Rev. 1 — Guide for Conducting Risk Assessments](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-30r1.pdf): kontekst procjene, prijetnje, slabosti, vjerojatnost i učinak. Ljestvica V × U, njezini pragovi i jedinice rada u igri vlastiti su didaktički model, ne preuzeta NIST ljestvica.
 - [NIST SP 800-61 Rev. 3 — Incident Response Recommendations](https://csrc.nist.gov/pubs/sp/800/61/r3/final): usklađen odgovor, očuvanje dokaza, komunikacija, provjera izvora za obnovu, provjera obnovljenih sustava i poboljšanje postupaka. Tri koraka u igri odnose se na određeni školski slučaj; nisu tvrdnja da se sve aktivnosti u praksi provode strogo jedna nakon druge.
+
+- [NIST FIPS 180-4 — Secure Hash Standard](https://csrc.nist.gov/pubs/fips/180-4/upd1/final): SHA-256 i uporaba sažetaka za otkrivanje promjene podataka. Primjeri poruka i njihove vrijednosti izvorno su pripremljeni za igru.
+- [NIST FIPS 186-5 — Digital Signature Standard](https://csrc.nist.gov/pubs/fips/186-5/final): digitalni potpisi za provjeru neovlaštenih promjena i identiteta potpisnika. Konzola je didaktički model, a ne provedba algoritama iz standarda.
+- [NIST — Digital signature, glossary](https://csrc.nist.gov/glossary/term/digital_signature): uloge privatnog i javnog ključa te razlika između potpisa i zaštite povjerljivosti.

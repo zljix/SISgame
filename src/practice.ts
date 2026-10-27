@@ -283,6 +283,54 @@ export const PRACTICE_CASES:Scenario[] = [
   }
 ];
 
+
+PRACTICE_CASES.push(
+  {
+    level:13,title:'Fotografija za školski arhiv',
+    context:'Nastavnik je poznatim školskim putem dostavio izvornu fotografiju i njezin SHA-256. Učenik je napravio kopiju pod drugim nazivom. Kopija ima isti sažetak kao referenca, ali druga dostavljena datoteka ima drukčiji sažetak iako se zove jednako kao izvornik.',
+    juniorContext:'Nastavnik je potvrdio sažetak izvorne fotografije. Kopija pod drugim nazivom ima isti sažetak. Drugi primjerak s izvornim nazivom ima drukčiji sažetak.',
+    expertEvidence:'Program je pri spremanju promijenio metapodatke, odnosno dodatne podatke unutar datoteke. Slika izgleda isto, ali bajtovi datoteke više nisu isti.',
+    reminder:'Sažetak se računa iz sadržaja datoteke. Naziv nije dovoljan za usporedbu, a očekivani sažetak treba dobiti iz pouzdanog izvora.',
+    transfer:'Uz nastavnika usporedi SHA-256 dvaju primjeraka bezazlene probne datoteke. Preimenuj jedan pa ponovi; zatim izmijeni sadržaj pa ponovno usporedi.',
+    questions:[
+      question('action','Koji primjerak odgovara potvrđenom sažetku?','copy','name',[
+        ['name','Onaj s izvornim nazivom, bez obzira na sažetak.','Naziv ne dokazuje isti sadržaj; različit sažetak pokazuje razliku podataka.'],
+        ['copy','Kopija s drugim nazivom i istim sažetkom; nepodudaranje drugog primjerka treba provjeriti.','Naziv može biti drukčiji dok podatci ostaju isti. Usporedba se oslanja na potvrđenu referencu.'],
+        ['both','Oba primjerka jer su stigla istog dana.','Vrijeme primitka ne govori odgovaraju li podatci izvorniku.']]),
+      question('reason','Zašto naziv nije dovoljan?','bytes','secret',[
+        ['bytes','Sažetak uspoređuje podatke, a naziv se može promijeniti odvojeno.','Promjena naziva sama ne mijenja bajtove sadržaja koje ovdje sažimamo.'],
+        ['secret','Sažetak pretvara fotografiju u tajni, nečitljivi sadržaj.','Hash nije šifriranje i ne skriva fotografiju.'],
+        ['restore','Sažetak je potpuna kopija iz koje se fotografija vraća.','Za obnovu treba sačuvana datoteka, ne samo njezin sažetak.']])
+    ],
+    expert:question('limit','Što očekuješ nakon promjene metapodataka unutar datoteke?','different','same',[
+      ['same','Isti sažetak jer fotografija izgleda isto.','Izgled nije isto što i točni podatci cijele datoteke.'],
+      ['attacker','Razlika bi sama dokazala napad.','Poznata izmjena metapodataka može objasniti razliku bez napada.'],
+      ['different','Tipično drukčiji sažetak jer su promijenjeni podatci datoteke.','SHA-256 se računa iz bajtova, uključujući metapodatke koji su dio tih bajtova.']])
+  },
+  {
+    level:14,title:'Potpisana potvrda za putovanje',
+    context:'Digitalno potpisana školska potvrda sadrži osobne podatke učenika. Potpis prolazi uz javni ključ potvrđen poznatim školskim putem. Potvrdu smije primiti samo ovlašteni organizator, a netko predlaže objavu na javnoj ploči jer je dokument potpisan.',
+    juniorContext:'Školska potvrda ima ispravan digitalni potpis, ali sadrži privatne podatke. Čitati je smije samo ovlašteni organizator. Predložena je javna objava.',
+    expertEvidence:'Zasebna poruka izgleda kao školska. Potpis joj prolazi uz ključ priložen toj poruci, ali nije potvrđeno čiji je taj ključ.',
+    reminder:'Potpis provjerava vezu sadržaja i ključa. Za zaključak o izvoru potvrdi vlasnika javnog ključa. Za skrivanje osjetljivog sadržaja trebaju zasebna zaštita i ovlasti.',
+    transfer:'Uz nastavnika objasni što bi provjerio u izvještaju o potpisu probnog dokumenta: podudaranje, potpisnika i izvor povjerenja. Koristi samo probne podatke.',
+    questions:[
+      question('action','Kako predati potvrdu?','restricted','public',[
+        ['public','Objaviti cijelu potvrdu jer valjan potpis skriva podatke.','Potpis ne skriva tekst. Javna objava otkrila bi osobne podatke.'],
+        ['private-key','Poslati potvrdu i školski privatni potpisni ključ.','Privatni ključ mora ostati kod potpisnika; primatelju nije potreban za provjeru.'],
+        ['restricted','Koristiti odobren zaštićen prijenos i pristup samo za ovlaštenog organizatora.','Zaštita čitljivosti i ovlasti potrebne su uz provjeru potpisa.']]),
+      question('reason','Što valjan potpis sam ne osigurava?','privacy','identity',[
+        ['identity','Potpis je samo slika bez veze sa sadržajem.','Digitalni potpis računalo provjerava uz sadržaj i javni ključ; nije samo slika.'],
+        ['privacy','Ne skriva sadržaj od neovlaštenog čitanja.','Potpis i povjerljivost imaju različite uloge.'],
+        ['everyone','Automatski daje svima ovlast da pročitaju dokument.','Ovlast ne proizlazi iz toga što je dokument potpisan.']])
+    ],
+    expert:question('limit','Možeš li zasebnu poruku odmah smatrati školskom?','verify','trust',[
+      ['trust','Da, dovoljno je da potpis prolazi uz priloženi ključ.','Netko može poslati vlastiti ključ i vlastiti valjan potpis. Vezu sa školom treba potvrditi.'],
+      ['verify','Najprije potvrditi vezu javnog ključa sa školom poznatim putem.','Matematičko podudaranje i povjerenje u identitet potpisnika odvojene su provjere.'],
+      ['rename','Da, nakon promjene naziva datoteke u skola.pdf.','Naziv ne potvrđuje potpisnika ni vlasnika ključa.']])
+  }
+);
+
 export function practiceCase(level:number,tier:ContentTier):PracticeCase|undefined {
   const scenario=PRACTICE_CASES.find(item=>item.level===level);if(!scenario)return;
   const {expert,juniorContext,...base}=scenario;

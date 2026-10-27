@@ -499,3 +499,17 @@ dialog {
 .progress-downloads button { flex:1 1 180px; min-height:44px; }
 .progress-files input[type=file] { width:100%; min-width:0; max-width:100%; padding:12px; border:1px solid #526d82; border-radius:8px; background:#142a3b; color:#d4e5ed; font-size:13px; }
 .progress-files input::file-selector-button { border:1px solid #6c9c9b; border-radius:6px; padding:9px; margin-right:8px; background:#285554; color:#edfff7; cursor:pointer; }
+
+.integrity-cards { display:grid; grid-template-columns:1fr; gap:16px; margin:18px 0; }
+.integrity-card,.hash-reference,.signature-key { border:1px solid #486579; background:#193142; border-radius:12px; padding:18px; min-width:0; }
+.hash-reference { border-color:#6cbca6; background:#193c3b; }
+.integrity-card h3,.hash-reference h3 { font-size:16px; line-height:1.5; margin:0 0 12px; color:#e2f4f1; }
+.integrity-card p,.hash-reference p { font-size:13px; line-height:1.7; color:#bdcfdc; }
+.integrity-card blockquote { margin:14px 0; padding:12px 14px; border-left:3px solid #83cdc4; background:#102936; font-size:15px; line-height:1.6; color:#e5f5f1; }
+.hash-digest { display:block; overflow-wrap:anywhere; white-space:normal; font-size:12px; line-height:1.8; color:#d4e8ef; padding:10px; border-radius:6px; background:#102331; }
+.integrity-result { display:block; padding:12px; margin:12px 0; border-radius:8px; background:#283b51; color:#ebd3a9; font-size:13px; line-height:1.6; }
+.integrity-result[hidden] { display:none; }
+.integrity-result.confirmed { background:#204a43; color:#c3f3d9; }
+.integrity-card .setting-label { margin-top:14px; }
+.hash-compare { min-height:44px; text-align:left; margin-top:4px; }
+@media(max-width:600px) { .integrity-card,.hash-reference,.signature-key { padding:14px; } }

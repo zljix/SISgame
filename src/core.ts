@@ -2,6 +2,7 @@ import { DECISIONS, flowsFor, samplesFor, servicesFor, type MalwareKind, type Se
 import { EXPERT_REVIEWS, JUNIOR_CHOICES, type ContentTier } from './curriculum.ts';
 import { alertsFor, verdictsFor, WIFI_GUESTS, WIFI_SECURITY, wifiPreview, type AlertVerdict, type WifiSettings } from './network.ts';
 import { budgetFor, cleanMeasures, cleanResponse, prioritiesFor, priorityFor, RESPONSE_ORDER, riskPreview, risksFor, type ResponseStep, type RiskPriority } from './operations.ts';
+import { cleanHashAnswers, cleanSignatureAnswers, cleanSignatureKey, hashFilesFor, hashMatches, signedFilesFor, signaturePreview, type HashVerdict, type SignatureKey, type SignatureVerdict } from './integrity.ts';
 
 export type Difficulty = 'relaxed' | 'easy' | 'medium' | 'hard';
 export type Access = 'none' | 'read' | 'write';
@@ -16,12 +17,15 @@ export interface Run {
   riskAnswers: Record<string, RiskPriority>;
   riskMeasures: string[];
   responseOrder: ResponseStep[];
+  hashAnswers?: Record<string,HashVerdict>;
+  signatureKey?: SignatureKey;
+  signatureAnswers?: Record<string,SignatureVerdict>;
   flags: string[]; files: string[]; backup: string[]; bits: string[];
   checks: Record<string, Check>; health: number; hits: number; seconds: number;
   completed: boolean;
 }
 export interface Result { ok: boolean; title: string; message: string; complete?: boolean; review?: boolean }
-export const VERSION = '0.7.0';
+export const VERSION = '0.8.0';
 export const FILES = [
   { id: 'rad', name: 'Završni rad', text: 'Završni rad · posljednja spremljena inačica' },
   { id: 'mjerenja', name: 'Mjerenja', text: 'Temperatura: 23 °C · 12 mjerenja' },
@@ -40,6 +44,8 @@ export const CHECKS: Record<number, string[]> = {
   10: ['wifi-identity', 'wifi-config', 'wifi-maintenance', 'wifi-test'],
   11: ['assets', 'risk-analysis', 'risk-plan', 'risk-test'],
   12: ['incident-report', 'response-plan', 'recovery-source', 'incident-test'],
+  13: ['hash-source', 'hash-lab', 'hash-response', 'hash-test'],
+  14: ['sign-keys', 'sign-lab', 'sign-share', 'sign-test'],
 };
 export const CHECK_NAMES: Record<string, string> = {
   door: 'Kontrola pristupa prostoru', ups: 'Zaštita napajanja', shred: 'Sigurno uništavanje ispisa', drill: 'Provjera fizičke zaštite',
@@ -54,10 +60,12 @@ export const CHECK_NAMES: Record<string, string> = {
   'wifi-identity': 'Provjera mreže poznatim putem', 'wifi-config': 'Zaštita Wi-Fi veze i odvajanje gostiju', 'wifi-maintenance': 'Zaštita i održavanje pristupne točke', 'wifi-test': 'Provjera gostujućeg pristupa',
   assets: 'Imovina, prijetnje i slabosti', 'risk-analysis': 'Prioritet prema vjerojatnosti i učinku', 'risk-plan': 'Mjere unutar raspoloživog plana', 'risk-test': 'Provjera mjera i preostalog rizika',
   'incident-report': 'Činjenična prijava poznatim kanalom', 'response-plan': 'Plan ograničavanja, oporavka i provjere', 'recovery-source': 'Pouzdana kopija i poznati gubitak rada', 'incident-test': 'Odobren povratak i pouke incidenta',
+  'hash-source': 'Pouzdan izvor očekivanog sažetka', 'hash-lab': 'Usporedba SHA-256 sažetaka', 'hash-response': 'Postupanje pri nepodudaranju', 'hash-test': 'Ponovna provjera sadržaja i granica zaključka',
+  'sign-keys': 'Uloge ključeva i potvrda izvora', 'sign-lab': 'Provjera potpisa i povjerenja u ključ', 'sign-share': 'Zasebna zaštita povjerljivosti', 'sign-test': 'Provjera izvora, sadržaja i pristupa',
 };
 export function newRun(level: number, difficulty: Difficulty = 'easy', content: ContentTier = 'standard', timed = false): Run {
   if (!CHECKS[level]) throw new Error('Nepoznata misija');
-  return { level, difficulty, content, review: {enabled:content==='expert'&&timed,started:false,remaining:90,expired:false,answers:{}}, networkRules:{}, alertAnswers:{}, wifiSettings:{security:content==='junior'?'wpa3':'',guests:''}, riskAnswers:{}, riskMeasures:[], responseOrder:cleanResponse([],content), x: 112, y: 560, flags: [], files: [], backup: [], bits: [], checks: Object.fromEntries(CHECKS[level].map(k => [k, { done: false, errors: 0 }])), health: 3, hits: 0, seconds: 0, completed: false };
+  return { level, difficulty, content, review: {enabled:content==='expert'&&timed,started:false,remaining:90,expired:false,answers:{}}, networkRules:{}, alertAnswers:{}, wifiSettings:{security:content==='junior'?'wpa3':'',guests:''}, riskAnswers:{}, riskMeasures:[], responseOrder:cleanResponse([],content), ...(level===13?{hashAnswers:{}}:{}), ...(level===14?{signatureKey:'' as SignatureKey,signatureAnswers:{}}:{}), x: 112, y: 560, flags: [], files: [], backup: [], bits: [], checks: Object.fromEntries(CHECKS[level].map(k => [k, { done: false, errors: 0 }])), health: 3, hits: 0, seconds: 0, completed: false };
 }
 export const has = (run: Run, flag: string) => run.flags.includes(flag);
 export function flag(run: Run, name: string) { if (!has(run, name)) run.flags.push(name); }
@@ -278,4 +286,26 @@ export function nextTarget(run: Run): string {
     if (!has(run, 'backup')) return 'backup'; if (!has(run, 'failure')) return 'failure'; if (!has(run, 'restore')) return 'backup'; if (!has(run, 'verify')) return 'verify';
   } else return CHECKS[run.level].find(key => !run.checks[key]?.done) || 'exit';
   return 'exit';
+}
+
+export function compareHashes(run:Run,answers:unknown):Result {
+  if(run.level!==13||run.completed||run.checks['hash-lab'].done)return {ok:false,title:'Usporedba nije dostupna',message:'Zadatak pripada nedovršenoj misiji o sažetcima.'};
+  if(!run.checks['hash-source'].done)return {ok:false,title:'Najprije potvrdi izvor',message:'Na prvoj stanici preuzmi očekivani sažetak poznatim školskim putem.'};
+  run.hashAnswers=cleanHashAnswers(answers,run.content);
+  const files=hashFilesFor(run.content);
+  if(files.some(file=>!run.hashAnswers![file.id]))return {ok:false,title:'Usporedi sve primjerke',message:'Odaberi zaključak za svaku prikazanu datoteku. Prazno polje nije pogrešna odluka.'};
+  const wrongFile=files.find(file=>run.hashAnswers![file.id]!== (hashMatches(file)?'same':'changed'));
+  if(wrongFile)return wrong(run,'hash-lab','Ponovno usporedi sažetke',`${wrongFile.label}: ${hashMatches(wrongFile)?'sadržaj ima isti SHA-256 kao referenca. Sam naziv datoteke nije dio ove provjere sadržaja.':'SHA-256 se razlikuje. Isti naziv datoteke ne znači isti sadržaj.'}`);
+  return good(run,'hash-lab','Usporedba je točna','Promijenjeno vrijeme ima drukčiji sažetak. Uspoređeni su podatci, a ne samo naziv datoteke. Podudaranje ne govori je li sadržaj bezopasan.');
+}
+export function verifySignatures(run:Run,key:unknown,answers:unknown):Result {
+  if(run.level!==14||run.completed||run.checks['sign-lab'].done)return {ok:false,title:'Provjera nije dostupna',message:'Zadatak pripada nedovršenoj misiji o potpisima.'};
+  if(!run.checks['sign-keys'].done)return {ok:false,title:'Najprije provjeri uloge ključeva',message:'Na prvoj stanici upoznaj privatni ključ za potpisivanje i potvrđeni javni ključ za provjeru.'};
+  run.signatureKey=cleanSignatureKey(key);run.signatureAnswers=cleanSignatureAnswers(answers,run.content);
+  const files=signedFilesFor(run.content);
+  if(!run.signatureKey||files.some(file=>!run.signatureAnswers![file.id]))return {ok:false,title:'Dopuni provjeru',message:'Odaberi javni ključ i odluku za svaki zapis. Nepotpuna predaja ne bilježi pogrešku.'};
+  if(run.signatureKey!=='school')return wrong(run,'sign-lab','Potvrdi čiji je ključ','Ključ iz iste poruke nema potvrđenu vezu sa školom. Za prihvaćanje školskog zapisa koristi javni ključ potvrđen poznatim putem.');
+  const wrongFile=files.find(file=>run.signatureAnswers![file.id]!== (signaturePreview(file,run.signatureKey!).acceptable?'accept':'hold'));
+  if(wrongFile)return wrong(run,'sign-lab','Poveži potpis i izvor',`${wrongFile.label}: ${signaturePreview(wrongFile,run.signatureKey).acceptable?'potpis prolazi uz potvrđeni školski ključ, pa ovaj neizmijenjeni zapis možeš prihvatiti.':'zapis ne prolazi provjeru potvrđenim školskim ključem. Zaustavi prihvaćanje i zatraži provjeru.'}`);
+  return good(run,'sign-lab','Potpis i izvor su provjereni','Prihvaćen je izvorni školski zapis, a izmijenjeni ili nepotvrđeni zaustavljeni. Provjeren potpis ne skriva sadržaj niti jamči da je svaka uputa u njemu sigurna.');
 }

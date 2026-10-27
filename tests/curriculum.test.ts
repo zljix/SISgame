@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { act, advanceReviewClock, applyPermissions, arcadeScore, assessRisks, CHECKS, classifyAlerts, classifyMalware, collect, configureFirewall, configureServices, configureWifi, has, newRun, planIncidentResponse, planRiskMeasures, ready, score, secureSession, submitExpertReview, type Run } from '../src/core.ts';
+import { act, advanceReviewClock, applyPermissions, arcadeScore, assessRisks, CHECKS, classifyAlerts, classifyMalware, collect, compareHashes, configureFirewall, configureServices, configureWifi, has, newRun, planIncidentResponse, planRiskMeasures, ready, score, secureSession, submitExpertReview, verifySignatures, type Run } from '../src/core.ts';
 import { LEVELS } from '../src/data.ts';
 import { EXPERT_REVIEWS, TIERS } from '../src/curriculum.ts';
 import { eventsFor, flowsFor, samplesFor, servicesFor } from '../src/missions.ts';
@@ -20,6 +20,8 @@ function prepare(run:Run){
     case 10: act(run,'wifi-identity','known');configureWifi(run,{security:'wpa3',guests:'isolated'});act(run,'wifi-maintenance','maintain');break;
     case 11: act(run,'assets','context');assessRisks(run,{archive:'high',account:'medium',poster:'low'});planRiskMeasures(run,['backup','accounts']);break;
     case 12: act(run,'incident-report','facts');planIncidentResponse(run,['contain','recover','verify']);act(run,'recovery-source','verified');break;
+    case 13: act(run,'hash-source','known');compareHashes(run,{original:'same',changed:'changed',renamed:'same'});act(run,'hash-response','retry');break;
+    case 14: act(run,'sign-keys','public');verifySignatures(run,'school',{approved:'accept',edited:'hold',unknown:'hold'});act(run,'sign-share','protect');break;
   }
 }
 const finalChoice=(level:number)=>level===2||level===3?'verify':'test';

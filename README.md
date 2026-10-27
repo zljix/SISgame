@@ -1,6 +1,6 @@
 # SISgame — Čuvari sustava
 
-Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, prvenstveno za uzrast **13–18 godina**, uz jednostavniji sadržaj za mlađe igrače. Inačica **0.7.0** sadrži dvanaest dovršivih misija, dvanaest dodatnih slučajeva za primjenu, pregled rada s prijenosom napretka, hrvatske upute, dodirne kontrole i tipkovnicu.
+Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, prvenstveno za uzrast **13–18 godina**, uz jednostavniji sadržaj za mlađe igrače. Inačica **0.8.0** sadrži četrnaest dovršivih misija, četrnaest dodatnih slučajeva za primjenu, pregled rada s prijenosom napretka, hrvatske upute, dodirne kontrole i tipkovnicu.
 
 ## Jedna igra, tri razine sadržaja
 
@@ -31,8 +31,10 @@ Dobne oznake su razvojna i pedagoška preporuka, **nisu formalna PEGI klasifikac
 10. **Wi-Fi za prave goste** — provjera mreže, WPA3-Personal, odvajanje gostiju, održavanje i provjera pristupa.
 11. **Što prvo zaštititi?** — popis imovine, procjena prioriteta, izbor mjera uz ograničene resurse i provjera preostalog rizika.
 12. **Smireno kroz incident** — činjenična prijava, slaganje plana postupanja, izbor čiste kopije i odobren povratak uz nadzor.
+13. **Je li sadržaj isti?** — pouzdana referenca, usporedba SHA-256, postupak pri nepodudaranju i nova provjera.
+14. **Čiji je potpis?** — privatni i javni ključ, potpis i povjerenje u izvor te zasebna zaštita povjerljivog priloga.
 
-U inačici 0.7.0 kampanja ima **48 sigurnosnih zadaća po razini sadržaja**. Ploča rizika povezuje vjerojatnost i učinak s prioritetom. Plan mjera prikazuje trošak i očekivani preostali rizik dok učenik bira zaštitu. Konzola odgovora prikazuje posljedice odabranog slijeda, uključujući preuranjenu obnovu i gubitak dokaza.
+U inačici 0.8.0 kampanja ima **56 sigurnosnih zadaća po razini sadržaja**. Ploča rizika povezuje vjerojatnost i učinak s prioritetom. Plan mjera prikazuje trošak i očekivani preostali rizik dok učenik bira zaštitu. Konzola odgovora prikazuje posljedice odabranog slijeda, uključujući preuranjenu obnovu i gubitak dokaza.
 
 Junior uspoređuje dva rizika, ima tri jedinice rada i pripremljen srednji korak odgovora. Standard i Expert procjenjuju tri rizika te raspolažu s pet jedinica rada. Expert dodatno provjerava ograničenja kopije i ovlasti nakon obnove. Svi novi odabiri spremaju se za nastavak. Ljestvica rizika i jedinice rada su izmišljeni školski model, a ne univerzalna formula ili stvarni troškovnik.
 
@@ -48,9 +50,19 @@ Svaku misiju otvara kratka pouka. Lik istražuje prostorije, izbjegava arkadne s
 
 **Simulacijska ograničenja:** prikaz prijetnji, provjera kartica, električne zaštite, šifriranja i kopiranja je didaktički model. Crvene pokretne smetnje i štit su arkadne prepreke, ne model rada antivirusnog programa. Podatci su izmišljeni. Program ne pristupa stvarnim školskim sustavima i ne izvodi stvarne sigurnosne napade.
 
+## Sažetci i potpisi — novo u 0.8.0
+
+Misija 13 uvodi **hash** kao sažetak sadržaja. Konzola uspoređuje stvarne, unaprijed izračunane SHA-256 vrijednosti zadanih poruka: promijenjeno vrijeme uz isti naziv daje drugi sažetak, a preimenovani isti sadržaj zadržava sažetak. Gumb za usporedbu pomaže učeniku pročitati rezultat. Očekivana vrijednost dolazi iz potvrđenog školskog izvora; podudaranje samo po sebi ne dokazuje bezopasnost datoteke.
+
+Misija 14 odvaja **prolazak provjere potpisa** od **povjerenja u vlasnika javnog ključa**. Učenik mijenja ključ i prati rezultat za izvorni zapis, izmijenjeni zapis i zapis potpisan nepotvrđenim ključem. Potpis koji prolazi uz ključ iz nepoznate poruke ne odobrava automatski školsko podrijetlo. Provjera potpisa u igri nastavni je model sa zadanim zapisima, a ne alat za provjeru stvarnih potpisa ili certifikata. Povjerljivi prilog zasebno dobiva šifriranje i ograničen pristup unutar simulacije.
+
+Junior obrađuje po dva primjerka, Standard i Expert po tri. Pojmovi su uvedeni u pouci prije konzole. Expert zatim razmatra nepouzdan izvor sažetka odnosno valjan potpis uz nedopuštenu uputu. Dodana su i dva nova slučaja primjene: **Fotografija za školski arhiv** i **Potpisana potvrda za putovanje**. Sve nove odluke i odabrani ključ čuvaju se za nastavak i ulaze u kopiju napretka.
+
+Dovršena 12. misija otključava 13., a ona 14. Postojeći lokalni zapisi i JSON kopije iz 0.7.0 zadržavaju rezultate, dodatnu primjenu i aktivni pokušaj. Nove misije i njihovi slučajevi počinju neriješeni.
+
 ## Primjena znanja nakon misije — novo u 0.6.0
 
-Na karti odaberite **Primjena znanja**, ili nakon završetka misije **Primijeni u novom slučaju**. Svaka završena misija otključava svoj novi slučaj: nenajavljeni serviser, školski list, snimke izložbe, robotski dodatak, posuđeni tablet, školski radio, QR kod za izlet, web-predaja, mrežni alarm, dan otvorenih vrata, prioritet zaštite i povratak sustava posudbe.
+Na karti odaberite **Primjena znanja**, ili nakon završetka misije **Primijeni u novom slučaju**. Svaka završena misija otključava svoj novi slučaj: nenajavljeni serviser, školski list, snimke izložbe, robotski dodatak, posuđeni tablet, školski radio, QR kod za izlet, web-predaja, mrežni alarm, dan otvorenih vrata, prioritet zaštite i povratak sustava posudbe. U 0.8.0 dodani su fotografija za arhiv i potpisana potvrda za putovanje.
 
 - Junior ima kraći opis i dva ponuđena odgovora po pitanju. Standard ima tri. Obje razine biraju postupak i razlog; Expert dodaje treće pitanje uz novi dokaz ili ograničenje.
 - Podsjetnik i pouka dostupni su tijekom rješavanja. Vrijeme se ne mjeri; slučajevi ne mijenjaju 100 bodova po misiji, arkadni bonus ni otključavanje sljedeće misije.
@@ -135,7 +147,8 @@ npm run build
 - `src/curriculum.ts` — razine sadržaja, Junior prilagodbe, pojmovi i Expert slučajevi.
 - `src/network.ts` — sigurnosni zapisi, Wi-Fi postavke i izračun prikazanih posljedica.
 - `src/operations.ts` — slučajevi rizika, planiranje mjera, redoslijed odgovora i prikaz posljedica.
-- `src/practice.ts` — 12 dodatnih slučajeva, prilagodbe razinama, objašnjenja i evidencija primjene.
+- `src/integrity.ts` — SHA-256 primjeri, prilagodbe razinama i model potpisa s odvojenom provjerom povjerenja.
+- `src/practice.ts` — 14 dodatnih slučajeva, prilagodbe razinama, objašnjenja i evidencija primjene.
 - `src/progress.ts` — pregled rezultata, JSON kopije, provjera i obnova uz prethodni zapis te TXT sažetak.
 - `src/missions.ts` — sadržaj novih odluka, izvještaji, zapisi i pravila usluga.
 - `src/core.ts` — nastavna pravila i prijelazi stanja.
@@ -144,21 +157,21 @@ npm run build
 - `src/main.ts` — izbornici, kontrole, konfiguracija zaštite i PWA.
 - `src/storage.ts` — lokalni napredak, validacija formata i najbolji rezultati.
 - `tests/` — provjere ključnih pravila, oporavka podataka, putanja i spremanja.
-- `scripts/check-ui.mjs` — lokalne provjere kontrola misija 11–12, svih dodatnih slučajeva i upravljanja kopijama uz Happy DOM; nema pristupa mreži, stvarnom pregledniku ni igraćem platnu. Happy DOM je samo razvojna ovisnost.
+- `scripts/check-ui.mjs` — lokalne provjere kontrola misija 11–14, svih dodatnih slučajeva i upravljanja kopijama uz Happy DOM; nema pristupa mreži, stvarnom pregledniku ni igraćem platnu. Happy DOM je samo razvojna ovisnost.
 
 ## Provjera prije uporabe u razredu
 
-75 automatiziranih testova provjerava pravila svih dvanaest misija u sve tri razine sadržaja, dostupnost mjesta na svakoj mapi, preduvjete, pogrešne odluke, sprečavanje ponovnog zbrajanja bodova, migraciju starog napretka, neovisne profile, opcionalni sat, odvojeno bodovanje, 12 dodatnih slučajeva, čuvanje prvog rezultata, kopije i obnovu napretka te offline paket. Pregled u računalnom pregledniku ne zamjenjuje probu na stvarnom iPhoneu i Androidu. Prije nastavne uporabe provjerite višestruki dodir, okretanje zaslona, zaključavanje/otključavanje, povratak nakon zatvaranja, zvuk, offline pokretanje i ažuriranje.
+85 automatiziranih testova provjerava pravila svih četrnaest misija u sve tri razine sadržaja, dostupnost mjesta na svakoj mapi, preduvjete, pogrešne odluke, sprečavanje ponovnog zbrajanja bodova, migraciju starog napretka, neovisne profile, opcionalni sat, odvojeno bodovanje, 14 dodatnih slučajeva, stvarne SHA-256 vrijednosti, granice modela potpisa, čuvanje prvog rezultata, kopije i obnovu napretka te offline paket. Pregled u računalnom pregledniku ne zamjenjuje probu na stvarnom iPhoneu i Androidu. Prije nastavne uporabe provjerite višestruki dodir, okretanje zaslona, zaključavanje/otključavanje, povratak nakon zatvaranja, zvuk, offline pokretanje i ažuriranje.
 
 Postavke, Junior obrasci, Expert analiza i mrežna konzola provjereni su u Chromeu na 956 × 440, 956 × 378 uz simulirane sigurne rubove, 568 × 320 i 390 × 844. Dulji sadržaj pomiče se unutar prozora; zatvaranje i glavna tipka ostaju dostupni. Provjereni su ispravak Expert odgovora, nastavak nakon isteka vremena i povratak u započetu misiju nakon promjene sadržaja.
 
 Nove konzole iz 0.4.0 dodatno su provjerene u Chromeu unutar prikaza 956 × 440, 568 × 320 i 390 × 844, s odvojenim izmišljenim testnim napretkom. Provjereni su ispravak odgovora, ponovno učitavanje nedovršenih odabira, Junior pojednostavljenja i Expert završni slučajevi. Na 568 × 320 zapisi se nižu jedan ispod drugoga, a glavna tipka i zatvaranje ostaju dostupni. To je provjera rasporeda u računalnom pregledniku, ne test višestrukog dodira na fizičkom telefonu.
 
-Za **0.7.0** prošli su TypeScript, produkcijska izgradnja, offline provjera paketa i automatizirani testovi (**75/75**). Dodatne **324 lokalne DOM provjere** obuhvaćaju konzole misija 11–12, kontrole svih 12 dodatnih slučajeva u svakoj razini sadržaja te Moj rad: sadržaj datoteka, usporedbu prije obnove, odustajanje, prethodni zapis, nastavak učitane misije, nevaljanu datoteku, nedostupnu pohranu, zakašnjelo čitanje datoteke i promjenu podataka iz drugog prozora. Pokreću se pomoću `npm run test:ui`; učitavaju stvarni kod sučelja uz zamijenjeni Phaser, preuzimanje i memorijski DOM, bez mreže.
+Za **0.8.0** prošli su TypeScript, produkcijska izgradnja, offline provjera paketa i automatizirani testovi (**85/85**). Dodatne **453 lokalne DOM provjere** obuhvaćaju konzole misija 11–14, svih 14 dodatnih slučajeva u svakoj razini te Moj rad. Nove provjere uključuju usporedbu sažetaka, promjenu ključa, razliku valjanog potpisa i potvrđenog izvora, ispravke, nastavak odabira, završne izvještaje, otključavanje misija i učitavanje kopije izrađene neizmijenjenim kodom 0.7.0. Testni napredak je izmišljen. Provjere se pokreću pomoću `npm run test:ui`; učitavaju stvarni kod sučelja uz zamijenjeni Phaser, preuzimanje i memorijski DOM, bez mreže.
 
-**Vizualni pregled prikaza dodanih u 0.5.0–0.7.0 nije proveden.** Pristup lokalnoj testnoj adresi ranije je blokiran automatskom provjerom alata. DOM provjere ne potvrđuju izgled, raspored, dodirne kontrole, prikaz igraćeg platna ni stvarni dijalog odabira i spremanja datoteke. Ranije navedene provjere zaslona odnose se na 0.4.0 i starije prikaze. Prije nastavne uporabe 0.7.0 treba vizualno pregledati na uspravnom i vodoravnom zaslonu te isprobati preuzimanje, prijenos kopije i obnovu na stvarnim uređajima.
+**Vizualni pregled prikaza dodanih u 0.5.0–0.8.0 nije proveden.** Pristup lokalnoj testnoj adresi ranije je blokiran automatskom provjerom alata. DOM provjere ne potvrđuju izgled, raspored, dodirne kontrole, prikaz igraćeg platna ni stvarni dijalog odabira i spremanja datoteke. Ranije navedene provjere zaslona odnose se na 0.4.0 i starije prikaze. Prije nastavne uporabe 0.8.0 treba vizualno pregledati na uspravnom i vodoravnom zaslonu te isprobati preuzimanje, prijenos kopije i obnovu na stvarnim uređajima.
 
-Nastavni okvir obuhvaća sedam cjelina i 26 tema. Ova inačica ima dvanaest misija koje objedinjuju dio tema; ne pokriva svih 26 nastavnih tema. Procjena imovine i rizika te plan odgovora sada imaju samostalne misije. Dodani slučajevi vježbaju primjenu na novim činjenicama. Za daljnji razvoj ostaju dodatne varijante, provjera prijenosa u stvarni praktičan rad i pilotiranje u razredu. Detaljna veza s gradivom nalazi se u [CONTENT.md](CONTENT.md).
+Nastavni okvir obuhvaća sedam cjelina i 26 tema. Ova inačica ima četrnaest misija koje objedinjuju dio tema; ne pokriva svih 26 nastavnih tema. Procjena imovine i rizika, plan odgovora, sažetci i digitalni potpisi imaju samostalne misije. Dodani slučajevi vježbaju primjenu na novim činjenicama. Za daljnji razvoj ostaju dodatne varijante, provjera prijenosa u stvarni praktičan rad i pilotiranje u razredu. Detaljna veza s gradivom nalazi se u [CONTENT.md](CONTENT.md).
 
 ## Izvori i ovisnosti
 

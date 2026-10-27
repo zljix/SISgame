@@ -3,6 +3,7 @@ import { EXPERT_REVIEWS, TIERS, type ContentTier } from './curriculum.ts';
 import { alertsFor, verdictsFor, WIFI_GUESTS, WIFI_SECURITY } from './network.ts';
 import { cleanMeasures, cleanResponse, prioritiesFor, risksFor } from './operations.ts';
 import { parsePractice, type PracticeBook } from './practice.ts';
+import { cleanHashAnswers, cleanSignatureAnswers, cleanSignatureKey } from './integrity.ts';
 export type Best = { learning: number; arcade: number; independent: number; completed: boolean };
 export type Profile = { best: Record<string, Best>; active: Run | null; practice:PracticeBook };
 export type Save = { schema: 2; settings: { content: ContentTier; difficulty: Difficulty; timed: boolean; sound: boolean; reducedMotion: boolean }; profiles: Record<ContentTier,Profile> };
@@ -36,6 +37,8 @@ function parseRun(a:any,tier:ContentTier):Run|null {
     r.riskMeasures=cleanMeasures(a.riskMeasures,tier);
   }
   if(r.level===12)r.responseOrder=cleanResponse(a.responseOrder,tier);
+  if(r.level===13)r.hashAnswers=cleanHashAnswers(a.hashAnswers,tier);
+  if(r.level===14){r.signatureKey=cleanSignatureKey(a.signatureKey);r.signatureAnswers=cleanSignatureAnswers(a.signatureAnswers,tier);}
   return r;
 }
 export function parseSave(raw:string|null): Save {

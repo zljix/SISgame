@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import './style.css';
-import { act, advanceReviewClock, applyPermissions, arcadeScore, assessRisks, CHECK_NAMES, classifyAlerts, classifyMalware, collect, configureFirewall, configureServices, configureWifi, FILES, has, newRun, nextTarget, planIncidentResponse, planRiskMeasures, ready, score, secureSession, submitExpertReview, VERSION, type Difficulty, type Permissions, type Result, type Run } from './core.ts';
+import { act, advanceReviewClock, applyPermissions, arcadeScore, assessRisks, CHECK_NAMES, classifyAlerts, classifyMalware, collect, compareHashes, configureFirewall, configureServices, configureWifi, FILES, has, newRun, nextTarget, planIncidentResponse, planRiskMeasures, ready, score, secureSession, submitExpertReview, verifySignatures, VERSION, type Difficulty, type Permissions, type Result, type Run } from './core.ts';
 import { LEVELS, levelContent, missionNumber, TARGET_TEXT, type Station } from './data.ts';
 import { DECISIONS, eventsFor, flowsFor, samplesFor, servicesFor, VERIFICATION_REPORTS, type MalwareKind } from './missions.ts';
 import { EXPERT_REVIEWS, JUNIOR_CHOICES, JUNIOR_LESSONS, JUNIOR_REPORTS, TERMS, TIERS, TIER_INFO, type ContentTier } from './curriculum.ts';
@@ -10,6 +10,7 @@ import { Sector, type Bridge } from './game.ts';
 import { emptySave, parseSave, profile, recordBest, SAVE_KEY, totalLearning, type Save } from './storage.ts';
 import { emptyPracticeProgress, PRACTICE_CASES, practiceCase, practiceFeedback, practiceSummary, practiceUnlocked, setPracticeAnswer, submitPractice } from './practice.ts';
 import { createProgressBackup, MAX_BACKUP_BYTES, progressFilename, progressReport, progressSnapshot, readProgressBackup, RESTORE_POINT_KEY, restoreProgress, type ProgressBackup } from './progress.ts';
+import { HASH_REFERENCE, HASH_VERDICTS, hashFilesFor, hashMatches, SIGNATURE_KEYS, SIGNATURE_VERDICTS, signedFilesFor, signaturePreview, cleanHashAnswers, cleanSignatureAnswers, cleanSignatureKey } from './integrity.ts';
 
 const icons = {
  radar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12 19 5"/><circle cx="8" cy="15" r="1"/></svg>',
@@ -97,7 +98,7 @@ function renderHome(){
   $('#practice-progress').textContent=`Riješeno ${practice.solved}/${PRACTICE_CASES.length} · dostupno ${practice.available}/${PRACTICE_CASES.length}. Odluka i razlog, bez sata.`;
   document.body.classList.toggle('content-junior',save.settings.content==='junior');
   $('#play-primary').innerHTML=`${profile(save).active?'Nastavi misiju':complete===LEVELS.length?'Igraj ponovno':'Započni misiju'} ${ico('arrow')}`;
-  $('#missions').innerHTML=LEVELS.map((base,i)=>{const level=levelContent(base,save.settings.content);const b=profile(save).best[level.id],unlocked=i===0||!!profile(save).best[LEVELS[i-1].id]?.completed;return `<button class="mission-card ${b?.completed?'completed':''}" data-level="${level.id}" ${unlocked?'':'disabled'} style="--accent:${level.color}"><div class="mission-top"><span class="sector-number">${missionNumber(level.id)}</span><span class="mission-symbol">${ico((['shield','lock','file','bug','key','gear','help','shield','radar','wifi','radar','file'] as const)[i])}</span><span class="mission-state">${b?.completed?'ZAVRŠENO':unlocked?'DOSTUPNO':'ZAKLJUČANO'}</span></div><span class="eyebrow">${level.subtitle}</span><h3>${level.title}</h3><p>${level.description}</p><div class="mission-foot"><span>${b?.completed?`${b.learning} učenje · ${b.arcade} bonus`:'4 sigurnosne zadaće'}</span>${ico(unlocked?'arrow':'lock')}</div><div class="mission-progress"><span style="width:${b?.learning||0}%"></span></div></button>`;}).join('');
+  $('#missions').innerHTML=LEVELS.map((base,i)=>{const level=levelContent(base,save.settings.content);const b=profile(save).best[level.id],unlocked=i===0||!!profile(save).best[LEVELS[i-1].id]?.completed;return `<button class="mission-card ${b?.completed?'completed':''}" data-level="${level.id}" ${unlocked?'':'disabled'} style="--accent:${level.color}"><div class="mission-top"><span class="sector-number">${missionNumber(level.id)}</span><span class="mission-symbol">${ico((['shield','lock','file','bug','key','gear','help','shield','radar','wifi','radar','file','file','key'] as const)[i])}</span><span class="mission-state">${b?.completed?'ZAVRŠENO':unlocked?'DOSTUPNO':'ZAKLJUČANO'}</span></div><span class="eyebrow">${level.subtitle}</span><h3>${level.title}</h3><p>${level.description}</p><div class="mission-foot"><span>${b?.completed?`${b.learning} učenje · ${b.arcade} bonus`:'4 sigurnosne zadaće'}</span>${ico(unlocked?'arrow':'lock')}</div><div class="mission-progress"><span style="width:${b?.learning||0}%"></span></div></button>`;}).join('');
   document.querySelectorAll<HTMLButtonElement>('[data-level]').forEach(b=>b.onclick=()=>start(Number(b.dataset.level),profile(save).active?.level===Number(b.dataset.level)));
 }
 function start(level:number,resume=false){
@@ -232,7 +233,7 @@ function closeDialog(){stopReviewClock();const hook=closeHook;closeHook=null;dia
 dialog.addEventListener('cancel',e=>{e.preventDefault();closeDialog();});
 function briefing(resume=false){
   const level=levelContent(LEVELS[run.level-1],run.content),junior=run.content==='junior';
-  const flowIcons:Record<number,(keyof typeof icons)[]>={1:['key','check','shield'],2:['file','lock','key'],3:['file','download','check'],4:['bug','lock','help'],5:['lock','key','check'],6:['download','key','check'],7:['pause','help','shield'],8:['file','shield','lock'],9:['radar','file','shield'],10:['wifi','lock','check'],11:['file','radar','shield'],12:['file','download','check']};
+  const flowIcons:Record<number,(keyof typeof icons)[]>={1:['key','check','shield'],2:['file','lock','key'],3:['file','download','check'],4:['bug','lock','help'],5:['lock','key','check'],6:['download','key','check'],7:['pause','help','shield'],8:['file','shield','lock'],9:['radar','file','shield'],10:['wifi','lock','check'],11:['file','radar','shield'],12:['file','download','check'],13:['file','radar','check'],14:['key','check','lock']};
   const flow=junior?`<ol class="visual-steps" aria-label="Koraci zaštite">${JUNIOR_LESSONS[run.level].flow.map((label,i)=>`<li>${ico(flowIcons[run.level][i])}<span>${i+1}. ${label}</span></li>`).join('')}</ol>`:'';
   const glossary=!junior?`<details class="glossary"><summary>Pojmovi ove misije</summary><dl>${TERMS[run.level].map(([word,definition])=>`<dt>${word}</dt><dd>${definition}</dd>`).join('')}</dl></details>`:'';
   openDialog(`<div class="eyebrow">${TIER_INFO[run.content].name} · MISIJA ${missionNumber(level.id)}</div><h2 id="dialog-title">${resume?'Nastavljamo: ':''}${level.title}</h2><p class="dialog-lead">${level.description}</p>${flow}<div class="lesson-grid">${level.lesson.map(([title,text],i)=>`<article><span>0${i+1}</span><div><h3>${title}</h3><p>${text}</p></div></article>`).join('')}</div>${glossary}<div class="note"><strong>Upravljanje</strong> Palica ili WASD / strelice za kretanje. Dodirni cilj za pomoć pri kretanju. Priđi opremi i pritisni Djeluj ili E. ${run.difficulty==='relaxed'?'Igraš bez arkadnih smetnji.':'Q, razmak ili Štit štite lika od arkadnih smetnji.'} Čitanje pauzira kretanje.</div>${run.content==='expert'?'<p class="fine-print">Prije završne provjere analizirat ćeš dodatni slučaj. Vremenski izazov je opcionalan i ne mijenja bodove učenja.</p>':''}<button id="begin" class="primary wide">${resume?'Nastavi gdje si stao':'Kreni u misiju'} ${ico('arrow')}</button>`,()=>{$('#begin').onclick=()=>{closeDialog();if(!resume)toast('Dodirni cilj za pomoć pri kretanju','Žuti bitovi donose zaseban arkadni bonus. Sudari ne mijenjaju bodove učenja.');};});
@@ -255,6 +256,8 @@ function openStation(s:Station){
   if(s.id==='risk-analysis')return riskConsole();
   if(s.id==='risk-plan')return measuresConsole();
   if(s.id==='response-plan')return responseConsole();
+  if(s.id==='hash-lab')return hashConsole();
+  if(s.id==='sign-lab')return signatureConsole();
   const decision=DECISIONS[s.id];
   if(decision?.level===run.level)return choices(s,decision.description,decision.options.map(o=>[o.id,o.label,o.detail]),s.id==='message'?messageEvidence():decision.requires.length?`<div class="system-list">${decision.requires.map(key=>`<span>${run.checks[key]?.done?'✓':'○'} ${CHECK_NAMES[key]}</span>`).join('')}</div>`:'');
   if(s.id==='door')return choices(s,'Osiguraj da u sobu mogu ući samo osobe koje imaju ovlast.',[['authorized','Uključi provjeru kartice','Ovlaštenu karticu prihvati, neovlaštenu odbij.'],['camera','Uključi samo kameru','Vrata ostaju otvorena, a kamera snima.'],['closed','Zabrani pristup svima','Ni ovlaštene osobe neće moći ući.']]);
@@ -334,6 +337,36 @@ function wifiConsole(){
     update();$('#apply-wifi').onclick=()=>submitConsole(configureWifi(run,read()));
   });
 }
+function hashConsole(){
+  const files=hashFilesFor(run.content),junior=run.content==='junior';
+  openDialog(`<div class="eyebrow">SHA-256 · USPOREDBA SADRŽAJA</div><h2 id="dialog-title">Isti naziv, isti podatci?</h2><p class="dialog-lead">${junior?'Usporedi dva primjerka s potvrđenom školskom porukom. Sažetke ne trebaš računati ni pamtiti.':'Usporedi sadržaj i SHA-256 svakog primjerka s potvrđenom referencom. Naziv datoteke nije dio sažetka njezina sadržaja.'}</p>
+    <section class="hash-reference"><h3>Potvrđena školska referenca</h3><p>${HASH_REFERENCE.text}</p><code class="hash-digest">${HASH_REFERENCE.digest}</code><p class="fine-print">${run.checks['hash-source'].done?'Izvor potvrđen na prethodnoj stanici.':'Prije predaje potvrdi izvor na prvoj stanici.'}</p></section>
+    <div class="integrity-cards">${files.map(file=>`<article class="integrity-card"><h3>${file.label}</h3><p class="fine-print">Naziv: ${file.name}</p><blockquote>${file.text}</blockquote><code class="hash-digest">${file.digest}</code><button class="text-button hash-compare" data-hash-compare="${file.id}" aria-controls="hash-result-${file.id}" aria-expanded="false">Usporedi s referencom</button><p id="hash-result-${file.id}" class="integrity-result" role="status" hidden></p><label class="setting-label" for="hash-${file.id}">Tvoj zaključak</label><select id="hash-${file.id}" class="wide-select"><option value="">Odaberi zaključak</option>${HASH_VERDICTS.map(([id,label])=>`<option value="${id}" ${run.hashAnswers?.[file.id]===id?'selected':''}>${label}</option>`).join('')}</select></article>`).join('')}</div>
+    <p class="fine-print">${junior?'Sažetak ne skriva tekst. Podudaranje samo po sebi ne jamči bezopasnost sadržaja.':'Prikazane su stvarne SHA-256 vrijednosti točno prikazanog UTF-8 teksta, bez završnog prijeloma retka. Sažetak ne skriva sadržaj niti dokazuje bezopasnost.'} Odabiri se spremaju.</p><div id="feedback" class="feedback" role="status" hidden></div><button id="check-hashes" class="primary wide">Provjeri zaključke ${ico('check')}</button>`,()=>{
+    const read=()=>cleanHashAnswers(Object.fromEntries(files.map(file=>[file.id,$<HTMLSelectElement>(`#hash-${file.id}`).value])),run.content);
+    for(const file of files){const select=$<HTMLSelectElement>(`#hash-${file.id}`);select.value=run.hashAnswers?.[file.id]||'';select.onchange=()=>{run.hashAnswers=read();bridge.changed();};}
+    document.querySelectorAll<HTMLButtonElement>('[data-hash-compare]').forEach(button=>button.onclick=()=>{
+      const file=files.find(item=>item.id===button.dataset.hashCompare)!;const output=$(`#hash-result-${file.id}`);
+      output.hidden=false;output.textContent=hashMatches(file)?'Sažetak se podudara s referencom.':'Sažetak se razlikuje od reference; podatci nisu isti.';button.setAttribute('aria-expanded','true');
+    });
+    $('#check-hashes').onclick=()=>submitConsole(compareHashes(run,read()));
+  });
+}
+function signatureConsole(){
+  const files=signedFilesFor(run.content),junior=run.content==='junior';
+  openDialog(`<div class="eyebrow">NASTAVNI MODEL PROVJERE</div><h2 id="dialog-title">Potpis i povjerenje.</h2><p class="dialog-lead">${junior?'Odaberi javni ključ za provjeru školskog rasporeda. Pogledaj rezultat pa odluči koji zapis možeš prihvatiti.':'Isprobaj oba javna ključa i promatraj rezultate. Za prihvaćanje školskog zapisa trebaju podudaranje potpisa i potvrđena veza ključa sa školom.'}</p>
+    <div class="signature-key"><label class="setting-label" for="signature-key">Javni ključ za provjeru</label><select id="signature-key" class="wide-select"><option value="">Odaberi ključ</option>${SIGNATURE_KEYS.map(([id,label])=>`<option value="${id}" ${run.signatureKey===id?'selected':''}>${label}</option>`).join('')}</select><p class="fine-print">Privatni ključ ostaje kod potpisnika. ${run.checks['sign-keys'].done?'Školski javni ključ potvrđen je na prvoj stanici.':'Prije predaje upoznaj ključeve na prvoj stanici.'}</p></div>
+    <div class="integrity-cards">${files.map(file=>`<article class="integrity-card"><h3>${file.label}</h3><blockquote>${file.text}</blockquote><p>${file.detail}</p><output id="signature-result-${file.id}" class="integrity-result" aria-live="polite"></output><label class="setting-label" for="signature-${file.id}">Odluka o ovom zapisu</label><select id="signature-${file.id}" class="wide-select"><option value="">Odaberi odluku</option>${SIGNATURE_VERDICTS.map(([id,label])=>`<option value="${id}" ${run.signatureAnswers?.[file.id]===id?'selected':''}>${label}</option>`).join('')}</select></article>`).join('')}</div>
+    <p class="fine-print">Ovo je simulacija provjere sa zadanim zapisima i izmišljenim oznakama ključeva. Ne provjerava stvarne potpise ni certifikate. Odabiri se spremaju. Potpis sam ne skriva tekst.</p><div id="feedback" class="feedback" role="status" hidden></div><button id="check-signatures" class="primary wide">Potvrdi odluke ${ico('check')}</button>`,()=>{
+    const read=()=>cleanSignatureAnswers(Object.fromEntries(files.map(file=>[file.id,$<HTMLSelectElement>(`#signature-${file.id}`).value])),run.content);
+    const key=()=>cleanSignatureKey($<HTMLSelectElement>('#signature-key').value);
+    const paint=()=>files.forEach(file=>{const result=signaturePreview(file,key()),output=$(`#signature-result-${file.id}`);output.textContent=result.text;output.classList.toggle('confirmed',result.acceptable);});
+    $<HTMLSelectElement>('#signature-key').value=run.signatureKey||'';
+    $('#signature-key').onchange=()=>{run.signatureKey=key();bridge.changed();paint();};
+    for(const file of files){const select=$<HTMLSelectElement>(`#signature-${file.id}`);select.value=run.signatureAnswers?.[file.id]||'';select.onchange=()=>{run.signatureAnswers=read();bridge.changed();};}
+    paint();$('#check-signatures').onclick=()=>submitConsole(verifySignatures(run,key(),read()));
+  });
+}
 function riskConsole(){
   const junior=run.content==='junior',risks=risksFor(run.content),priorities=prioritiesFor(run.content);
   openDialog(`<div class="eyebrow">POVEŽI DOKAZE I PRIORITET</div><h2 id="dialog-title">Što traži bržu zaštitu?</h2>
@@ -372,7 +405,7 @@ function responseConsole(){
     <div id="feedback" class="feedback" role="status" hidden></div><button id="apply-response" class="primary wide">Provjeri plan postupanja ${ico('check')}</button>`,()=>{
     const read=()=>cleanResponse(labels.map((_,index)=>junior&&index===1?'recover':$<HTMLSelectElement>(`#response-${index}`).value),tier);
     const paint=()=>responsePreview(read()).steps.forEach((step,index)=>{const output=$(`#response-effect-${index}`);output.textContent=step.text;output.classList.toggle('safe',step.ok);});
-    for(let index=0;index<3;index++){if(junior&&index===1)continue;$(`#response-${index}`).onchange=()=>{run.responseOrder=read();bridge.changed();paint();};}
+    for(let index=0;index<3;index++){if(junior&&index===1)continue;const select=$<HTMLSelectElement>(`#response-${index}`);select.value=run.responseOrder[index]||'';select.onchange=()=>{run.responseOrder=read();bridge.changed();paint();};}
     paint();$('#apply-response').onclick=()=>submitConsole(planIncidentResponse(run,read()));
   });
 }
@@ -429,7 +462,7 @@ async function setupOffline(){if(!import.meta.env.PROD||!('serviceWorker'in navi
 $('#play-primary').onclick=()=>{if(profile(save).active)start(profile(save).active!.level,true);else start(LEVELS.find(l=>!profile(save).best[l.id]?.completed)?.id||1);};
 $('#content-level').onchange=()=>{save.settings.content=$<HTMLSelectElement>('#content-level').value as ContentTier;persist();renderHome();};$('#pace-settings').onclick=settings;
 $('#practice-open').onclick=practiceHub;$('#progress-open').onclick=()=>myWork();
-$('#how-play').onclick=how;$('#home-settings').onclick=settings;$('#version').onclick=()=>openDialog(`<div class="eyebrow">SISGAME ${VERSION}</div><h2 id="dialog-title">Sačuvaj svoj rad.</h2><p class="dialog-lead">Novo: Moj rad prikazuje rezultate i nedovršene misije po razinama. Preuzmi JSON kopiju svih triju razina za nastavak na drugom uređaju ili TXT sažetak za čitanje. Prije obnove pregledaj usporedbu; igra čuva prethodni zapis za povratak. Kampanja i dodatni slučajevi ostaju dostupni.</p><button id="version-close" class="primary wide">U redu</button>`,()=>$('#version-close').onclick=closeDialog);
+$('#how-play').onclick=how;$('#home-settings').onclick=settings;$('#version').onclick=()=>openDialog(`<div class="eyebrow">SISGAME ${VERSION}</div><h2 id="dialog-title">Provjeri sadržaj i potpis.</h2><p class="dialog-lead">Novo: misije 13 i 14 uvode SHA-256 sažetke, digitalne potpise i povjerenje u javni ključ. Usporedi datoteke, isprobaj nastavnu konzolu potpisa i primijeni pravilo u dva nova slučaja. Junior ima kraće zadatke, a Expert dodatnu analizu. Moj rad i kopije obuhvaćaju svih 14 misija.</p><button id="version-close" class="primary wide">U redu</button>`,()=>$('#version-close').onclick=closeDialog);
 document.querySelectorAll<HTMLButtonElement>('.offline-button').forEach(b=>b.onclick=offlineInfo);
 $('#pause').onclick=pause;$('#back-map').onclick=pause;$('#lesson').onclick=()=>briefing(true);$('#goal').onclick=()=>{if(!bridge.paused)sector.guide();};$('#action').onclick=()=>sector.use();$('#shield').onclick=()=>sector.shield();
 document.addEventListener('keydown',e=>{if(!running||dialog.open)return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if(e.repeat)return;if(e.key.toLowerCase()==='e')sector.use();if(e.key.toLowerCase()==='q'||e.key===' ')sector.shield();if(e.key==='Escape'){e.preventDefault();pause();}});
