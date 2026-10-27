@@ -54,6 +54,16 @@ export const LEVELS: Level[] = [
     ['Zaštiti i odvoji', 'Svi uređaji ovog malog školskog prostora podržavaju WPA3-Personal. Koristi dugu, zasebnu Wi-Fi lozinku. Gosti trebaju internet, ali pravila odvajanja moraju blokirati njihovu vezu prema internoj školskoj mreži.'],
     ['Održavaj pristupnu točku', 'Pristupna točka povezuje bežične uređaje s mrežom. Promijeni početnu administratorsku lozinku i primijeni provjerene nadogradnje. Administratorska lozinka nije isto što i lozinka za Wi-Fi. HTTPS je i dalje potreban za web.'],
   ], stations: [at('wifi-identity', 'Provjera mreže', 6, 5, 'wifi', 0xa6d78b), at('wifi-config', 'Mreža za goste', 16, 4, 'network', 0x60d8ff), at('wifi-maintenance', 'Pristupna točka', 26, 6, 'update', 0xffcf76), at('wifi-test', 'Provjera odvajanja', 26, 17, 'check', 0x67e7ab), exit] },
+  { id: 11, title: 'Što prvo zaštititi?', subtitle: 'IMOVINA I RIZIK', description: 'Usporedi rizike i rasporedi ograničene resurse na mjere koje štite školski rad.', color: '#f2c879', rooms: ['IMOVINA', 'PROCJENA', 'PLAN MJERA'], floors: [0x3c3441, 0x293a47, 0x2a413e], debrief: 'Zašto sigurnosna kopija smanjuje posljedicu kvara, ali ne mora smanjiti vjerojatnost da se disk pokvari?', lesson: [
+    ['Što štitimo i od čega?', 'Imovina obuhvaća podatke, usluge i uređaje. Prijetnja je mogući štetni događaj, primjerice kvar diska. Slabost je stanje koje omogućuje štetu, primjerice nepostojanje kopije.'],
+    ['Vjerojatnost i učinak', 'Vjerojatnost govori koliko je štetan događaj izgledan u promatranom razdoblju; učinak koliku bi štetu izazvao. U igri tim daje ocjene 1, 2 ili 3 za sljedeći mjesec. Umnožak 1–2 znači nizak, 3–4 srednji, a 6–9 visok prioritet. To je pojednostavljen školski model.'],
+    ['Mjera i preostali rizik', 'Mjera treba djelovati na opisani problem. Kopija ublažava gubitak rada, ali ne popravlja disk. Resurse prvo usmjeri na važnije rizike, provjeri učinak i dogovori praćenje preostalog rizika.'],
+  ], stations: [at('assets', 'Popis školske imovine', 5, 5, 'archive', 0xf2c879), at('risk-analysis', 'Ploča rizika', 16, 4, 'radar', 0xff9bb1), at('risk-plan', 'Raspodjela mjera', 16, 16, 'network', 0x60d8ff), at('risk-test', 'Provjera učinka mjera', 26, 17, 'check', 0x67e7ab), exit] },
+  { id: 12, title: 'Smireno kroz incident', subtitle: 'PLAN I OPORAVAK', description: 'Prijavi činjenice, složi plan odgovora i odaberi provjerenu kopiju za povratak u rad.', color: '#c3adff', rooms: ['PRIJAVA', 'PLAN ODGOVORA', 'POVRATAK U RAD'], floors: [0x30354b, 0x3a3046, 0x203e43], debrief: 'Što bi prijavio ako čista kopija ne sadrži posljednju izmjenu rada? Kako bi spriječio da se ista slabost ponovi?', lesson: [
+    ['Prijavi činjenice', 'Sigurnosni incident ugrožava podatke ili rad sustava. Zabilježi što, gdje i kada opažaš te prijavi poznatim školskim kanalom. Sačuvaj zapise; ne nagađaj tko je kriv niti dijeli osjetljive podatke razredu.'],
+    ['Ograniči, oporavi, provjeri', 'Za ovaj slučaj administrator najprije ograničava širenje, zatim uklanja uzrok i obnavlja iz provjerenog izvora. Prije povezivanja provjerava rad i ovlasti. Komunikacija i čuvanje dokaza traju cijelo vrijeme; postupci se u stvarnosti mogu preklapati.'],
+    ['Čista kopija i pouke', 'Najnovija kopija može sadržavati štetnu promjenu. Koristi provjerenu kopiju i jasno prijavi koji noviji rad nedostaje. Nakon odobrenog povratka nastavi nadzor i ažuriraj plan kako bi idući odgovor bio bolji.'],
+  ], stations: [at('incident-report', 'Prijava događaja', 6, 5, 'log', 0xc3adff), at('response-plan', 'Plan postupanja', 16, 4, 'network', 0x60d8ff), at('recovery-source', 'Izvor za obnovu', 26, 6, 'backup', 0xffcf76), at('incident-test', 'Odobren povratak', 26, 17, 'check', 0x67e7ab), exit] },
 ];
 export const missionNumber=(id:number)=>String(id).padStart(2,'0');
 export function levelContent(level:Level,tier:ContentTier):Level {
@@ -70,9 +80,12 @@ const PASSAGES: Record<number, number[][]> = {
   8: [[6,7,15,16],[4,5,17,18],[4,5,6],[14,15,16],[27,28,29]],
   9: [[4,5,15,16],[6,7,18,19],[7,8,9],[16,17,18],[24,25,26]],
   10: [[7,8,17,18],[4,5,16,17],[4,5,6],[13,14,15],[26,27,28]],
+  11: [[3,4,14,15],[7,8,16,17],[5,6,7],[17,18,19],[23,24,25]],
+  12: [[6,7,18,19],[3,4,15,16],[7,8,9],[14,15,16],[27,28,29]],
 };
 Object.assign(TARGET_TEXT,{message:'Pregledaj sumnjivu poruku','verify-sender':'Provjeri pošiljatelja neovisnim putem',report:'Prijavi pokušaj prijevare','phish-test':'Provjeri postupak zaštite',channel:'Odaberi zaštićen prijenos',firewall:'Postavi potrebne mrežne veze',tls:'Provjeri identitet poslužitelja','network-test':'Isprobaj mrežnu zaštitu'});
 Object.assign(TARGET_TEXT,{sensors:'Usporedi IDS i IPS',alerts:'Istraži upozorenja i druge zapise',response:'Ograniči potvrđeni incident','detection-test':'Isprobaj nadzor i dopušten rad','wifi-identity':'Provjeri mrežu poznatim putem','wifi-config':'Zaštiti vezu i odvoji goste','wifi-maintenance':'Zaštiti pristupnu točku','wifi-test':'Isprobaj internet i odvajanje gostiju'});
+Object.assign(TARGET_TEXT,{assets:'Popiši što škola treba zaštititi','risk-analysis':'Odredi prioritet prema dokazima','risk-plan':'Rasporedi mjere unutar plana','risk-test':'Provjeri učinak i preostali rizik','incident-report':'Prijavi što, gdje i kada','response-plan':'Složi tri koraka postupanja','recovery-source':'Odaberi provjerenu kopiju','incident-test':'Provjeri i odobri povratak u rad'});
 export function walls(level = 1): Set<string> {
   const w = new Set<string>();
   const [left, right, west, center, east] = PASSAGES[level] || [[5,6,16,17],[9,10,17,18],[4,5,6],[15,16,17],[25,26,27]];

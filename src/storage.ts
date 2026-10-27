@@ -1,6 +1,7 @@
 import { CHECKS, FILES, newRun, type Difficulty, type Run, score, arcadeScore } from './core.ts';
 import { EXPERT_REVIEWS, TIERS, type ContentTier } from './curriculum.ts';
 import { alertsFor, verdictsFor, WIFI_GUESTS, WIFI_SECURITY } from './network.ts';
+import { cleanMeasures, cleanResponse, prioritiesFor, risksFor } from './operations.ts';
 export type Best = { learning: number; arcade: number; independent: number; completed: boolean };
 export type Profile = { best: Record<string, Best>; active: Run | null };
 export type Save = { schema: 2; settings: { content: ContentTier; difficulty: Difficulty; timed: boolean; sound: boolean; reducedMotion: boolean }; profiles: Record<ContentTier,Profile> };
@@ -29,6 +30,11 @@ function parseRun(a:any,tier:ContentTier):Run|null {
     if(tier!=='junior'&&WIFI_SECURITY.some(([id])=>id===a.wifiSettings?.security))r.wifiSettings.security=a.wifiSettings.security;
     if(WIFI_GUESTS.some(([id])=>id===a.wifiSettings?.guests))r.wifiSettings.guests=a.wifiSettings.guests;
   }
+  if(r.level===11){
+    for(const risk of risksFor(tier)){const value=a.riskAnswers?.[risk.id];if(prioritiesFor(tier).some(([id])=>id===value))r.riskAnswers[risk.id]=value;}
+    r.riskMeasures=cleanMeasures(a.riskMeasures,tier);
+  }
+  if(r.level===12)r.responseOrder=cleanResponse(a.responseOrder,tier);
   return r;
 }
 export function parseSave(raw:string|null): Save {

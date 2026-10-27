@@ -195,3 +195,40 @@ Object.assign(VERIFICATION_REPORTS, {
   'detection-test':[['Probni štetni promet','Ciljano IPS pravilo blokira vezu.'],['Školski portal','Dopuštena predaja rada prolazi.'],['Odobrena provjera','Potvrđeno održavanje nije pogrešno blokirano.'],['Obrada incidenta','LAB-09 ostaje izoliran; zapisi su sačuvani.']],
   'wifi-test':[['Bežična veza','WPA3-Personal i zasebna duga lozinka.'],['Gost → internet','Potreban pristup je dopušten.'],['Gost → interna mreža','Pristup je blokiran pravilima odvajanja.'],['Upravljanje i web','Upravljanje je zaštićeno; web koristi HTTPS.']],
 });
+
+Object.assign(DECISIONS, {
+  assets: {
+    level:11,description:'Škola priprema plan zaštite. Staro računalo čuva jedine primjerke učeničkih radova, druga usluga raspored, a novi zaslon javni plakat. Što treba popisati prije odluke?',requires:[],locked:'',correct:'context',
+    options:[
+      {id:'price',label:'Poredaj samo po nabavnoj cijeni',detail:'Najnoviji zaslon prvi dobiva zaštitu.',feedback:'Cijena uređaja ne govori koliko bi gubitak podataka ili prekid usluge naštetio školi. Staro računalo može čuvati nezamjenjiv rad.'},
+      {id:'context',label:'Poveži podatke, usluge, uređaje i odgovorne osobe',detail:'Zabilježi što je važno za nastavu i koje bi posljedice imao gubitak ili promjena.',feedback:''},
+      {id:'hardware',label:'Popiši samo fizičke uređaje',detail:'Datoteke i usluge izostavi iz plana.',feedback:'Sigurnosna imovina nisu samo uređaji. Bez podataka ili potrebne usluge školski rad može stati i kad je hardver ispravan.'},
+    ],title:'Važnost imovine je zabilježena',message:'Arhiva čuva radove, račun omogućuje promjene rasporeda, a plakat prikazuje javne informacije. Za svaku stavku poznate su odgovorna osoba i posljedice problema. Slijedi procjena prema dokazima.',
+  },
+  'risk-test':decision(11,'Odobrene mjere sada se provode u simulaciji. Isprobaj obnovu radova i dopuštene radnje. Ocjena rizika nakon mjere je procjena koju treba potvrditi i pratiti.',['assets','risk-analysis','risk-plan'],'test',[
+    ['test','Provedi i provjeri odabrane mjere','Sačuvaj rezultat provjere i dogovori daljnje praćenje.'],
+  ],'Obnovljeni radovi odgovaraju kopiji. Rezultati odabranih mjera prikazani su u izvještaju. Kvar diska i druge prijetnje i dalje su mogući: odgovorna osoba prati stanje i planira zamjenu neispravnog diska.'),
+  'incident-report': {
+    level:12,description:'U 09:10 na LAB-12 ne otvaraju se školski radovi. Dostupna je poruka o grešci i zapis vremena. Uzrok i opseg još nisu poznati. U igri pomažeš ovlaštenom administratoru.',requires:[],locked:'',correct:'facts',
+    options:[
+      {id:'blame',label:'Objavi u razrednoj grupi tko je kriv',detail:'Pretpostavi uzrok i priloži sve dokumente.',feedback:'Uzrok i odgovornost nisu potvrđeni. Nagađanje i dijeljenje dokumenata povećavaju štetu; prijavi provjerene činjenice poznatim kanalom.'},
+      {id:'facts',label:'Prijavi opažanja poznatim školskim kanalom',detail:'Navedi LAB-12, 09:10, što ne radi i sačuvanu poruku; označi nepoznati uzrok.',feedback:''},
+      {id:'erase',label:'Prvo obriši poruke i zapise',detail:'Ukloni tragove pa vidi hoće li problem nestati.',feedback:'Brisanjem poruke ne uklanjaš uzrok, a otežavaš istragu. Sačuvaj opažanja i zatraži pomoć.'},
+    ],title:'Prijava je zaprimljena u simulaciji',message:'Administrator ima uređaj, vrijeme i opis opažanja, bez nagađanja i javne objave podataka. Školski plan predviđa ograničavanje širenja uz čuvanje dokaza; sada složi nastavak postupka.',
+  },
+  'recovery-source': {
+    level:12,description:'Plan je odobren, LAB-12 odvojen, zapisi sačuvani, a uzrok uklonjen u izoliranom okruženju. Kopija A u 08:00 provjerena je i čista. Izmjena rada nastala je u 08:20. Kopija B u 09:00 sadrži potvrđeno oštećen sadržaj. Koji izvor i izvještaj biraš?',requires:['incident-report','response-plan'],locked:'Najprije prijavi opažanja i složi plan odgovora.',correct:'verified',
+    options:[
+      {id:'newest',label:'Kopija B jer je najnovija',detail:'Vrati sadržaj iz 09:00.',feedback:'Ta je kopija provjereno oštećena. Vrijeme izrade nije dovoljan dokaz prikladnosti za obnovu.'},
+      {id:'silent',label:'Kopija A i tvrdnja da ništa nije izgubljeno',detail:'Vrati 08:00, ali prešuti izmjenu iz 08:20.',feedback:'Kopija A nastala je prije izmjene u 08:20. Noviji rad nije u njoj i taj gubitak treba jasno prijaviti.'},
+      {id:'verified',label:'Kopija A uz prijavu nedostajuće izmjene',detail:'Vrati 08:00; zabilježi da izmjena iz 08:20 nije vraćena.',feedback:''},
+    ],title:'Pouzdan sadržaj je obnovljen',message:'U simulaciji obnavljaš provjerenu kopiju A i jasno bilježiš nedostajuću izmjenu. Obnova još nije odobrenje za povezivanje: slijedi provjera sadržaja, ovlasti i rada.',
+  },
+  'incident-test':decision(12,'Prije povratka LAB-12 provjeri obnovljene dokumente, ovlasti i školsku uslugu. Administrator odobrava povezivanje uz nadzor. Zabilježi naučeno i odgovornu osobu za poboljšanje plana.',['incident-report','response-plan','recovery-source'],'test',[
+    ['test','Provjeri pa odobri povratak','Potvrdi rad, sačuvaj izvještaj i nastavi praćenje.'],
+  ],'Sadržaj i ovlasti su provjereni, usluga radi, a administrator odobrava povratak uz nadzor. Gubitak izmjene iz 08:20 ostaje zabilježen. Dogovorene su češće provjerene kopije, odgovorna osoba i rok provjere plana.'),
+});
+Object.assign(VERIFICATION_REPORTS, {
+  'risk-test':[['Obnova radova','Otvaranje i usporedba vraćenog sadržaja uspješni.'],['Račun rasporeda','Osobni računi i potrebne ovlasti provjereni.'],['Resursi','Prioritetne mjere stanu u pet jedinica rada.'],['Preostali rizik','Kvar je još moguć. Administrator prati disk i planira zamjenu.']],
+  'incident-test':[['Obnovljeni sadržaj','Kopija A provjerena; izmjena iz 08:20 označena kao nedostajuća.'],['Rad i ovlasti','Školska usluga radi; neodobrene radnje su odbijene.'],['Odobren povratak','Administrator odobrava povezivanje uz nastavak nadzora.'],['Pouke','Izvještaj, odgovorna osoba i rok za provjeru poboljšanja su zabilježeni.']],
+});

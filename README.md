@@ -1,6 +1,6 @@
 # SISgame — Čuvari sustava
 
-Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, prvenstveno za uzrast **13–18 godina**, uz jednostavniji sadržaj za mlađe igrače. Inačica **0.4.0** sadrži deset dovršivih misija, hrvatske upute, dodirne kontrole i tipkovnicu.
+Poučna 2D arkada za predmet **Sigurnost informacijskih sustava**, prvenstveno za uzrast **13–18 godina**, uz jednostavniji sadržaj za mlađe igrače. Inačica **0.5.0** sadrži dvanaest dovršivih misija, hrvatske upute, dodirne kontrole i tipkovnicu.
 
 ## Jedna igra, tri razine sadržaja
 
@@ -29,14 +29,18 @@ Dobne oznake su razvojna i pedagoška preporuka, **nisu formalna PEGI klasifikac
 8. **Mreža pod nadzorom** — HTTPS, pravila dopuštenih veza, upozorenje o certifikatu i provjera zaštite.
 9. **Trag iza alarma** — IDS/IPS, razvrstavanje upozorenja prema dokazima, ciljani odgovor i provjera dopuštenog rada.
 10. **Wi-Fi za prave goste** — provjera mreže, WPA3-Personal, odvajanje gostiju, održavanje i provjera pristupa.
+11. **Što prvo zaštititi?** — popis imovine, procjena prioriteta, izbor mjera uz ograničene resurse i provjera preostalog rizika.
+12. **Smireno kroz incident** — činjenična prijava, slaganje plana postupanja, izbor čiste kopije i odobren povratak uz nadzor.
 
-U inačici 0.4.0 kampanja ima **40 sigurnosnih zadaća po razini sadržaja**. Konzola upozorenja razlikuje odobreni rad, potrebnu daljnju provjeru i potvrđen incident. Wi-Fi konzola odmah prikazuje učinak odabranih postavki na bežičnu zaštitu, internet za goste i pristup internoj školskoj mreži. Oba nova obrasca spremaju nedovršene odabire. Junior ima kraće zapise i dio postavki pripremljen; Expert dodatni slučaj s tri povezane odluke.
+U inačici 0.5.0 kampanja ima **48 sigurnosnih zadaća po razini sadržaja**. Nova ploča rizika povezuje vjerojatnost i učinak s prioritetom. Plan mjera prikazuje trošak i očekivani preostali rizik dok učenik bira zaštitu. Konzola odgovora prikazuje posljedice odabranog slijeda, uključujući preuranjenu obnovu i gubitak dokaza.
+
+Junior uspoređuje dva rizika, ima tri jedinice rada i pripremljen srednji korak odgovora. Standard i Expert procjenjuju tri rizika te raspolažu s pet jedinica rada. Expert dodatno provjerava ograničenja kopije i ovlasti nakon obnove. Svi novi odabiri spremaju se za nastavak. Ljestvica rizika i jedinice rada su izmišljeni školski model, a ne univerzalna formula ili stvarni troškovnik.
 
 ![Wi-Fi konzola s prikazom posljedica odabranih pravila](media/wifi-console-v0.4.0.jpg)
 
 Nove misije imaju različite prolaze, boje prostorija i opremu. Uz odluke na terminalima dodani su razvrstavanje izvještaja, pregled dnevnika i upravljačka ploča usluga. Završne provjere prikazuju učinak mjera; rezultati nude i pitanje za primjenu gradiva.
 
-[Nastavni sadržaj, rješenja i stručni izvori](CONTENT.md) opisani su zasebno. Svaka razina sadržaja ima svoj napredak i započetu misiju. Postojeći napredak iz 0.1.x i 0.2.x automatski se prenosi u Standard; dovršena osma misija otključava devetu bez brisanja postojećih rezultata.
+[Nastavni sadržaj, rješenja i stručni izvori](CONTENT.md) opisani su zasebno. Svaka razina sadržaja ima svoj napredak i započetu misiju. Postojeći napredak iz 0.1.x i 0.2.x automatski se prenosi u Standard; dovršena deseta misija otključava jedanaestu bez brisanja postojećih rezultata.
 
 ![Razvrstavanje izvještaja u novoj laboratorijskoj misiji](media/campaign-samples-v0.2.0.jpg)
 
@@ -107,6 +111,7 @@ npm run build
 
 - `src/curriculum.ts` — razine sadržaja, Junior prilagodbe, pojmovi i Expert slučajevi.
 - `src/network.ts` — sigurnosni zapisi, Wi-Fi postavke i izračun prikazanih posljedica.
+- `src/operations.ts` — slučajevi rizika, planiranje mjera, redoslijed odgovora i prikaz posljedica.
 - `src/missions.ts` — sadržaj novih odluka, izvještaji, zapisi i pravila usluga.
 - `src/core.ts` — nastavna pravila i prijelazi stanja.
 - `src/game.ts` — Phaser, mapa, kretanje, prepreke i likovi.
@@ -117,13 +122,15 @@ npm run build
 
 ## Provjera prije uporabe u razredu
 
-41 automatizirani test provjerava pravila svih deset misija u sve tri razine sadržaja, dostupnost mjesta na svakoj mapi, preduvjete, pogrešne odluke, sprečavanje ponovnog zbrajanja bodova, migraciju starog napretka, neovisne profile, opcionalni sat, odvojeno bodovanje i offline paket. Pregled u računalnom pregledniku ne zamjenjuje probu na stvarnom iPhoneu i Androidu. Prije nastavne uporabe provjerite višestruki dodir, okretanje zaslona, zaključavanje/otključavanje, povratak nakon zatvaranja, zvuk, offline pokretanje i ažuriranje.
+52 automatizirana testa provjeravaju pravila svih dvanaest misija u sve tri razine sadržaja, dostupnost mjesta na svakoj mapi, preduvjete, pogrešne odluke, sprečavanje ponovnog zbrajanja bodova, migraciju starog napretka, neovisne profile, opcionalni sat, odvojeno bodovanje i offline paket. Pregled u računalnom pregledniku ne zamjenjuje probu na stvarnom iPhoneu i Androidu. Prije nastavne uporabe provjerite višestruki dodir, okretanje zaslona, zaključavanje/otključavanje, povratak nakon zatvaranja, zvuk, offline pokretanje i ažuriranje.
 
 Postavke, Junior obrasci, Expert analiza i mrežna konzola provjereni su u Chromeu na 956 × 440, 956 × 378 uz simulirane sigurne rubove, 568 × 320 i 390 × 844. Dulji sadržaj pomiče se unutar prozora; zatvaranje i glavna tipka ostaju dostupni. Provjereni su ispravak Expert odgovora, nastavak nakon isteka vremena i povratak u započetu misiju nakon promjene sadržaja.
 
 Nove konzole iz 0.4.0 dodatno su provjerene u Chromeu unutar prikaza 956 × 440, 568 × 320 i 390 × 844, s odvojenim izmišljenim testnim napretkom. Provjereni su ispravak odgovora, ponovno učitavanje nedovršenih odabira, Junior pojednostavljenja i Expert završni slučajevi. Na 568 × 320 zapisi se nižu jedan ispod drugoga, a glavna tipka i zatvaranje ostaju dostupni. To je provjera rasporeda u računalnom pregledniku, ne test višestrukog dodira na fizičkom telefonu.
 
-Nastavni okvir obuhvaća sedam cjelina i 26 tema. Ova inačica ima deset misija koje objedinjuju dio tema; ne pokriva svih 26 nastavnih tema. Procjena imovine i rizika te širi operativni scenariji ostaju za nastavak razvoja. Detaljna veza s gradivom nalazi se u [CONTENT.md](CONTENT.md).
+Za **0.5.0** prošli su TypeScript, produkcijska izgradnja, offline provjera paketa i svih 52 testa. Posebno su provjereni preduvjeti, nepotpuni i pogrešni odabiri, proračun resursa, očuvanje starih rezultata i nedovršenih novih odabira te dodatni Expert slučajevi. **Vizualni pregled novih konzola u pregledniku nije proveden:** pristup lokalnoj testnoj adresi blokiran je automatskom provjerom pristupa. Ranije navedene provjere zaslona odnose se na 0.4.0 i starije prikaze. Novu inačicu prije spajanja treba pregledati na uspravnom i vodoravnom zaslonu, a prije nastave i na stvarnim uređajima.
+
+Nastavni okvir obuhvaća sedam cjelina i 26 tema. Ova inačica ima dvanaest misija koje objedinjuju dio tema; ne pokriva svih 26 nastavnih tema. Procjena imovine i rizika te plan odgovora sada imaju samostalne misije. Za daljnji razvoj ostaju dodatni slučajevi, provjera prijenosa znanja i pilotiranje u razredu. Detaljna veza s gradivom nalazi se u [CONTENT.md](CONTENT.md).
 
 ## Izvori i ovisnosti
 
