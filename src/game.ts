@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { collect, has, nextTarget, newRun, ready, type Run, type Result } from './core.ts';
 import { COLS, LEVELS, ROWS, TILE, walls, route, movementTowards, type Station } from './data.ts';
+import { stageZoom } from './controls.ts';
 export interface Bridge {
-  paused:boolean; axes:{x:number;y:number}; reducedMotion:boolean;
+  paused:boolean; axes:{x:number;y:number}; keyboardAxes:{x:number;y:number}; reducedMotion:boolean;
   interact:(station:Station)=>void; changed:()=>void; result:(result:Result)=>void;
   nearby:(station:Station|null)=>void; hit:()=>void; shield:(remaining:number)=>void;
 }
@@ -10,7 +11,7 @@ type StationView={data:Station;icon:Phaser.GameObjects.Image;pad:Phaser.GameObje
 export class Sector extends Phaser.Scene {
   run:Run = newRun(1); bridge:Bridge;
   player!:Phaser.GameObjects.Sprite; shadow!:Phaser.GameObjects.Ellipse; aura!:Phaser.GameObjects.Arc;
-  stationViews:StationView[]=[]; blocked=walls(); keys!:Record<string,Phaser.Input.Keyboard.Key>;
+  stationViews:StationView[]=[]; blocked=walls();
   threats:{sprite:Phaser.GameObjects.Sprite;points:{x:number;y:number}[];step:number}[]=[];
   path:{x:number;y:number}[]=[]; pathLine!:Phaser.GameObjects.Graphics; ring!:Phaser.GameObjects.Arc;
   bits:{id:string;sprite:Phaser.GameObjects.Image}[]=[];
@@ -35,17 +36,16 @@ export class Sector extends Phaser.Scene {
     bitTiles.forEach(([x,y],i)=>{const id='bit-'+i;const sprite=this.add.image(x*TILE+16,y*TILE+16,'bit').setDepth(3);this.bits.push({id,sprite});});
     const paths=[[[3,3],[8,3],[8,8],[3,8]],[[13,10],[18,10],[18,18],[13,18]],[[23,3],[28,3],[28,11],[23,11]]];
     if(this.run.difficulty!=='relaxed')paths.forEach((points,i)=>{const ps=points.map(([x,y])=>({x:x*TILE+16,y:y*TILE+16}));const sprite=this.add.sprite(ps[0].x,ps[0].y,'threat').setDepth(9);this.threats.push({sprite,points:ps,step:1});if(i===2&&this.run.difficulty==='easy')sprite.setAlpha(.8);});
-    this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT') as Record<string,Phaser.Input.Keyboard.Key>;
-    this.input.on('pointerdown',(p:Phaser.Input.Pointer)=>{if(!this.bridge.paused){const point=this.cameras.main.getWorldPoint(p.x,p.y);this.walkTo(point.x,point.y);}});
+    this.input.on('pointerdown',(p:Phaser.Input.Pointer)=>{if(!this.bridge.paused&&(p.wasTouch||p.button===0)){const point=this.cameras.main.getWorldPoint(p.x,p.y);this.walkTo(point.x,point.y);}});
     this.scale.on('resize',this.resize,this);this.events.once('shutdown',()=>this.scale.off('resize',this.resize,this));
     this.cameras.main.setBounds(0,0,COLS*TILE,ROWS*TILE);this.cameras.main.startFollow(this.player,true,.12,.12);this.resize();
     this.sync();this.bridge.changed();
   }
-  resize(){const width=this.scale.width;this.cameras.main.setZoom(width<540?1.13:width<1000?1.16:1.45);}
+  resize(){this.cameras.main.setZoom(stageZoom(this.scale.width,this.scale.height));}
   startRun(run:Run){this.run=run;this.scene.restart({run});}
-  resetInput(){this.path=[];this.bridge.axes={x:0,y:0};this.input.keyboard?.resetKeys();}
+  resetInput(){this.path=[];this.bridge.axes={x:0,y:0};this.bridge.keyboardAxes={x:0,y:0};}
   walkTo(x:number,y:number){this.path=route(this.player.x,this.player.y,x,y,this.blocked);if(this.path.length)this.path.unshift({x:Math.floor(this.player.x/TILE)*TILE+16,y:Math.floor(this.player.y/TILE)*TILE+16});}
-  guide(){const s=LEVELS[this.run.level-1].stations.find(s=>s.id===nextTarget(this.run));if(s)this.walkTo(s.x,s.y);}
+  guide(){if(this.bridge.paused||!this.player)return;const s=LEVELS[this.run.level-1].stations.find(s=>s.id===nextTarget(this.run));if(s)this.walkTo(s.x,s.y);}
   use(){if(!this.bridge.paused&&this.near)this.bridge.interact(this.near);}
   shield(){if(this.run.difficulty==='relaxed'||this.bridge.paused||this.cooldown>0)return;this.shieldFor=2.5;this.cooldown=7;this.burst(this.player.x,this.player.y,0x66e3b3);}
   canStand(x:number,y:number){return [[-10,-10],[10,-10],[-10,10],[10,10]].every(([dx,dy])=>!this.blocked.has(`${Math.floor((x+dx)/TILE)},${Math.floor((y+dy)/TILE)}`));}
@@ -66,9 +66,8 @@ export class Sector extends Phaser.Scene {
     const dt=Math.min(delta/1000,.12);this.tick+=dt;
     if(this.bridge.paused){this.pathLine.clear();return;}
     this.run.seconds+=dt;this.dirty+=dt;
-    let x=this.bridge.axes.x, y=this.bridge.axes.y;
-    if(this.keys.A.isDown||this.keys.LEFT.isDown)x=-1;if(this.keys.D.isDown||this.keys.RIGHT.isDown)x=1;
-    if(this.keys.W.isDown||this.keys.UP.isDown)y=-1;if(this.keys.S.isDown||this.keys.DOWN.isDown)y=1;
+    const keyboard=this.bridge.keyboardAxes;
+    let x=keyboard.x||this.bridge.axes.x, y=keyboard.y||this.bridge.axes.y;
     if(x||y)this.path=[];
     let autoStep:{x:number;y:number}|null=null;if(!x&&!y&&this.path.length){const p=this.path[0],d=Math.hypot(p.x-this.player.x,p.y-this.player.y);if(d<2)this.path.shift();else{autoStep=movementTowards(this.player.x,this.player.y,p,155*dt);x=autoStep.x;y=autoStep.y;}}
     const mag=Math.hypot(x,y);if(mag>1){x/=mag;y/=mag;}

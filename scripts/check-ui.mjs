@@ -13,15 +13,21 @@ import * as storage from '../src/storage.ts';
 import * as practice from '../src/practice.ts';
 import * as progress from '../src/progress.ts';
 import * as integrity from '../src/integrity.ts';
+import * as controls from '../src/controls.ts';
+import * as learning from '../src/learning.ts';
 
 // Local DOM unit harness. No network, user browser, rendering or real game canvas.
 const source=stripTypeScriptTypes(await readFile('src/main.ts','utf8'))
  .replace(/^import .*;\s*$/gm,'').replaceAll('import.meta.env.PROD','false');
 let assertions=0;
 function check(value,message){assert.ok(value,message);assertions++;}
-async function setup(tier, saved=null){
+async function setup(tier, saved=null, device={}){
  const w=new Window({url:'https://sisgame.invalid/',settings:{enableJavaScriptEvaluation:false,enableCSSFileLoading:false,enableImageFileLoading:false,enableIframePageLoading:false,disableJavaScriptFileLoading:true,navigation:{disableMainFrameNavigation:true,disableChildFrameNavigation:true,disableChildPageNavigation:true}}});
  w.document.body.innerHTML='<div id="app"></div>';
+ const pointers={coarse:!!device.coarse,fine:!!device.fine};
+ const media=new Map();
+ w.matchMedia=query=>{const key=query==='(pointer: coarse)'?'coarse':'fine';const item={matches:pointers[key],addEventListener:(_name,listener)=>{item.listener=listener;}};media.set(key,item);return item;};
+ if(device.preference)w.localStorage.setItem(controls.CONTROL_KEY,device.preference);
  const initial=storage.emptySave();initial.settings.content=tier;initial.settings.difficulty='relaxed';
  for(let n=1;n<=10;n++)storage.profile(initial).best[n]={learning:100,arcade:0,independent:4,completed:true};
  w.localStorage.setItem(storage.SAVE_KEY,saved||JSON.stringify(initial));
@@ -33,20 +39,21 @@ async function setup(tier, saved=null){
   static revokeObjectURL(url){objects.delete(url);}
  }
  w.HTMLAnchorElement.prototype.click=function(){if(this.download)downloads.push({filename:this.download,blob:objects.get(this.href)});};
- class Sector {startRun(){} resetInput(){} sync(){} guide(){} use(){} shield(){}}
+ const calls={guide:0,use:0,shield:0,reset:0,config:null};
+ class Sector {startRun(){} resetInput(){calls.reset++;} sync(){} guide(){calls.guide++;} use(){calls.use++;} shield(){calls.shield++;}}
  const context={window:w,document:w.document,navigator:w.navigator,localStorage:testStore,location:w.location,console,Blob,URL:LocalURL,
   requestAnimationFrame:()=>0,cancelAnimationFrame:()=>{},clearInterval:()=>{},performance,
   ResizeObserver:class{observe(){}disconnect(){}},
-  Phaser:{AUTO:0,Scale:{RESIZE:0},Game:class{scale={getParentBounds(){},refresh(){}}}},Sector,
-  ...core,...data,...curriculum,...missions,...network,...operations,...storage,...practice,...progress,...integrity};
- runInNewContext(source+'\nwindow.__checks={start,openStation,getRun:()=>run,getSave:()=>save};',context);
+  Phaser:{AUTO:0,Scale:{RESIZE:0},Game:class{constructor(config){calls.config=config;} scale={getParentBounds(){},refresh(){}}}},Sector,
+  ...core,...data,...curriculum,...missions,...network,...operations,...storage,...practice,...progress,...integrity,...controls,...learning};
+ runInNewContext(source+'\nwindow.__checks={start,openStation,finish,updateHUD,getRun:()=>run,getSave:()=>save,getBridge:()=>bridge};',context);
  const h=w.__checks;
  const click=id=>{const e=w.document.querySelector(id);assert.ok(e,id);e.click();};
  const select=(id,value)=>{const e=w.document.querySelector(id);assert.ok(e,id);e.value=value;e.dispatchEvent(new w.Event('change',{bubbles:true}));};
  const tick=(id,value=true)=>{const e=w.document.querySelector(id);assert.ok(e,id);e.checked=value;e.dispatchEvent(new w.Event('change',{bubbles:true}));};
  const station=id=>h.openStation(data.LEVELS[h.getRun().level-1].stations.find(s=>s.id===id));
  const chooseFile=async(file)=>{const input=w.document.querySelector('#import-progress'),transfer=new w.DataTransfer();transfer.items.add(file);input.files=transfer.files;await input.onchange(new w.Event('change'));};
- return{w,h,click,select,tick,station,chooseFile,downloads,storageControl,close:()=>w.happyDOM.close()};
+ return{w,h,click,select,tick,station,chooseFile,downloads,storageControl,calls,media,close:()=>w.happyDOM.close()};
 }
 for(const tier of curriculum.TIERS){
  const {w,h,click,select,tick,station,close}=await setup(tier);
@@ -309,5 +316,102 @@ for(const tier of curriculum.TIERS){
  check(ui.w.localStorage.getItem(progress.RESTORE_POINT_KEY)===null,'confirmed reset clears restore point');
  check(JSON.stringify(ui.h.getSave())===JSON.stringify(storage.emptySave()),'confirmed reset clears all profiles');
  await ui.close();
+}
+
+// New scaffolds follow actual campaign state in every content tier.
+for(const tier of curriculum.TIERS){
+ const ui=await setup(tier);
+ for(const level of data.LEVELS){
+  ui.h.start(level.id);
+  check(ui.w.document.querySelector('.learning-outcome').textContent.includes(learning.missionOutcome(level.id,tier)),`${tier}/${level.id}: measurable outcome before task`);
+  check(ui.w.document.querySelectorAll('.worked-example li').length===3,`${tier}/${level.id}: situation, reason and decision`);
+  check(ui.w.document.querySelectorAll('.mission-plan .mission-steps li').length===4,`${tier}/${level.id}: plan covers real checkpoints`);
+  check(ui.w.document.querySelectorAll('#panel-steps [aria-current="step"]').length===1,`${tier}/${level.id}: next checkpoint marked in panel`);
+  ui.click('#begin');
+  const run=ui.h.getRun();
+  for(const c of Object.values(run.checks))c.done=true;
+  Object.values(run.checks)[0].errors=1;run.completed=true;ui.h.finish();
+  check(ui.w.document.querySelector('.reflection').textContent.includes(learning.MISSION_GUIDES[level.id].reflection.question),`${tier}/${level.id}: explanation prompt on results`);
+  check(!ui.w.document.querySelector('.reflection details').open,`${tier}/${level.id}: model explanation initially concealed`);
+  check(ui.w.document.querySelectorAll('.results-list small')[1].textContent==='bez ispravka',`${tier}/${level.id}: no claim of independent mastery`);
+  check(ui.w.document.querySelectorAll('.results-list small')[0].textContent==='uz ispravak',`${tier}/${level.id}: correction remains visible`);
+  check(ui.w.document.querySelector('.dialog-actions > button').id==='results-practice',`${tier}/${level.id}: new case is the primary next step`);
+ }
+ await ui.close();
+}
+{
+ const ui=await setup('standard');const {w,h,calls}=ui;
+ const key=(value,options={},target=w.document.activeElement,type='keydown')=>{const event=new w.KeyboardEvent(type,{key:value,bubbles:true,cancelable:true,...options});target.dispatchEvent(event);return event;};
+ const axes=()=>JSON.stringify(h.getBridge().keyboardAxes);
+ const canvas=w.document.querySelector('#canvas-host');
+ check(calls.config.input.keyboard===false,'Phaser global keyboard capture disabled');
+ const settings=w.document.querySelector('#home-settings');settings.focus();ui.click('#home-settings');ui.click('#save-settings');
+ check(w.document.activeElement===settings,'home dialog restores its invoking button');
+ h.start(2);ui.click('#begin');check(w.document.activeElement===canvas,'begin focuses map for keyboard play');
+ check(key('ArrowUp').defaultPrevented&&axes()==='{"x":0,"y":-1}','focused map receives movement and prevents page scroll');
+ key('d');check(axes()==='{"x":1,"y":-1}','diagonal keyboard movement reaches game bridge');
+ key('ArrowUp',{},canvas,'keyup');key('d',{},canvas,'keyup');check(axes()==='{"x":0,"y":0}','keyup releases movement');
+ key('g');key('g',{repeat:true});check(calls.guide===1,'G guides once per press');
+ key('e');key('e',{repeat:true});check(calls.use===1,'E interacts once per press');
+ key('q');key(' ');check(calls.shield===2,'Q and map Space activate shield');
+ key('w');key('h');check(w.document.querySelector('#dialog').open&&h.getBridge().paused,'H opens paused lesson');
+ check(axes()==='{"x":0,"y":0}','opening lesson releases held movement');
+ key('e');check(calls.use===1,'dialog text cannot trigger interaction');
+ check(!key('ArrowDown').defaultPrevented,'dialog arrow key is not swallowed');
+ ui.click('#begin');
+ ui.station('schedule');const select=w.document.querySelector('#permission-student');select.focus();
+ for(const value of ['ArrowUp','ArrowDown',' ','e','w'])check(!key(value).defaultPrevented,`native select preserves ${JSON.stringify(value)}`);
+ check(calls.use===1&&axes()==='{"x":0,"y":0}','form input cannot move or interact with map');
+ ui.click('#dialog-close');check(w.document.activeElement===canvas,'station dialog returns focus to map');
+ key('w');const goal=w.document.querySelector('#goal');goal.focus();
+ check(axes()==='{"x":0,"y":0}','Tab target focus stops held movement');
+ check(!key(' ').defaultPrevented&&calls.shield===2,'Space on focused button retains native activation');
+ check(!key('g').defaultPrevented&&calls.guide===1,'letter shortcut is limited to map focus');
+ ui.click('#goal');check(calls.guide===2&&w.document.activeElement===canvas,'goal button starts route with map focus');
+ key('w');check(!key('s',{ctrlKey:true}).defaultPrevented&&axes()==='{"x":0,"y":0}','browser shortcuts pass through and release movement');
+ key('w');w.dispatchEvent(new w.Event('blur'));
+ check(w.document.querySelector('#resume')&&axes()==='{"x":0,"y":0}','window blur pauses and releases all movement');
+ ui.click('#resume');key('w',{repeat:true});check(axes()==='{"x":0,"y":0}','held repeat does not move after pause');
+ key('w',{},canvas,'keyup');key('w');check(axes()==='{"x":0,"y":-1}','fresh press resumes movement');
+ key('Tab');check(axes()==='{"x":0,"y":0}','Tab releases movement without preventing focus navigation');
+ key('Escape');check(w.document.querySelector('#resume'),'Escape on map opens pause');ui.click('#resume');
+ goal.focus();canvas.dispatchEvent(new w.PointerEvent('pointerdown',{bubbles:true,button:2}));check(w.document.activeElement===goal,'right click does not steal map focus');
+ canvas.dispatchEvent(new w.PointerEvent('pointerdown',{bubbles:true,button:0}));check(w.document.activeElement===canvas,'left click restores map focus');
+ // A synthetic joystick exercise checks state routing, not real device multitouch.
+ const stick=w.document.querySelector('#joystick');let captured=null;
+ stick.getBoundingClientRect=()=>({x:0,y:0,left:0,top:0,width:120,height:120});
+ stick.setPointerCapture=id=>{captured=id;};stick.hasPointerCapture=id=>captured===id;stick.releasePointerCapture=()=>{captured=null;};
+ const pointer=(type,id,x=96)=>stick.dispatchEvent(new w.PointerEvent(type,{pointerId:id,button:0,clientX:x,clientY:60,bubbles:true,cancelable:true}));
+ pointer('pointerdown',1);check(h.getBridge().axes.x===1&&captured===1,'joystick writes touch axis');
+ key('w');pointer('pointerdown',2,24);pointer('pointerup',2);
+ check(h.getBridge().axes.x===1&&axes()==='{"x":0,"y":-1}','second pointer cannot cancel the controlling finger or keyboard');
+ pointer('pointercancel',1);check(h.getBridge().axes.x===0&&axes()==='{"x":0,"y":-1}','touch cancellation leaves independent keyboard state');
+ pointer('pointerdown',3);key('h');check(h.getBridge().axes.x===0&&captured===null,'opening a dialog releases touch capture');
+ ui.click('#begin');
+ Object.defineProperty(w.document,'hidden',{configurable:true,value:true});w.document.dispatchEvent(new w.Event('visibilitychange'));
+ check(w.document.querySelector('#resume')&&h.getBridge().paused,'hidden document pauses play');
+ await ui.close();
+}
+{
+ const initial=storage.emptySave();initial.settings.difficulty='easy';initial.profiles.standard.active=core.newRun(1,'easy');
+ core.collect(initial.profiles.standard.active,'card');core.act(initial.profiles.standard.active,'door','authorized');
+ const ui=await setup('standard',JSON.stringify(initial),{coarse:true});
+ check(ui.w.document.body.classList.contains('touch-controls'),'coarse-only device gets touch layout');
+ ui.click('#play-primary');ui.click('#begin-calm');
+ check(ui.h.getRun().difficulty==='relaxed'&&core.score(ui.h.getRun())===25,'calm start retains prior learning decisions');
+ check(ui.h.getSave().settings.content==='standard'&&ui.h.getSave().settings.difficulty==='relaxed','calm start changes pace without changing content');
+ check(ui.w.document.querySelector('#panel-steps .current').textContent.includes('napajanja'),'plan advances from the saved checkpoint');
+ ui.click('#back-map');ui.click('#to-home');ui.click('#home-settings');ui.select('#controls-setting','keyboard');ui.click('#save-settings');
+ check(ui.w.document.body.classList.contains('keyboard-controls'),'manual keyboard mode overrides coarse pointer');
+ check(ui.w.localStorage.getItem(controls.CONTROL_KEY)==='keyboard','input preference persists separately from progress');
+ check(!Object.hasOwn(ui.h.getSave().settings,'controls'),'progress backup schema remains unchanged');
+ ui.click('#home-settings');ui.select('#controls-setting','auto');ui.click('#save-settings');
+ check(ui.w.document.body.classList.contains('touch-controls'),'automatic mode follows coarse pointer again');
+ const fine=ui.media.get('fine');fine.matches=true;fine.listener();
+ check(ui.w.document.body.classList.contains('keyboard-controls'),'connecting a fine pointer updates hybrid layout');
+ fine.matches=false;fine.listener();check(ui.w.document.body.classList.contains('touch-controls'),'disconnecting fine pointer returns touch layout');
+ await ui.close();
+ const reload=await setup('standard',null,{coarse:true,preference:'keyboard'});
+ check(reload.w.document.body.classList.contains('keyboard-controls'),'saved manual choice applies after reload');await reload.close();
 }
 console.log(`${assertions} local DOM assertions passed. Rendering, physical input and visual layout were not tested.`);
