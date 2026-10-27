@@ -1,0 +1,458 @@
+{
+  "format": "sisgame-progress",
+  "formatVersion": 1,
+  "gameVersion": "0.7.0",
+  "createdAt": "2026-10-27T06:00:00.000Z",
+  "save": {
+    "schema": 2,
+    "settings": {
+      "content": "standard",
+      "difficulty": "easy",
+      "timed": false,
+      "sound": false,
+      "reducedMotion": true
+    },
+    "profiles": {
+      "junior": {
+        "best": {
+          "1": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "2": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "3": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "4": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "5": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "6": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "7": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "8": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "9": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "10": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "11": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "12": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          }
+        },
+        "active": {
+          "level": 12,
+          "difficulty": "relaxed",
+          "content": "junior",
+          "review": {
+            "enabled": false,
+            "started": false,
+            "remaining": 90,
+            "expired": false,
+            "answers": {}
+          },
+          "networkRules": {},
+          "alertAnswers": {},
+          "wifiSettings": {
+            "security": "wpa3",
+            "guests": ""
+          },
+          "riskAnswers": {},
+          "riskMeasures": [],
+          "responseOrder": [
+            "contain",
+            "recover",
+            ""
+          ],
+          "x": 112,
+          "y": 560,
+          "flags": [
+            "incident-report"
+          ],
+          "files": [],
+          "backup": [],
+          "bits": [],
+          "checks": {
+            "incident-report": {
+              "done": true,
+              "errors": 0
+            },
+            "response-plan": {
+              "done": false,
+              "errors": 0
+            },
+            "recovery-source": {
+              "done": false,
+              "errors": 0
+            },
+            "incident-test": {
+              "done": false,
+              "errors": 0
+            }
+          },
+          "health": 3,
+          "hits": 0,
+          "seconds": 0,
+          "completed": false
+        },
+        "practice": {
+          "1": {
+            "answers": {
+              "action": "verify",
+              "reason": "authority"
+            },
+            "submitted": {
+              "action": "verify",
+              "reason": "authority"
+            },
+            "attempts": 1,
+            "solved": true,
+            "firstCorrect": true
+          }
+        }
+      },
+      "standard": {
+        "best": {
+          "1": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "2": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "3": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "4": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "5": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "6": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "7": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "8": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "9": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "10": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "11": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "12": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          }
+        },
+        "active": {
+          "level": 12,
+          "difficulty": "relaxed",
+          "content": "standard",
+          "review": {
+            "enabled": false,
+            "started": false,
+            "remaining": 90,
+            "expired": false,
+            "answers": {}
+          },
+          "networkRules": {},
+          "alertAnswers": {},
+          "wifiSettings": {
+            "security": "",
+            "guests": ""
+          },
+          "riskAnswers": {},
+          "riskMeasures": [],
+          "responseOrder": [
+            "contain",
+            "recover",
+            ""
+          ],
+          "x": 112,
+          "y": 560,
+          "flags": [
+            "incident-report"
+          ],
+          "files": [],
+          "backup": [],
+          "bits": [],
+          "checks": {
+            "incident-report": {
+              "done": true,
+              "errors": 0
+            },
+            "response-plan": {
+              "done": false,
+              "errors": 0
+            },
+            "recovery-source": {
+              "done": false,
+              "errors": 0
+            },
+            "incident-test": {
+              "done": false,
+              "errors": 0
+            }
+          },
+          "health": 3,
+          "hits": 0,
+          "seconds": 0,
+          "completed": false
+        },
+        "practice": {
+          "1": {
+            "answers": {
+              "action": "verify",
+              "reason": "authority"
+            },
+            "submitted": {
+              "action": "verify",
+              "reason": "authority"
+            },
+            "attempts": 1,
+            "solved": true,
+            "firstCorrect": true
+          }
+        }
+      },
+      "expert": {
+        "best": {
+          "1": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "2": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "3": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "4": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "5": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "6": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "7": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "8": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "9": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "10": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "11": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          },
+          "12": {
+            "learning": 100,
+            "arcade": 25,
+            "independent": 3,
+            "completed": true
+          }
+        },
+        "active": {
+          "level": 12,
+          "difficulty": "relaxed",
+          "content": "expert",
+          "review": {
+            "enabled": false,
+            "started": false,
+            "remaining": 90,
+            "expired": false,
+            "answers": {}
+          },
+          "networkRules": {},
+          "alertAnswers": {},
+          "wifiSettings": {
+            "security": "",
+            "guests": ""
+          },
+          "riskAnswers": {},
+          "riskMeasures": [],
+          "responseOrder": [
+            "contain",
+            "recover",
+            ""
+          ],
+          "x": 112,
+          "y": 560,
+          "flags": [
+            "incident-report"
+          ],
+          "files": [],
+          "backup": [],
+          "bits": [],
+          "checks": {
+            "incident-report": {
+              "done": true,
+              "errors": 0
+            },
+            "response-plan": {
+              "done": false,
+              "errors": 0
+            },
+            "recovery-source": {
+              "done": false,
+              "errors": 0
+            },
+            "incident-test": {
+              "done": false,
+              "errors": 0
+            }
+          },
+          "health": 3,
+          "hits": 0,
+          "seconds": 0,
+          "completed": false
+        },
+        "practice": {
+          "1": {
+            "answers": {
+              "action": "verify",
+              "reason": "authority",
+              "limit": "scope"
+            },
+            "submitted": {
+              "action": "verify",
+              "reason": "authority",
+              "limit": "scope"
+            },
+            "attempts": 1,
+            "solved": true,
+            "firstCorrect": true
+          }
+        }
+      }
+    }
+  }
+}

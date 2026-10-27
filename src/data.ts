@@ -64,6 +64,16 @@ export const LEVELS: Level[] = [
     ['Ograniči, oporavi, provjeri', 'Za ovaj slučaj administrator najprije ograničava širenje, zatim uklanja uzrok i obnavlja iz provjerenog izvora. Prije povezivanja provjerava rad i ovlasti. Komunikacija i čuvanje dokaza traju cijelo vrijeme; postupci se u stvarnosti mogu preklapati.'],
     ['Čista kopija i pouke', 'Najnovija kopija može sadržavati štetnu promjenu. Koristi provjerenu kopiju i jasno prijavi koji noviji rad nedostaje. Nakon odobrenog povratka nastavi nadzor i ažuriraj plan kako bi idući odgovor bio bolji.'],
   ], stations: [at('incident-report', 'Prijava događaja', 6, 5, 'log', 0xc3adff), at('response-plan', 'Plan postupanja', 16, 4, 'network', 0x60d8ff), at('recovery-source', 'Izvor za obnovu', 26, 6, 'backup', 0xffcf76), at('incident-test', 'Odobren povratak', 26, 17, 'check', 0x67e7ab), exit] },
+  { id: 13, title: 'Je li sadržaj isti?', subtitle: 'SAŽETAK I CJELOVITOST', description: 'Provjeri izvor, usporedi sažetke datoteka i reagiraj na promjenu sadržaja.', color: '#7dded3', rooms: ['POUZDAN IZVOR', 'USPOREDBA', 'PONOVNA PROVJERA'], floors: [0x234047, 0x293d50, 0x263f3b], debrief: 'Zašto isti naziv nije dokaz istog sadržaja? Što ako su datoteka i očekivani sažetak došli iz iste sumnjive poruke?', lesson: [
+    ['Sažetak sadržaja', 'Kriptografska hash funkcija iz podataka računa sažetak. SHA-256 daje 256 bitova, ovdje prikazanih kao 64 znaka 0–9 i a–f. Računa se iz točnih bajtova sadržaja. I mala izmjena tipično daje sasvim drukčiji sažetak; drugi naziv istog sadržaja ne mijenja ga.'],
+    ['Pouzdana usporedba', 'Za provjeru cjelovitosti usporedi izračunani sažetak s očekivanim sažetkom iste inačice iz potvrđenog izvora. Različiti sažetci znače različite podatke. Podudaranje s nepouzdanim popisom ne potvrđuje školsko podrijetlo.'],
+    ['Granice zaključka', 'Sažetak nije šifriranje: ne skriva datoteku i iz njega ne obnavljamo izvorni rad. Ni podudaranje samo po sebi ne jamči da je program bezopasan. Pri nepodudaranju zaustavi uporabu, provjeri izvor i preuzmi odobreni primjerak pa ponovi usporedbu.'],
+  ], stations: [at('hash-source', 'Očekivani sažetak', 5, 5, 'log', 0x7dded3), at('hash-lab', 'Usporedba datoteka', 16, 4, 'archive', 0x60d8ff), at('hash-response', 'Postupak pri promjeni', 16, 16, 'network', 0xffcf76), at('hash-test', 'Ponovna provjera', 26, 17, 'check', 0x67e7ab), exit] },
+  { id: 14, title: 'Čiji je potpis?', subtitle: 'POTPIS I POVJERENJE', description: 'Provjeri potpis, vezu javnog ključa sa školom i zasebno zaštiti povjerljivi prilog.', color: '#b6b5ff', rooms: ['ULOGE KLJUČEVA', 'PROVJERA POTPISA', 'SIGURNA PREDAJA'], floors: [0x30384d, 0x35334e, 0x244047], debrief: 'Može li potpis biti matematički valjan, a izvor nepotvrđen? Zašto potpisani povjerljivi prilog ipak treba zaštititi od čitanja?', lesson: [
+    ['Dva ključa, dvije uloge', 'Digitalni potpis povezuje sadržaj s ključem potpisnika i pomaže otkriti izmjenu. Potpisnik potpisuje privatnim ključem koji čuva za sebe. Drugi provjeravaju potpis odgovarajućim javnim ključem. Slika rukom pisanog potpisa nije ta kriptografska provjera.'],
+    ['Provjera i povjerenje', 'Uspješna provjera znači da potpis odgovara podatcima i odabranom javnom ključu. Prije zaključka tko je potpisnik moraš pouzdano potvrditi čiji je ključ. U ovoj vježbi školski ključ dobiven je poznatim putem; ključ iz neprovjerene poruke nema takvu potvrdu.'],
+    ['Potpis ne skriva sadržaj', 'Potpis štiti provjeru cjelovitosti i podrijetla uz pouzdan ključ, ali ne daje povjerljivost niti jamči bezopasnost sadržaja. Osjetljiv prilog zasebno šifriraj za ovlaštenog primatelja i ograniči pristup. Privatni potpisni ključ ne šalje se primatelju.'],
+  ], stations: [at('sign-keys', 'Uloge ključeva', 6, 5, 'key', 0xb6b5ff), at('sign-lab', 'Provjera potpisa', 16, 4, 'log', 0x60d8ff), at('sign-share', 'Povjerljivi prilog', 26, 6, 'lock', 0xffcf76), at('sign-test', 'Provjera predaje', 26, 17, 'check', 0x67e7ab), exit] },
 ];
 export const missionNumber=(id:number)=>String(id).padStart(2,'0');
 export function levelContent(level:Level,tier:ContentTier):Level {
@@ -82,6 +92,8 @@ const PASSAGES: Record<number, number[][]> = {
   10: [[7,8,17,18],[4,5,16,17],[4,5,6],[13,14,15],[26,27,28]],
   11: [[3,4,14,15],[7,8,16,17],[5,6,7],[17,18,19],[23,24,25]],
   12: [[6,7,18,19],[3,4,15,16],[7,8,9],[14,15,16],[27,28,29]],
+  13: [[4,5,18,19],[7,8,16,17],[4,5,6],[15,16,17],[24,25,26]],
+  14: [[7,8,15,16],[4,5,18,19],[6,7,8],[17,18,19],[25,26,27]],
 };
 Object.assign(TARGET_TEXT,{message:'Pregledaj sumnjivu poruku','verify-sender':'Provjeri pošiljatelja neovisnim putem',report:'Prijavi pokušaj prijevare','phish-test':'Provjeri postupak zaštite',channel:'Odaberi zaštićen prijenos',firewall:'Postavi potrebne mrežne veze',tls:'Provjeri identitet poslužitelja','network-test':'Isprobaj mrežnu zaštitu'});
 Object.assign(TARGET_TEXT,{sensors:'Usporedi IDS i IPS',alerts:'Istraži upozorenja i druge zapise',response:'Ograniči potvrđeni incident','detection-test':'Isprobaj nadzor i dopušten rad','wifi-identity':'Provjeri mrežu poznatim putem','wifi-config':'Zaštiti vezu i odvoji goste','wifi-maintenance':'Zaštiti pristupnu točku','wifi-test':'Isprobaj internet i odvajanje gostiju'});
@@ -122,3 +134,5 @@ export function movementTowards(x:number,y:number,target:{x:number;y:number},max
   const step=Math.min(maxStep,distance);
   return distance===0?{x:0,y:0}:{x:dx/distance*step,y:dy/distance*step};
 }
+
+Object.assign(TARGET_TEXT,{'hash-source':'Potvrdi izvor očekivanog sažetka','hash-lab':'Usporedi sažetke sadržaja','hash-response':'Reagiraj na nepodudaranje','hash-test':'Ponovi provjeru odobrenog primjerka','sign-keys':'Upoznaj uloge i izvor ključeva','sign-lab':'Provjeri potpis i povjerenje','sign-share':'Zaštiti povjerljivi prilog','sign-test':'Isprobaj provjeru i siguran pristup'});

@@ -84,7 +84,7 @@ test('All transfer cases can be solved in every tier without altering campaign s
     assert.equal(totalLearning(save,tier),total);
     assert.equal(JSON.stringify({best:target.best,active:target.active}),campaign);
     const summary=practiceSummary(target.practice,target.best);
-    assert.equal(summary.solved,12);assert.equal(summary.firstTry,12);assert.equal(summary.next,undefined);assert.deepEqual(summary.review,[]);
+    assert.equal(summary.solved,PRACTICE_CASES.length);assert.equal(summary.firstTry,PRACTICE_CASES.length);assert.equal(summary.next,undefined);assert.deepEqual(summary.review,[]);
   }
   assert.deepEqual(parseSave(JSON.stringify(save)),save);
 });

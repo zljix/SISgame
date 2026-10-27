@@ -12,6 +12,7 @@ import * as operations from '../src/operations.ts';
 import * as storage from '../src/storage.ts';
 import * as practice from '../src/practice.ts';
 import * as progress from '../src/progress.ts';
+import * as integrity from '../src/integrity.ts';
 
 // Local DOM unit harness. No network, user browser, rendering or real game canvas.
 const source=stripTypeScriptTypes(await readFile('src/main.ts','utf8'))
@@ -37,7 +38,7 @@ async function setup(tier, saved=null){
   requestAnimationFrame:()=>0,cancelAnimationFrame:()=>{},clearInterval:()=>{},performance,
   ResizeObserver:class{observe(){}disconnect(){}},
   Phaser:{AUTO:0,Scale:{RESIZE:0},Game:class{scale={getParentBounds(){},refresh(){}}}},Sector,
-  ...core,...data,...curriculum,...missions,...network,...operations,...storage,...practice,...progress};
+  ...core,...data,...curriculum,...missions,...network,...operations,...storage,...practice,...progress,...integrity};
  runInNewContext(source+'\nwindow.__checks={start,openStation,getRun:()=>run,getSave:()=>save};',context);
  const h=w.__checks;
  const click=id=>{const e=w.document.querySelector(id);assert.ok(e,id);e.click();};
@@ -49,7 +50,7 @@ async function setup(tier, saved=null){
 }
 for(const tier of curriculum.TIERS){
  const {w,h,click,select,tick,station,close}=await setup(tier);
- check(w.document.querySelectorAll('.mission-card').length===12,`${tier}: twelve cards`);
+ check(w.document.querySelectorAll('.mission-card').length===data.LEVELS.length,`${tier}: all mission cards`);
  check(!w.document.querySelector('[data-level="11"]').disabled,`${tier}: new mission unlocked`);
  check(w.document.querySelector('[data-level="12"]').disabled,`${tier}: next mission still locked`);
  h.start(11);click('#begin');station('assets');click('[data-choice="context"]');station('risk-analysis');
@@ -103,7 +104,7 @@ for(const tier of curriculum.TIERS){
  initial.profiles[tier].active=core.newRun(6,'relaxed',tier);
  let ui=await setup(tier,JSON.stringify(initial));
  ui.click('#practice-open');
- check(ui.w.document.querySelectorAll('[data-practice]').length===12,`${tier}: twelve transfer cases`);
+ check(ui.w.document.querySelectorAll('[data-practice]').length===practice.PRACTICE_CASES.length,`${tier}: all transfer cases`);
  for(const {level} of practice.PRACTICE_CASES){
   ui.click(`[data-practice="${level}"]`);
   const scenario=practice.practiceCase(level,tier);
@@ -137,13 +138,90 @@ for(const tier of curriculum.TIERS){
   if(level===1){ui.click('#practice-continue');check(ui.w.document.querySelector('#dialog-title').textContent===practice.practiceCase(2,tier).title,`${tier}: next available case`);}
   ui.click('#practice-overview');
  }
- check(ui.w.document.querySelector('.pause-summary').textContent.includes('12/12'),`${tier}: full practice summary`);
+ check(ui.w.document.querySelector('.pause-summary').textContent.includes(`${practice.PRACTICE_CASES.length}/${practice.PRACTICE_CASES.length}`),`${tier}: full practice summary`);
  check(ui.w.document.querySelector('.note').textContent.includes('Vrijedi ponoviti'),`${tier}: correction recommendation`);
  ui.click('#practice-home');
- check(ui.w.document.querySelector('#total-xp').textContent==='1200',`${tier}: no campaign score inflation`);
+ check(ui.w.document.querySelector('#total-xp').textContent===String(data.LEVELS.length*100),`${tier}: no campaign score inflation`);
  check(storage.profile(ui.h.getSave()).active.level===6,`${tier}: campaign draft survives practice`);
  ui.select('#content-level',tier==='junior'?'standard':'junior');ui.click('#practice-open');
  check([...ui.w.document.querySelectorAll('[data-practice]')].every(b=>b.disabled),`${tier}: other profile stays locked`);
+ await ui.close();
+}
+for(const tier of curriculum.TIERS){
+ const initial=storage.emptySave();initial.settings.content=tier;initial.settings.difficulty='relaxed';
+ for(let level=1;level<=12;level++)initial.profiles[tier].best[level]={learning:100,arcade:0,independent:4,completed:true};
+ let ui=await setup(tier,JSON.stringify(initial));
+ check(ui.w.document.querySelectorAll('.mission-symbol svg').length===data.LEVELS.length,`${tier}: each mission has an icon`);
+ check(!ui.w.document.querySelector('[data-level="13"]').disabled,`${tier}: mission thirteen unlocked from previous campaign`);
+ check(ui.w.document.querySelector('[data-level="14"]').disabled,`${tier}: mission fourteen remains gated`);
+ ui.click('[data-level="13"]');check(ui.w.document.querySelector('.lesson-grid').textContent.includes('SHA-256'),`${tier}: hash concept introduced before task`);ui.click('#begin');
+ ui.station('hash-source');ui.click('[data-choice="message"]');check(!ui.w.document.querySelector('#feedback').hidden,`${tier}: untrusted reference feedback`);ui.click('[data-choice="known"]');
+ ui.station('hash-lab');
+ check(ui.w.document.querySelectorAll('.integrity-card').length===(tier==='junior'?2:3),`${tier}: adapted hash comparison count`);
+ check(ui.w.document.querySelector('.hash-reference code').textContent===integrity.HASH_REFERENCE.digest,`${tier}: full reference digest visible`);
+ ui.click('#check-hashes');check(ui.h.getRun().checks['hash-lab'].errors===0,`${tier}: empty hash form does not mark error`);
+ ui.click('[data-hash-compare="changed"]');
+ check(!ui.w.document.querySelector('#hash-result-changed').hidden&&ui.w.document.querySelector('#hash-result-changed').textContent.includes('razlikuje'),`${tier}: comparison aid explains difference`);
+ ui.select('#hash-original','same');ui.select('#hash-changed','same');if(tier!=='junior')ui.select('#hash-renamed','same');
+ ui.click('#check-hashes');check(ui.h.getRun().checks['hash-lab'].errors===1,`${tier}: incorrect comparison records correction`);
+ const hashSave=ui.w.localStorage.getItem(storage.SAVE_KEY);await ui.close();ui=await setup(tier,hashSave);
+ ui.click('#play-primary');ui.click('#begin');ui.station('hash-lab');
+ check(ui.w.document.querySelector('#hash-changed').value==='same',`${tier}: hash draft survives reload`);
+ ui.select('#hash-changed','changed');ui.click('#check-hashes');check(core.score(ui.h.getRun())===50,`${tier}: corrected hash comparison`);
+ ui.station('hash-response');ui.click('[data-choice="rename"]');check(!ui.w.document.querySelector('#feedback').hidden,`${tier}: rename cannot fix content`);ui.click('[data-choice="retry"]');
+ ui.station('hash-test');ui.click('[data-choice="test"]');
+ if(tier==='expert'){
+  const review=curriculum.EXPERT_REVIEWS[13];
+  for(const q of review.questions)ui.click(`input[name="review-${q.id}"][value="${q.answer}"]`);
+  const first=review.questions[0];ui.click(`input[name="review-${first.id}"][value="${first.choices.find(([id])=>id!==first.answer)[0]}"]`);ui.click('#submit-review');
+  check(!ui.w.document.querySelector('#feedback').hidden,'expert: hash source inference needs correction');
+  ui.click(`input[name="review-${first.id}"][value="${first.answer}"]`);ui.click('#submit-review');
+ }
+ check(ui.w.document.querySelectorAll('.verification-grid article').length===4,`${tier}: hash verification reports`);
+ ui.click('#verification-done');ui.station('exit');ui.click('#results-practice');
+ check(ui.w.document.querySelector('#dialog-title').textContent===practice.practiceCase(13,tier).title,`${tier}: new hash transfer case opens`);
+ ui.click('#dialog-close');check(!ui.w.document.querySelector('[data-level="14"]').disabled,`${tier}: completing hash mission unlocks signatures`);
+ ui.click('[data-level="14"]');check(ui.w.document.querySelector('.lesson-grid').textContent.includes('javni'),`${tier}: signature keys introduced before task`);ui.click('#begin');
+ ui.station('sign-keys');ui.click('[data-choice="private"]');check(!ui.w.document.querySelector('#feedback').hidden,`${tier}: private key request rejected`);ui.click('[data-choice="public"]');
+ ui.station('sign-lab');
+ check(ui.w.document.querySelectorAll('.integrity-card').length===(tier==='junior'?2:3),`${tier}: adapted signature count`);
+ check(ui.w.document.querySelector('.dialog-content').textContent.includes('Ne provjerava stvarne potpise'),`${tier}: teaching model labelled`);
+ ui.click('#check-signatures');check(ui.h.getRun().checks['sign-lab'].errors===0,`${tier}: incomplete signature form is ungraded`);
+ ui.select('#signature-key','enclosed');
+ if(tier!=='junior'){
+  const result=ui.w.document.querySelector('#signature-result-unknown');
+  check(result.textContent.includes('Potpis prolazi')&&result.textContent.includes('nije potvrđena')&&!result.classList.contains('confirmed'),`${tier}: valid untrusted signature is not accepted`);
+ }
+ ui.select('#signature-approved','hold');ui.select('#signature-edited','hold');if(tier!=='junior')ui.select('#signature-unknown','accept');
+ ui.click('#check-signatures');check(ui.h.getRun().checks['sign-lab'].errors===1,`${tier}: unconfirmed key cannot approve school record`);
+ const signatureSave=ui.w.localStorage.getItem(storage.SAVE_KEY);await ui.close();ui=await setup(tier,signatureSave);
+ ui.click('#play-primary');ui.click('#begin');ui.station('sign-lab');
+ check(ui.w.document.querySelector('#signature-key').value==='enclosed'&&ui.w.document.querySelector('#signature-approved').value==='hold',`${tier}: key and decision drafts reload`);
+ ui.select('#signature-key','school');
+ check(ui.w.document.querySelector('#signature-result-approved').classList.contains('confirmed'),`${tier}: confirmed original passes`);
+ check(ui.w.document.querySelector('#signature-result-edited').textContent.includes('ne prolazi'),`${tier}: modified contents fail`);
+ ui.select('#signature-approved','accept');if(tier!=='junior')ui.select('#signature-unknown','hold');ui.click('#check-signatures');
+ check(core.score(ui.h.getRun())===50,`${tier}: corrected signature decisions`);
+ ui.station('sign-share');ui.click('[data-choice="public"]');check(!ui.w.document.querySelector('#feedback').hidden,`${tier}: signature does not grant confidentiality`);ui.click('[data-choice="protect"]');
+ ui.station('sign-test');ui.click('[data-choice="test"]');
+ if(tier==='expert'){for(const q of curriculum.EXPERT_REVIEWS[14].questions)ui.click(`input[name="review-${q.id}"][value="${q.answer}"]`);ui.click('#submit-review');}
+ check(ui.w.document.querySelectorAll('.verification-grid article').length===4,`${tier}: signature verification reports`);
+ ui.click('#verification-done');ui.station('exit');ui.click('#results-practice');
+ check(ui.w.document.querySelector('#dialog-title').textContent===practice.practiceCase(14,tier).title,`${tier}: new signature transfer case opens`);
+ ui.click('#dialog-close');
+ check(ui.w.document.querySelector('#total-xp').textContent==='1400',`${tier}: complete expanded campaign total`);
+ ui.click('#progress-open');ui.click('#export-progress');
+ const exported=progress.readProgressBackup(await ui.downloads[0].blob.text()).save;
+ check(storage.profile(exported,tier).best[14].completed&&storage.totalLearning(exported,tier)===1400,`${tier}: expanded campaign exported`);
+ await ui.close();
+}
+{
+ const legacy=await readFile('tests/fixtures/progress-v0.7.0.json','utf8');
+ const ui=await setup('standard');ui.click('#progress-open');await ui.chooseFile(new ui.w.File([legacy],'v070.json'));ui.click('#confirm-import');ui.click('#progress-close');
+ check(ui.w.document.querySelector('#total-xp').textContent==='1200','old exported work keeps all prior points');
+ check(!ui.w.document.querySelector('[data-level="13"]').disabled&&ui.w.document.querySelector('[data-level="14"]').disabled,'old backup opens the next new mission without skipping it');
+ ui.click('#play-primary');ui.click('#begin');ui.station('response-plan');
+ check(ui.h.getRun().level===12&&ui.w.document.querySelector('#response-0').value==='contain','old backup resumes original draft mission');
  await ui.close();
 }
 {
@@ -156,7 +234,7 @@ for(const tier of curriculum.TIERS){
  const original=JSON.stringify(ui.h.getSave());
  ui.click('#progress-open');
  check(ui.w.document.querySelector('#dialog-title').textContent==='Moj rad','progress view opens');
- check(ui.w.document.querySelectorAll('.progress-table tbody tr').length===12,'progress has twelve mission rows');
+ check(ui.w.document.querySelectorAll('.progress-table tbody tr').length===data.LEVELS.length,'progress has all mission rows');
  check(ui.w.document.querySelector('#progress-tier').value==='standard','progress starts in current tier');
  ui.click('#export-progress');
  const exported=ui.downloads[0];check(exported.filename.endsWith('.json'),'backup filename');
@@ -165,7 +243,7 @@ for(const tier of curriculum.TIERS){
  check(report.filename.endsWith('.txt'),'report filename');
  const reportText=await report.blob.text();check(['JUNIOR','STANDARD','EXPERT'].every(name=>reportText.includes(name)),'report contains all tiers');
  ui.select('#progress-tier','junior');check(ui.w.document.querySelector('.progress-table').textContent.includes('Započeto'),'draft application shown');
- ui.select('#progress-tier','expert');check(ui.w.document.querySelector('.pause-summary').textContent.includes('0/12'),'empty tier shown separately');
+ ui.select('#progress-tier','expert');check(ui.w.document.querySelector('.pause-summary').textContent.includes(`0/${data.LEVELS.length}`),'empty tier shown separately');
  check(JSON.stringify(ui.h.getSave())===original,'viewing and exporting do not mutate preferences or work');
  await ui.chooseFile(new ui.w.File(['not json'],'wrong.json'));
  check(ui.w.document.querySelector('#feedback').textContent.includes('Kopija nije učitana'),'invalid file feedback');
