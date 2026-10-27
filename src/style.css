@@ -513,3 +513,77 @@ dialog {
 .integrity-card .setting-label { margin-top:14px; }
 .hash-compare { min-height:44px; text-align:left; margin-top:4px; }
 @media(max-width:600px) { .integrity-card,.hash-reference,.signature-key { padding:14px; } }
+
+/* Learning scaffolds share the same content on phones and computers. */
+.learning-outcome { padding: 16px; border-left: 3px solid var(--mint); background: #102c37; border-radius: 0 10px 10px 0; margin: 16px 0; }
+.learning-outcome strong { color: #a7f0d3; font-size: 13px; }
+.learning-outcome p { margin-top: 6px; font-size: 14px; line-height: 1.6; }
+.worked-example, .mission-plan, .control-instructions, .reflection details { margin: 14px 0; border: 1px solid #3c536b; border-radius: 10px; background: #132236; }
+.worked-example summary, .mission-plan summary, .control-instructions summary, .reflection summary { padding: 13px 16px; min-height: 44px; cursor: pointer; font-size: 13px; line-height: 1.5; color: #c9e7e9; }
+.worked-example ol { margin: 0; padding: 0 20px 16px 40px; }
+.worked-example li { padding: 8px 0; color: #b2c6d6; }
+.worked-example strong { color: #e5f1f1; font-size: 13px; }
+.worked-example p, .control-instructions p, .reflection p { font-size: 13px; line-height: 1.65; }
+.worked-example p { margin-top: 4px; }
+.control-instructions p, .reflection details p { padding: 0 16px 16px; }
+.mission-plan > .fine-print { margin: 0 16px 16px; }
+.mission-steps { list-style: none; margin: 12px 0; padding: 0; display: grid; gap: 9px; }
+.mission-plan .mission-steps { padding: 0 16px; }
+.mission-steps li { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border: 1px solid #3b4e62; border-radius: 9px; color: #b6c6d5; font-size: 13px; line-height: 1.5; }
+.mission-steps .current { border-color: #71cbb2; color: #e5fff4; background: #1a3d43; }
+.mission-steps .done { color: #9ce6c9; }
+.step-marker { display: grid; place-items: center; flex-shrink: 0; width: 25px; height: 25px; border-radius: 50%; border: 1px solid currentColor; font-size: 12px; }
+.mission-steps small { display: block; font-size: 11px; color: #a6bdc7; margin-top: 3px; }
+.reflection { margin: 20px 0; padding-top: 18px; border-top: 1px solid #3c536b; }
+.reflection h3 { font-size: 16px; margin-bottom: 8px; }
+.reflection .fine-print { margin: 8px 0; font-size: 12px; }
+
+/* Input mode is based on pointer capability or an explicit choice, never width alone. */
+.play-workspace { display: flex; flex: 1; min-height: 0; min-width: 0; }
+.play-workspace #game-stage { min-width: 0; }
+.mission-panel { display: none; }
+.keyboard-help { display: none; }
+#canvas-host:focus-visible { outline: 3px solid #ffd087; outline-offset: -4px; }
+.touch-controls .action-controls kbd { display: none; }
+.keyboard-controls .joystick, .keyboard-controls .map-caption { display: none; }
+.keyboard-controls #canvas-host { inset: 68px 0 116px; }
+.keyboard-controls .goal { top: 10px; min-height: 48px; font-size: 13px; }
+.keyboard-controls .controls { position: absolute; inset: auto 0 0; height: 116px; padding: 10px 16px max(10px, var(--safe-bottom)); display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 26px 1fr; gap: 8px 16px; align-items: center; background: #102234; border-top: 1px solid #3d5a6b; }
+.keyboard-controls .nearby { position: static; grid-column: 1 / -1; grid-row: 1; transform: none; max-width: none; width: auto; background: none; padding: 0; border: 0; text-align: left; }
+.keyboard-controls .nearby strong { display: inline; font-size: 13px; }
+.keyboard-controls .nearby span { display: inline; margin-left: 12px; font-size: 11px; }
+.keyboard-controls .keyboard-help { display: grid; gap: 6px; grid-column: 1; grid-row: 2; font-size: 11px; color: #c4d8e0; line-height: 1.7; }
+.keyboard-controls .action-controls { position: static; grid-column: 2; grid-row: 2; display: flex; align-items: center; gap: 8px; }
+.keyboard-controls .action-controls button { width: auto; height: auto; min-height: 46px; min-width: 80px; padding: 10px 12px; flex-direction: row; border-radius: 10px; font-size: 12px; gap: 7px; }
+.keyboard-controls .action-controls .icon { width: 21px; height: 21px; }
+.keyboard-controls kbd, .mission-panel kbd { display: inline-block; position: static; padding: 1px 5px; font-size: 10px; white-space: nowrap; }
+
+@media (min-width: 1100px) and (min-height: 600px) {
+  .play-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 290px; }
+  .mission-panel { display: flex; flex-direction: column; gap: 12px; padding: 26px 20px; min-height: 0; overflow: auto; background: #132235; border-left: 1px solid #395368; }
+  .mission-panel h2 { font-size: 23px; letter-spacing: -.5px; }
+  #panel-outcome { font-size: 14px; line-height: 1.7; color: #c5d9e4; }
+  .mission-panel .mission-steps { margin: 4px 0; }
+  .mission-panel .secondary { margin-top: auto; min-height: 46px; }
+  .mission-panel .fine-print { line-height: 1.6; }
+  .keyboard-controls dialog { width: min(780px, calc(100vw - var(--dialog-left) - var(--dialog-right))); }
+  .keyboard-controls .dialog-content { padding: 24px 32px; }
+  .keyboard-controls .dialog-lead { font-size: 15px; line-height: 1.7; }
+}
+@media (max-width: 700px), (max-height: 440px) {
+  .keyboard-controls #canvas-host { top: 58px; bottom: 90px; }
+  .keyboard-controls .controls { height: 90px; grid-template-rows: 1fr; padding: 8px 12px max(8px, var(--safe-bottom)); }
+  .keyboard-controls .goal { font-size: 11px; min-height: 38px; }
+  .keyboard-controls .keyboard-help { grid-column: 1; grid-row: 1; font-size: 10px; gap: 0; }
+  .keyboard-controls .keyboard-help span:first-child { display: none; }
+  .keyboard-controls .action-controls { grid-row: 1; }
+  .keyboard-controls .action-controls button { min-width: 44px; padding: 9px; }
+  .keyboard-controls .action-controls .icon { display: none; }
+  .keyboard-controls .nearby { position: absolute; bottom: 100%; left: 8px; right: 8px; padding: 5px 8px; background: #102736eb; font-size: 11px; }
+  .keyboard-controls .nearby span { display: none; }
+}
+@media (max-width: 420px) {
+  .keyboard-controls .keyboard-help { font-size: 9px; }
+  .keyboard-controls .action-controls button { font-size: 10px; padding: 8px; }
+  .keyboard-controls .action-controls kbd { display: none; }
+}
