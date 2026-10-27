@@ -3,18 +3,20 @@
   "version": "0.5.0",
   "private": true,
   "type": "module",
-  "description": "Pou\u010dna 2D arkada iz sigurnosti informacijskih sustava",
+  "description": "Poučna 2D arkada iz sigurnosti informacijskih sustava",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build && node scripts/precache.mjs",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "test:ui": "node --experimental-strip-types scripts/check-ui.mjs"
   },
   "dependencies": {
     "phaser": "^3.90.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "happy-dom": "21.0.4",
     "typescript": "^7.0.2",
     "vite": "^8.3.5"
   }

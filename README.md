@@ -98,12 +98,13 @@ Lokalni rezultati su evidencija vježbanja, **nisu kriptografski dokaz znanja il
 
 ## Razvoj
 
-Potreban je Node.js 22.12+ ili noviji podržani LTS.
+Izgradnja traži Node.js 22.12+; dodatne provjere sučelja (`test:ui`) koriste Node.js 22.13+ ili noviji podržani LTS. Cijeli postupak provjeren je na Node.js 24.22.1.
 
 ```sh
 npm ci
 npm run dev
 npm test
+npm run test:ui
 npm run build
 ```
 
@@ -119,6 +120,7 @@ npm run build
 - `src/main.ts` — izbornici, kontrole, konfiguracija zaštite i PWA.
 - `src/storage.ts` — lokalni napredak, validacija formata i najbolji rezultati.
 - `tests/` — provjere ključnih pravila, oporavka podataka, putanja i spremanja.
+- `scripts/check-ui.mjs` — 60 lokalnih provjera kontrola novih misija uz Happy DOM; nema pristupa mreži, stvarnom pregledniku ni igraćem platnu. Happy DOM je samo razvojna ovisnost.
 
 ## Provjera prije uporabe u razredu
 
@@ -128,7 +130,9 @@ Postavke, Junior obrasci, Expert analiza i mrežna konzola provjereni su u Chrom
 
 Nove konzole iz 0.4.0 dodatno su provjerene u Chromeu unutar prikaza 956 × 440, 568 × 320 i 390 × 844, s odvojenim izmišljenim testnim napretkom. Provjereni su ispravak odgovora, ponovno učitavanje nedovršenih odabira, Junior pojednostavljenja i Expert završni slučajevi. Na 568 × 320 zapisi se nižu jedan ispod drugoga, a glavna tipka i zatvaranje ostaju dostupni. To je provjera rasporeda u računalnom pregledniku, ne test višestrukog dodira na fizičkom telefonu.
 
-Za **0.5.0** prošli su TypeScript, produkcijska izgradnja, offline provjera paketa i svih 52 testa. Posebno su provjereni preduvjeti, nepotpuni i pogrešni odabiri, proračun resursa, očuvanje starih rezultata i nedovršenih novih odabira te dodatni Expert slučajevi. **Vizualni pregled novih konzola u pregledniku nije proveden:** pristup lokalnoj testnoj adresi blokiran je automatskom provjerom pristupa. Ranije navedene provjere zaslona odnose se na 0.4.0 i starije prikaze. Novu inačicu prije spajanja treba pregledati na uspravnom i vodoravnom zaslonu, a prije nastave i na stvarnim uređajima.
+Za **0.5.0** prošli su TypeScript, produkcijska izgradnja, offline provjera paketa i svih 52 testa. Dodatnih **60 lokalnih DOM provjera** potvrđuje kontrole obiju novih misija u sve tri razine: netočne odluke, prikaz troška i preostalog rizika, obnovu odabira, Expert analizu, završetak i povratak na kartu s ispravnim zbrojem bodova. Pokreću se pomoću `npm run test:ui`; učitavaju stvarni kod sučelja uz zamijenjeni Phaser i memorijski DOM, bez mreže.
+
+**Vizualni pregled novih konzola u stvarnom pregledniku nije proveden:** automatska provjera pristupa alata blokirala je lokalnu testnu adresu i nakon korisnikova odobrenja. DOM provjere ne potvrđuju izgled, raspored, dodirne kontrole ni prikaz igraćeg platna. Ranije navedene provjere zaslona odnose se na 0.4.0 i starije prikaze. Prije nastavne uporabe 0.5.0 treba vizualno pregledati na uspravnom i vodoravnom zaslonu te isprobati na stvarnim uređajima.
 
 Nastavni okvir obuhvaća sedam cjelina i 26 tema. Ova inačica ima dvanaest misija koje objedinjuju dio tema; ne pokriva svih 26 nastavnih tema. Procjena imovine i rizika te plan odgovora sada imaju samostalne misije. Za daljnji razvoj ostaju dodatni slučajevi, provjera prijenosa znanja i pilotiranje u razredu. Detaljna veza s gradivom nalazi se u [CONTENT.md](CONTENT.md).
 
